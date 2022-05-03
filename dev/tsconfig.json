@@ -1,0 +1,15 @@
+{
+    "compileOnSave": true,
+    "compilerOptions": {
+        "lib": ["esnext"],
+        "target": "esnext",
+        "module": "esnext",
+        "moduleResolution": "node",
+
+        "outDir": "../pack/scripts",
+        "removeComments": true,
+        "allowJs": true,
+        "checkJs": false
+    },
+    "include": ["src", "types"]
+}
