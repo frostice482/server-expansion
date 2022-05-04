@@ -52,13 +52,13 @@ class CommandError extends Error {
  * @param source Source where the command will be executed at.
  * @param ignoreError Ignores error.
  */
-export const execCmd = (command: string, source: dimKeys | Entity | Dimension = 'overworld', ignoreError: boolean = false) => {
+export const execCmd = (command: string, source: dimKeys | Entity | Dimension = 'overworld', ignoreError: boolean = false): CommandResponse => {
     try {
         return ( typeof source == 'string' ? dim[source] : source ).runCommand(command)
     } catch(e) {
-        if (ignoreError) return
-        if (e instanceof Error) return e
+        if (e instanceof Error) throw e
         const r: CommandResponse = JSON.parse(e)
+        if (ignoreError) return r
         throw new CommandError(auth, r.statusCode, r.statusMessage, command)
     }
 }
