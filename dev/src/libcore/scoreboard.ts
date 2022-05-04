@@ -7,7 +7,7 @@ const auth = Symbol()
 
 type displaySlot = 'sidebar' | 'list' | 'belowname'
 
-const toExecutable = (v: string) => `"${v.replace(/\\|"/g, '\\$&')}"`
+const toExecutable = JSON.stringify
 
 class players {
     #obj: objective
