@@ -12,7 +12,7 @@ const toExecutable = JSON.stringify
  * @param message Message to be sent to the player(s).
  */
 export const sendMsg = (target: string, message: any) =>
-    execCmd(`tellraw ${/^ *@[spear]( *\[.*\] *)?$/.test(target) ? target : toExecutable(target)} {"rawtext":[{"text":${toExecutable(convertToString(message))}}]}`, dim.o, true)
+    void execCmd(`tellraw ${/^ *@[spear]( *\[.*\] *)?$/.test(target) ? target : toExecutable(target)} {"rawtext":[{"text":${toExecutable(convertToString(message))}}]}`, dim.o, true)
 
 /**
  * Sends a message to the player.
@@ -20,7 +20,7 @@ export const sendMsg = (target: string, message: any) =>
  * @param message Message to be sent to the player.
  */
 export const sendMsgToPlayer = (target: Player, message: any) =>
-    execCmd(`tellraw @s {"rawtext":[{"text":${toExecutable(convertToString(message))}}]}`, target, true)
+    void execCmd(`tellraw @s {"rawtext":[{"text":${toExecutable(convertToString(message))}}]}`, target, true)
 
 /**
  * Sends a message to players.

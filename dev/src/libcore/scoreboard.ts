@@ -207,13 +207,13 @@ class display {
      * @param displaySlot Display slot where scoreboard will be displayed at.
      * @param obj Scoreboard.
      */
-    static readonly setDisplay = (displaySlot: displaySlot, obj: objective | string) => void execCmd(`scoreboard objectives setdisplay ${displaySlot} ${obj instanceof objective ? obj.execId : toExecutable(obj)}`)
+    static readonly setDisplay = (displaySlot: displaySlot, obj: objective | string) => void execCmd(`scoreboard objectives setdisplay ${displaySlot} ${obj instanceof objective ? obj.execId : toExecutable(obj)}`, dim.o, true)
 
     /**
      * Clears scoreboard display from the display slot.
      * @param displaySlot Display slot which will be cleared.
      */
-    static readonly clearDisplay = (displaySlot: displaySlot) => void execCmd(`scoreboard objectives setdisplay ${displaySlot}`)
+    static readonly clearDisplay = (displaySlot: displaySlot) => void execCmd(`scoreboard objectives setdisplay ${displaySlot}`, dim.o, true)
 
     constructor(key: typeof auth, obj: objective) {
         if (key !== auth) throw new ReferenceError('Class is not constructable')
@@ -226,7 +226,7 @@ class display {
      * Sets scoreboard display to the display slot.
      * @param displaySlot Display slot where scoreboard will be displayed at.
      */
-    readonly setDisplay = (displaySlot: displaySlot) => void execCmd(`scoreboard objectives setdisplay ${displaySlot} ${this.#obj.execId}`)
+    readonly setDisplay = (displaySlot: displaySlot) => void execCmd(`scoreboard objectives setdisplay ${displaySlot} ${this.#obj.execId}`, dim.o, true)
 
     readonly clearDisplay = display.clearDisplay
 }
