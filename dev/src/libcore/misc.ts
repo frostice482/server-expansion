@@ -150,11 +150,39 @@ export const viewObj = (() => {
                     return o.join('\n§r')
                 }
 
+                case Error:
+                case TypeError:
+                case ReferenceError:
+                case RangeError:
+                case SyntaxError:
+                case Promise:
+                    return `§b[${objConstructor.name}]§r`
+
                 case Array: {
                     if (!obj.length) return `[] §7Array<0>`
 
                     o.push(`[ §7Array<${obj.length}>`)
                     for (const k in obj) o.push( kv(k) )
+                    o.push(`${prevTab} ]`)
+
+                    return o.join('\n§r')
+                }
+
+                case Set: {
+                    if (!obj.size) return `[] §7Set<0>`
+
+                    o.push(`[ §7Set<${obj.size}>`)
+                    for (const v of obj) o.push( `${tab} => ` + exec( v, tab + defTab, objlist.concat([addObj]), v ) )
+                    o.push(`${prevTab} ]`)
+
+                    return o.join('\n§r')
+                }
+
+                case Map: {
+                    if (!obj.size) return `[] §7Map<0>`
+
+                    o.push(`[ §7Map<${obj.size}>`)
+                    for (const [a, b] of obj) o.push( `${tab} => ${exec( a, tab + defTab, objlist.concat([addObj]), a )} -> ${exec( b, tab + defTab, objlist.concat([addObj]), b )}` )
                     o.push(`${prevTab} ]`)
 
                     return o.join('\n§r')
