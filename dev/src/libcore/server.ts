@@ -97,14 +97,14 @@ class vThread {
         promise.then((v) => {
             this.sleepUntil = -Infinity
             try { response.onResolve?.(v) }
-            catch (e) { console.error(e instanceof Error ? `Error in server > vThread > sleepAwait (resolve) (${this.name}): ${e}\n${e.stack}` : e) }
+            catch (e) { console.error(`server > vThread > sleepAwait (resolve) (${this.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
         }, (v) => {
             this.sleepUntil = -Infinity
             if ( ( response.onRejectThrow ?? true ) && !response.onReject )
                 try { this.fn.throw(v) }
                 finally { return }
             try { response.onReject?.(v) }
-            catch (e) { console.error(e instanceof Error ? `Error in server > vThread > sleepAwait (reject) (${this.name}): ${e}\n${e.stack}` : e) }
+            catch (e) { console.error(`server > vThread > sleepAwait (reject) (${this.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
         })
     }
     /**
@@ -139,7 +139,7 @@ const ticker = (function*(){
                 const t = Date.now()
                 if ( timeout.call <= t + timeout.tolerate )
                     try { timeout.fn( t - timeout.creation ) }
-                    catch (e) { console.error(e instanceof Error ? `Error in server > timeout (${timeout.name}): ${e}\n${e.stack}` : e) }
+                    catch (e) { console.error(`server > timeout (${timeout.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
                 else newTimeoutList.push(timeout)
             }
             timeoutList = newTimeoutList
@@ -150,7 +150,7 @@ const ticker = (function*(){
                     t: number
                 while ( c > 0 && interval.nextCall <= ( t = Date.now() ) + interval.tolerate )
                     try { interval.fn( t - interval.lastCall ) }
-                    catch (e) { console.error(e instanceof Error ? `Error in server > interval (${interval.name}): ${e}\n${e.stack}` : e) }
+                    catch (e) { console.error(`server > interval (${interval.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
                     finally {
                         c--
                         interval.lastCall = t
@@ -170,7 +170,7 @@ const ticker = (function*(){
                 }
                 try { if (thread.fn.next().done) continue }
                 catch (e) {
-                    console.error(e instanceof Error ? `Error in server > vThread (${thread.name}): ${e}\n${e.stack}` : e)
+                    console.error(`server > vThread (${thread.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`)
                     continue
                 }
                 newVThreadList.push(thread)
