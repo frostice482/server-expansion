@@ -7,6 +7,8 @@ export const empty = <T extends {}> (obj: T = null): T => Object.definePropertie
 export const viewObj = (() => {
     // definitions
     const GeneratorFunction: GeneratorFunction = Object.getPrototypeOf(function*(){}).constructor,
+        AsyncFunction: any = Object.getPrototypeOf(async()=>{}).constructor,
+        AsyncGeneratorFunction: AsyncGeneratorFunction = Object.getPrototypeOf(async function*() {}).constructor,
         errUnknown = '§c[Unknown]§r',
         defTab = ' §8:§r ',
         defStrEscDict = {
@@ -119,6 +121,8 @@ export const viewObj = (() => {
                 case Symbol:
                     return `§b${String(obj)}§r`
                 
+                case AsyncFunction:
+                case AsyncGeneratorFunction:
                 case GeneratorFunction:
                 case Function: {
                     /**
@@ -134,7 +138,9 @@ export const viewObj = (() => {
                     const cn = obj.name || '(anonymous)'
 
                     o.push(
-                        objConstructor == GeneratorFunction ? `§e[GeneratorFunction: ${cn}]§r`
+                        objConstructor == AsyncGeneratorFunction ? `§e[AsyncGeneratorFunction: ${cn}]§r`
+                        : objConstructor == AsyncFunction ? `§e[AsyncFunction: ${cn}]§r`
+                        : objConstructor == GeneratorFunction ? `§e[GeneratorFunction: ${cn}]§r`
                         : l == 0 || l == 1 ? `§e[Function: ${cn}]§r`
                         : l == 2 ? `§b[Class: ${cn}]§r`
                         : ''
