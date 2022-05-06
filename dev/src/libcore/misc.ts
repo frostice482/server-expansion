@@ -78,7 +78,7 @@ export const viewObj = (() => {
                     // from the prototype, if object constructor is a function, use the object instance, otherwise use object constructor's prototype and object instance
                     // when using the object constructor's prototype, we need to check if the value still exists in the object instance
                     const o = new Set(
-                        ( objConstructor == Function || objConstructor == GeneratorFunction ) ? Reflect.ownKeys(obj)
+                        ( objConstructor == Function || objConstructor == GeneratorFunction || objConstructor == AsyncFunction || objConstructor == AsyncGeneratorFunction ) ? Reflect.ownKeys(obj)
                         : Reflect.ownKeys(objConstructor.prototype).filter(v => v in obj).concat(Reflect.ownKeys(obj))
                     )
                     o.delete('length')
