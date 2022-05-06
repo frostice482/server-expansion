@@ -1,4 +1,5 @@
-import { world } from "mojang-minecraft"
+import { Player, world } from "mojang-minecraft"
+import eventManager, { MapEventList } from "./evmngr.js"
 
 class timeout {
     /** Function to be called. */
@@ -186,8 +187,41 @@ const ticker = (function*(){
 
 world.events.tick.subscribe(() => ticker.next())
 
+type EventList = MapEventList<{
+    playerJoin: (plr: Player) => void
+    playerLoad: (plr: Player) => void
+}>
+
+const { events, triggerEvent } = new eventManager<EventList>(['playerLoad', 'playerJoin'], 'server')
+
+const eventQueues = {
+    playerJoin: new Set<Player>()
+}
+
+world.events.playerJoin.subscribe(({player}) => {
+    eventQueues.playerJoin.add(player)
+    triggerEvent.playerJoin(player)
+})
+
+world.events.tick.subscribe(() => {
+    for (const plr of eventQueues.playerJoin)
+        try {
+            plr.nameTag // fails: player doesn't exist, success: player exist
+            try {
+                plr.runCommand('testfor @s') // fails: player hasn't loaded, success: player loaded
+                eventQueues.playerJoin.delete(plr)
+                triggerEvent.playerLoad(plr)
+            } catch {}
+        } catch {
+            eventQueues.playerJoin.delete(plr)
+        }
+})
+
 export default class server {
     static readonly interval = interval
     static readonly timeout = timeout
     static readonly vThread = vThread
+
+    static readonly ev = events
+    static readonly events = events
 }
