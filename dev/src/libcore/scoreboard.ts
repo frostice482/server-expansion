@@ -30,7 +30,10 @@ class players {
      * Gets player score in the objective.
      * @param plr Player.
      */
-    readonly 'get' = (plr: Player) => +execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true).statusMessage.match(/-?\d+/)?.[0] ?? 0
+    readonly 'get' = (plr: Player) => {
+        const v = execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true).statusMessage.match(/-?\d+/)?.[0]
+        return v ? +v : undefined
+    }
 
     /**
      * Test if a player score exists on the objective.
@@ -74,7 +77,10 @@ class dummies {
      * Gets dummy score in the objective.
      * @param name Dummy name.
      */
-    readonly 'get' = (name: string) => +execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true).statusMessage.match(/-?\d+/)?.[0] ?? 0
+    readonly 'get' = (name: string) => {
+        const v = execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true).statusMessage.match(/-?\d+/)?.[0]
+        return v ? +v : undefined
+    }
 
     /**
      * Test if a dummy score exists on the objective.
