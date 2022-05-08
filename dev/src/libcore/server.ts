@@ -187,12 +187,37 @@ const ticker = (function*(){
 
 world.events.tick.subscribe(() => ticker.next())
 
+type nametagChangeEvd = {
+    /** Player whose nametag has been changed. */
+    readonly plr: Player
+    /** Cancel. */
+    cancel: boolean
+    /** New nametag to be applied to the player. */
+    nameTag: string
+}
+
 type EventList = MapEventList<{
     playerJoin: (plr: Player) => void
     playerLoad: (plr: Player) => void
+    nametagChange: (evd: nametagChangeEvd) => void
 }>
 
-const { events, triggerEvent } = new eventManager<EventList>(['playerLoad', 'playerJoin'], 'server')
+const { events, triggerEvent } = new eventManager<EventList>(['playerLoad', 'playerJoin', 'nametagChange'], 'server')
+
+const { nameTag: nameTagDesc } = Object.getOwnPropertyDescriptors(Player.prototype)
+Object.defineProperties(Player.prototype, {
+    nameTag: {
+        set: (v) => {
+            const evd: nametagChangeEvd = {
+                plr: this,
+                cancel: false,
+                nameTag: v
+            }
+            triggerEvent.nametagChange(evd)
+            if (!evd.cancel) nameTagDesc.set(v)
+        }
+    }
+})
 
 const eventQueues = {
     playerJoin: new Set<Player>()
