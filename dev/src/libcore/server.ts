@@ -185,8 +185,6 @@ const ticker = (function*(){
     }
 })()
 
-world.events.tick.subscribe(() => ticker.next())
-
 // event stuff
 type EventList = MapEventList<{
     playerJoin: (plr: Player) => void
@@ -199,25 +197,6 @@ const eventQueues = {
     playerJoin: new Set<Player>()
 }
 
-world.events.playerJoin.subscribe(({player}) => {
-    eventQueues.playerJoin.add(player)
-    triggerEvent.playerJoin(player)
-})
-
-world.events.tick.subscribe(() => {
-    for (const plr of eventQueues.playerJoin)
-        try {
-            plr.nameTag // fails: player doesn't exist, success: player exist
-            try {
-                plr.runCommand('testfor @s') // fails: player hasn't loaded, success: player loaded
-                eventQueues.playerJoin.delete(plr)
-                triggerEvent.playerLoad(plr)
-            } catch {}
-        } catch {
-            eventQueues.playerJoin.delete(plr)
-        }
-})
-
 export default class server {
     static readonly interval = interval
     static readonly timeout = timeout
@@ -225,4 +204,32 @@ export default class server {
 
     static readonly ev = events
     static readonly events = events
+
+    static readonly start = () => {
+        world.events.tick.subscribe(() => ticker.next())
+
+        world.events.tick.subscribe(() => {
+            for (const plr of eventQueues.playerJoin)
+                try {
+                    plr.nameTag // fails: player doesn't exist, success: player exist
+                    try {
+                        plr.runCommand('testfor @s') // fails: player hasn't loaded, success: player loaded
+                        eventQueues.playerJoin.delete(plr)
+                        triggerEvent.playerLoad(plr)
+                    } catch {}
+                } catch {
+                    eventQueues.playerJoin.delete(plr)
+                }
+        })
+
+        world.events.playerJoin.subscribe(({player}) => {
+            eventQueues.playerJoin.add(player)
+            triggerEvent.playerJoin(player)
+        })
+
+        for (const plr of world.getPlayers()) {
+            triggerEvent.playerJoin(plr)
+            triggerEvent.playerLoad(plr)
+        }
+    }
 }

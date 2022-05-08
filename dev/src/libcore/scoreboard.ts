@@ -31,8 +31,9 @@ class players {
      * @param plr Player.
      */
     readonly 'get' = (plr: Player) => {
-        const v = execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true).statusMessage.match(/-?\d+/)?.[0]
-        return v ? +v : undefined
+        const r = execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true)
+        if (r.statusCode) return // status code must be 0
+        return +r.statusMessage.match(/-?\d+/)?.[0]
     }
 
     /**
@@ -78,8 +79,9 @@ class dummies {
      * @param name Dummy name.
      */
     readonly 'get' = (name: string) => {
-        const v = execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true).statusMessage.match(/-?\d+/)?.[0]
-        return v ? +v : undefined
+        const r = execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true)
+        if (r.statusCode) return // status code must be 0
+        return +r.statusMessage.match(/-?\d+/)?.[0]
     }
 
     /**
