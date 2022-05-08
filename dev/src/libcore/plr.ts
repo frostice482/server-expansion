@@ -42,6 +42,7 @@ server.ev.playerJoin.subscribe((plr) => {
         }
         triggerEvent.playerRegister(evd)
     }
+    plr.nameTag = plr.nameTag
 }, 100)
 
 // event stuff
@@ -71,14 +72,14 @@ type nametagChangeEvd = {
 const { nameTag: nameTagDesc } = Object.getOwnPropertyDescriptors(Player.prototype)
 Object.defineProperties(Player.prototype, {
     nameTag: {
-        set: (v) => {
+        set: function nametagSet(v) {
             const evd: nametagChangeEvd = {
                 plr: this,
                 cancel: false,
                 nameTag: v
             }
             triggerEvent.nametagChange(evd)
-            if (!evd.cancel) nameTagDesc.set(v)
+            if (!evd.cancel) nameTagDesc.set.call(this, evd.nameTag)
         }
     }
 })

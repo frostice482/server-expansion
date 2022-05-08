@@ -1,8 +1,9 @@
-import { Player } from "mojang-minecraft";
+import { Player, world } from "mojang-minecraft";
+import chat from "./chat.js";
 import eventManager, { MapEventList } from "./evmngr.js";
 import { empty } from "./misc.js";
-import plr from "./plr.js";
 import scoreboard from "./scoreboard.js";
+import server from "./server.js";
 const { objective } = scoreboard
 
 const auth = Symbol()
@@ -12,6 +13,9 @@ let groupList: Map<string, roleGroup> = new Map
 let config = {
     /** Apply role to nametag. */
     applyRoleToNametag: true,
+    /** Nametag update interval. */
+    get nametagUpdateInterval() { return nametagInterval.interval },
+    set nametagUpdateInterval(v) { nametagInterval.interval = Math.max( Math.min( v, 120000 ), 30000 ) },
     /** Nametag format. */
     nametagFormat: '#role #name',
     /** Message format. */
@@ -187,10 +191,12 @@ type EventList = MapEventList<{
 
 const { events, triggerEvent } = new eventManager<EventList>(['format'], 'role')
 
-plr.ev.nametagChange.subscribe((evd) => {
+const changeNametag = (plr: Player) => {
     if (!config.applyRoleToNametag) return
-    evd.nameTag = role.format(evd.plr, 'nametag')
-}, -100)
+    plr.nameTag = role.format(plr, 'nametag')
+}
+chat.ev.nicknameChange.subscribe(({plr}) => changeNametag(plr), 90)
+const nametagInterval = new server.interval(() => { for (const plr of world.getPlayers()) changeNametag(plr) }, 30000)
 
 // format stuff
 type formatVariables = {
@@ -271,6 +277,9 @@ export default class role {
         for (let [r, t] of replaceList) o = o.replace(r, t)
         return o.trim()
     }
+
+    /** Configuration. */
+    static readonly config = config
 
     protected constructor() { throw new ReferenceError('Class is not constructable') }
 }

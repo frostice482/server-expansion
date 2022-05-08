@@ -2,6 +2,7 @@
 
 import { Player } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
+import plr from "./plr.js"
 import server from "./server.js"
 
 // event stuff
@@ -38,7 +39,11 @@ const nicknameChangeFn = (plr: Player, nickname: string) => {
     if (!evd.cancel) plr.__nickname = evd.nickname
 }
 
-server.ev.playerJoin.subscribe((plr) => nicknameChangeFn(plr, plr.nameTag))
+server.ev.playerJoin.subscribe((plr) => {
+    plr.__nickname = plr.nameTag
+    nicknameChangeFn(plr, plr.nameTag), 90
+})
+// plr.ev.nametagChange.subscribe(({plr, nameTag}) => nicknameChangeFn(plr, nameTag), 100)
 
 export default class chat {
     static readonly ev = events
