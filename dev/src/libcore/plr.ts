@@ -42,7 +42,7 @@ server.ev.playerJoin.subscribe((plr) => {
         }
         triggerEvent.playerRegister(evd)
     }
-})
+}, 100)
 
 // event stuff
 type EventList = MapEventList<{
