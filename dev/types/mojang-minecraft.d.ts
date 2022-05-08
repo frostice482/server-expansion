@@ -3665,6 +3665,12 @@ declare module 'mojang-minecraft' {
         teleportFacing(location: Location, dimension: Dimension, facingLocation: Location): void;
         triggerEvent(eventName: string): void;
         protected constructor();
+
+        /** `libcore/plr.ts` Player level. */
+        get level(): number
+        set level(v)
+        /** `libcore/plr.ts` Player UID. */
+        get uid(): number
     }
     export class PlayerInventoryComponentContainer extends InventoryComponentContainer {
         readonly 'emptySlotsCount': number;
