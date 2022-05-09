@@ -11,6 +11,9 @@ export default class server {
 
     static get ticker() { return ticker }
 
+    /** Server time. */
+    static serverTime: number
+
     static readonly start = () => {
         world.events.tick.subscribe(() => ticker[ticker.current]())
 
@@ -222,6 +225,7 @@ const ticker = (() => {
         /**
          * Operates ticker at full usage.
          * High precision timeout and interval, vThread executed every free loop
+         * Allows serverTime
          */
         2: (() => {
             const gen = (function*(){
@@ -235,6 +239,7 @@ const ticker = (() => {
                     }
                     const t1 = Date.now()
                     delta = ( yield null ) ?? Date.now() - t1
+                    server.serverTime = delta
                 }
             })()
             gen.next()
