@@ -1,7 +1,5 @@
 import { empty } from "./misc.js";
 
-const list: List<number> = empty()
-
 export default class permission {
     /**
      * Assigns permission level to a tag.
@@ -28,3 +26,5 @@ export default class permission {
      */
     static readonly getLevel = (tags: string[]) => tags.reduce((lev, tag) => ( tag in list && list[tag] > lev ) ? list[tag] : lev, 0)
 }
+
+const list: List<number> = empty()

@@ -1,6 +1,44 @@
 import { Player, world } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
 
+export default class server {
+    static get interval() { return interval }
+    static get timeout() { return timeout }
+    static get vThread() { return vThread }
+
+    static get ev() { return events }
+    static get events() { return events }
+
+    static readonly start = () => {
+        world.events.tick.subscribe(() => ticker.next())
+
+        world.events.tick.subscribe(() => {
+            for (const plr of eventQueues.playerJoin)
+                try {
+                    plr.nameTag // fails: player doesn't exist, success: player exist
+                    try {
+                        plr.runCommand('testfor @s') // fails: player hasn't loaded, success: player loaded
+                        eventQueues.playerJoin.delete(plr)
+                        triggerEvent.playerLoad(plr)
+                    } catch {}
+                } catch {
+                    eventQueues.playerJoin.delete(plr)
+                }
+        })
+
+        world.events.playerJoin.subscribe(({player}) => {
+            eventQueues.playerJoin.add(player)
+            triggerEvent.playerJoin(player)
+        })
+
+        for (const plr of world.getPlayers()) {
+            triggerEvent.playerJoin(plr)
+            triggerEvent.playerLoad(plr)
+        }
+    }
+}
+
+// interval, timeout, vthread
 class timeout {
     /** Function to be called. */
     fn: (delay: number) => void
@@ -195,41 +233,4 @@ const { events, triggerEvent } = new eventManager<EventList>(['playerLoad', 'pla
 
 const eventQueues = {
     playerJoin: new Set<Player>()
-}
-
-export default class server {
-    static readonly interval = interval
-    static readonly timeout = timeout
-    static readonly vThread = vThread
-
-    static readonly ev = events
-    static readonly events = events
-
-    static readonly start = () => {
-        world.events.tick.subscribe(() => ticker.next())
-
-        world.events.tick.subscribe(() => {
-            for (const plr of eventQueues.playerJoin)
-                try {
-                    plr.nameTag // fails: player doesn't exist, success: player exist
-                    try {
-                        plr.runCommand('testfor @s') // fails: player hasn't loaded, success: player loaded
-                        eventQueues.playerJoin.delete(plr)
-                        triggerEvent.playerLoad(plr)
-                    } catch {}
-                } catch {
-                    eventQueues.playerJoin.delete(plr)
-                }
-        })
-
-        world.events.playerJoin.subscribe(({player}) => {
-            eventQueues.playerJoin.add(player)
-            triggerEvent.playerJoin(player)
-        })
-
-        for (const plr of world.getPlayers()) {
-            triggerEvent.playerJoin(plr)
-            triggerEvent.playerLoad(plr)
-        }
-    }
 }

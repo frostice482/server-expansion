@@ -4,6 +4,11 @@ import { execCmd } from "./mc.js";
 import scoreboard from "./scoreboard.js";
 import server from "./server.js";
 
+export default class plr {
+    static get ev() { return events }
+    static get events() { return events }
+}
+
 // scoreboard
 const uidObj = scoreboard.objective.for('_se_uid')
 if (!uidObj.dummies.exist('_current')) uidObj.dummies.set('_current', 0)
@@ -83,8 +88,3 @@ Object.defineProperties(Player.prototype, {
         }
     }
 })
-
-export default class plr {
-    static readonly ev = events
-    static readonly events = events
-}

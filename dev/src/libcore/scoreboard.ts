@@ -5,105 +5,18 @@ const { world: { scoreboard: mcsb }, Scoreboard } = mc
 
 const auth = Symbol()
 
+export default class scoreboard {
+    /** Scoreboard display. */
+    static get display() { return display }
+    /** Scoreboard objective. */
+    static get objective() { return objective }
+
+    protected constructor() { throw new ReferenceError('Class is not constructable') }
+}
+
 type displaySlot = 'sidebar' | 'list' | 'belowname'
 
 const toExecutable = JSON.stringify
-
-class players {
-    #obj: objective
-
-    /**
-     * Sets player score to the objective.
-     * @param plr Player.
-     * @param score Score to be set.
-     */
-    readonly 'set' = (plr: Player, score: number) => ( void execCmd(`scoreboard players set @s ${this.#obj.execId} ${score}`, plr, true), this )
-
-    /**
-     * Adds player score to the objective.
-     * @param plr Player.
-     * @param score Score to be added.
-     */
-    readonly add = (plr: Player, score: number) => ( void execCmd(`scoreboard players add @s ${this.#obj.execId} ${score}`, plr, true), this )
-
-    /**
-     * Gets player score in the objective.
-     * @param plr Player.
-     */
-    readonly 'get' = (plr: Player) => {
-        const r = execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true)
-        if (r.statusCode) return // status code must be 0
-        return +r.statusMessage.match(/-?\d+/)?.[0]
-    }
-
-    /**
-     * Test if a player score exists on the objective.
-     * @param plr Player.
-     */
-    readonly exist = (plr: Player) => !execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true).statusCode
-
-    /**
-     * Deletes player score from the objective.
-     * @param plr Player.
-     */
-    readonly delete = (plr: Player) => !execCmd(`scoreboard players reset @s ${this.#obj.execId}`, plr, true).statusCode
-
-    /** Dummies. */
-    get dummies() { return this.#obj.dummies }
-
-    constructor(key: typeof auth, obj: objective) {
-        if (key !== auth) throw new ReferenceError('Class is not constructable')
-        this.#obj = obj
-    }
-}
-
-class dummies {
-    #obj: objective
-
-    /**
-     * Sets dummy score to the objective.
-     * @param name Dummy name.
-     * @param score Score to be set.
-     */
-    readonly 'set' = (name: string, score: number) => ( void execCmd(`scoreboard players set ${toExecutable(name)} ${this.#obj.execId} ${score}`, dim.o, true), this )
-
-    /**
-     * Adds dummy score to the objective.
-     * @param name Dummy name.
-     * @param score Score to be added.
-     */
-    readonly add = (name: string, score: number) => ( void execCmd(`scoreboard players add ${toExecutable(name)} ${this.#obj.execId} ${score}`, dim.o, true), this )
-
-    /**
-     * Gets dummy score in the objective.
-     * @param name Dummy name.
-     */
-    readonly 'get' = (name: string) => {
-        const r = execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true)
-        if (r.statusCode) return // status code must be 0
-        return +r.statusMessage.match(/-?\d+/)?.[0]
-    }
-
-    /**
-     * Test if a dummy score exists on the objective.
-     * @param name Dummy name.
-     */
-    readonly exist = (name: string) => !execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true).statusCode
-
-    /**
-     * Deletes dummy score from the objective.
-     * @param name Dummy name.
-     */
-    readonly delete = (name: string) => !execCmd(`scoreboard players reset ${toExecutable(name)} ${this.#obj.execId}`, dim.o, true).statusCode
-
-    /** Players. */
-    get players() { return this.#obj.players }
-
-    constructor(key: typeof auth, obj: objective) {
-        if (key !== auth) throw new ReferenceError('Class is not constructable')
-        this.#obj = obj
-    }
-}
 
 class objective {
     /**
@@ -208,6 +121,102 @@ class objective {
     readonly display = new display(auth, this)
 }
 
+class players {
+    #obj: objective
+
+    /**
+     * Sets player score to the objective.
+     * @param plr Player.
+     * @param score Score to be set.
+     */
+    readonly 'set' = (plr: Player, score: number) => ( void execCmd(`scoreboard players set @s ${this.#obj.execId} ${score}`, plr, true), this )
+
+    /**
+     * Adds player score to the objective.
+     * @param plr Player.
+     * @param score Score to be added.
+     */
+    readonly add = (plr: Player, score: number) => ( void execCmd(`scoreboard players add @s ${this.#obj.execId} ${score}`, plr, true), this )
+
+    /**
+     * Gets player score in the objective.
+     * @param plr Player.
+     */
+    readonly 'get' = (plr: Player) => {
+        const r = execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true)
+        if (r.statusCode) return // status code must be 0
+        return +r.statusMessage.match(/-?\d+/)?.[0]
+    }
+
+    /**
+     * Test if a player score exists on the objective.
+     * @param plr Player.
+     */
+    readonly exist = (plr: Player) => !execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true).statusCode
+
+    /**
+     * Deletes player score from the objective.
+     * @param plr Player.
+     */
+    readonly delete = (plr: Player) => !execCmd(`scoreboard players reset @s ${this.#obj.execId}`, plr, true).statusCode
+
+    /** Dummies. */
+    get dummies() { return this.#obj.dummies }
+
+    constructor(key: typeof auth, obj: objective) {
+        if (key !== auth) throw new ReferenceError('Class is not constructable')
+        this.#obj = obj
+    }
+}
+
+class dummies {
+    #obj: objective
+
+    /**
+     * Sets dummy score to the objective.
+     * @param name Dummy name.
+     * @param score Score to be set.
+     */
+    readonly 'set' = (name: string, score: number) => ( void execCmd(`scoreboard players set ${toExecutable(name)} ${this.#obj.execId} ${score}`, dim.o, true), this )
+
+    /**
+     * Adds dummy score to the objective.
+     * @param name Dummy name.
+     * @param score Score to be added.
+     */
+    readonly add = (name: string, score: number) => ( void execCmd(`scoreboard players add ${toExecutable(name)} ${this.#obj.execId} ${score}`, dim.o, true), this )
+
+    /**
+     * Gets dummy score in the objective.
+     * @param name Dummy name.
+     */
+    readonly 'get' = (name: string) => {
+        const r = execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true)
+        if (r.statusCode) return // status code must be 0
+        return +r.statusMessage.match(/-?\d+/)?.[0]
+    }
+
+    /**
+     * Test if a dummy score exists on the objective.
+     * @param name Dummy name.
+     */
+    readonly exist = (name: string) => !execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true).statusCode
+
+    /**
+     * Deletes dummy score from the objective.
+     * @param name Dummy name.
+     */
+    readonly delete = (name: string) => !execCmd(`scoreboard players reset ${toExecutable(name)} ${this.#obj.execId}`, dim.o, true).statusCode
+
+    /** Players. */
+    get players() { return this.#obj.players }
+
+    constructor(key: typeof auth, obj: objective) {
+        if (key !== auth) throw new ReferenceError('Class is not constructable')
+        this.#obj = obj
+    }
+}
+
 class display {
 
     /**
@@ -237,13 +246,4 @@ class display {
     readonly setDisplay = (displaySlot: displaySlot) => void execCmd(`scoreboard objectives setdisplay ${displaySlot} ${this.#obj.execId}`, dim.o, true)
 
     readonly clearDisplay = display.clearDisplay
-}
-
-export default class scoreboard {
-    /** Scoreboard display. */
-    static readonly display = display
-    /** Scoreboard objective. */
-    static readonly objective = objective
-
-    protected constructor() { throw new ReferenceError('Class is not constructable') }
 }

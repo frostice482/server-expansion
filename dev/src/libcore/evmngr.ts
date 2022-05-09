@@ -1,25 +1,5 @@
 import { empty } from "./misc.js"
 
-type EventList = List<(eventData: any) => void>
-export type MapEventList <T extends EventList> = { [K in keyof T]: (eventData: Parameters<T[K]>[0], control: eventControl) => void }
-type MappedEventList = List<(eventData: any, control: eventControl) => void>
-
-type eventControlDataBind = {
-    break: boolean
-}
-
-class eventControl {
-    /**
-     * Stops event execution.
-     * Any function that has lower priority won't be executed.
-     */
-    break: () => void
-
-    constructor(dataBind: eventControlDataBind) {
-        this.break = () => void (dataBind.break = true)
-    }
-}
-
 export default class eventManager <T extends MappedEventList> {
     /** Events. */
     readonly events: {
@@ -84,3 +64,23 @@ export default class eventManager <T extends MappedEventList> {
         }
     }
 }
+
+type eventControlDataBind = {
+    break: boolean
+}
+
+class eventControl {
+    /**
+     * Stops event execution.
+     * Any function that has lower priority won't be executed.
+     */
+    break: () => void
+
+    constructor(dataBind: eventControlDataBind) {
+        this.break = () => void (dataBind.break = true)
+    }
+}
+
+type EventList = List<(eventData: any) => void>
+export type MapEventList <T extends EventList> = { [K in keyof T]: (eventData: Parameters<T[K]>[0], control: eventControl) => void }
+type MappedEventList = List<(eventData: any, control: eventControl) => void>

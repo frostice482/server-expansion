@@ -1,16 +1,26 @@
-// stub
-
 import { Player } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
-import plr from "./plr.js"
 import server from "./server.js"
+
+export default class chat {
+    static get ev() { return events }
+    static get events() { return events }
+}
+
+// properties
+Object.defineProperties(Player.prototype, {
+    nickname: {
+        get: function() { return this.__nickname },
+        set: function(v) { nicknameChangeFn(this, v) }
+    }
+})
 
 // event stuff
 type EventList = MapEventList<{
     nicknameChange: (plr: nicknameChangeEvent) => void
 }>
 
-const { events, triggerEvent } = new eventManager<EventList>(['nicknameChange'], 'role')
+const { events, triggerEvent } = new eventManager<EventList>(['nicknameChange'], 'chat')
 
 type nicknameChangeEvent = {
     /** Player whose nickname has been changed. */
@@ -20,13 +30,6 @@ type nicknameChangeEvent = {
     /** Cancels the event. */
     cancel: boolean
 }
-
-Object.defineProperties(Player.prototype, {
-    nickname: {
-        get: function() { return this.__nickname },
-        set: function(v) { nicknameChangeFn(this, v) }
-    }
-})
 
 const nicknameChangeFn = (plr: Player, nickname: string) => {
     const evd: nicknameChangeEvent = {
@@ -41,11 +44,5 @@ const nicknameChangeFn = (plr: Player, nickname: string) => {
 
 server.ev.playerJoin.subscribe((plr) => {
     plr.__nickname = plr.nameTag
-    nicknameChangeFn(plr, plr.nameTag), 90
-})
-// plr.ev.nametagChange.subscribe(({plr, nameTag}) => nicknameChangeFn(plr, nameTag), 100)
-
-export default class chat {
-    static readonly ev = events
-    static readonly events = events
-}
+    nicknameChangeFn(plr, plr.nameTag)
+}, 90)

@@ -8,8 +8,67 @@ const { objective } = scoreboard
 
 const auth = Symbol()
 
-let groupList: Map<string, roleGroup> = new Map
+export default class role {
+    static get ev() { return events }
+    static get events() { return events }
 
+    static get group() { return roleGroup }
+
+    /**
+     * Format role.
+     * @param plr Player.
+     * @param formatType Format type. `message` to format player message, `nametag` to format player nametag.
+     * @param message Player message.
+     */
+    static readonly format = (plr: Player, formatType: 'message' | 'nametag' = 'message', message?: string) => {
+        let format = config[ formatType == 'message' ? 'messageFormat' : 'nametagFormat' ]
+
+        const vars: formatVariables = empty({
+            name: plr.nickname,
+            message,
+            role: roleGroup.getGroupStyles(plr).join(config.roleGroupStyleSeparator),
+            level: plr.level,
+            score: Object.assign(
+                (obj: string) => {
+                    if (!objective.exist(obj)) return 0
+                    return objective.edit(obj).players.get(plr) ?? 0
+                }, {
+                    [Symbol.toPrimitive]: () => ''
+                }
+            )
+        })
+        const evd: formatEvd = {
+            plr,
+            formatType,
+            format,
+            variables: vars
+        }
+        triggerEvent.format(evd)
+
+        format = evd.format
+
+        const rx = /((?<!\\)#(?<v>[\w\-]+)(\{(?<c>.*?)\})?)/g
+        let execres: RegExpExecArray, replaceList: [replace: string, to: string][] = []
+        while ( ( execres = rx.exec(format) ) !== null) {
+            const { v, c } = execres.groups,
+                m = execres[0],
+                o = c ? vars[v](...c.split('|')) : ( vars[v] ?? '' )
+
+            replaceList.push([m, o])
+        }
+
+        let o = format
+        for (let [r, t] of replaceList) o = o.replace(r, t)
+        return o.trim()
+    }
+
+    /** Configuration. */
+    static get config() { return config }
+
+    protected constructor() { throw new ReferenceError('Class is not constructable') }
+}
+
+// config
 let config = {
     /** Apply role to nametag. */
     applyRoleToNametag: true,
@@ -23,6 +82,9 @@ let config = {
     /** Role group style separator. */
     roleGroupStyleSeparator: ' '
 }
+
+// role groups & role styles
+let groupList: Map<string, roleGroup> = new Map
 
 type groupStyleData = [ tag: string, style: string ]
 
@@ -247,64 +309,4 @@ type formatEvd = {
     format: string
     /** Variables. */
     readonly variables: formatVariables
-}
-
-export default class role {
-    static readonly ev = events
-    static readonly events = events
-
-    static readonly group = roleGroup
-
-    /**
-     * Format role.
-     * @param plr Player.
-     * @param formatType Format type. `message` to format player message, `nametag` to format player nametag.
-     * @param message Player message.
-     */
-    static readonly format = (plr: Player, formatType: 'message' | 'nametag' = 'message', message?: string) => {
-        let format = config[ formatType == 'message' ? 'messageFormat' : 'nametagFormat' ]
-
-        const vars: formatVariables = empty({
-            name: plr.nickname,
-            message,
-            role: roleGroup.getGroupStyles(plr).join(config.roleGroupStyleSeparator),
-            level: plr.level,
-            score: Object.assign(
-                (obj: string) => {
-                    if (!objective.exist(obj)) return 0
-                    return objective.edit(obj).players.get(plr) ?? 0
-                }, {
-                    [Symbol.toPrimitive]: () => ''
-                }
-            )
-        })
-        const evd: formatEvd = {
-            plr,
-            formatType,
-            format,
-            variables: vars
-        }
-        triggerEvent.format(evd)
-
-        format = evd.format
-
-        const rx = /((?<!\\)#(?<v>[\w\-]+)(\{(?<c>.*?)\})?)/g
-        let execres: RegExpExecArray, replaceList: [replace: string, to: string][] = []
-        while ( ( execres = rx.exec(format) ) !== null) {
-            const { v, c } = execres.groups,
-                m = execres[0],
-                o = c ? vars[v](...c.split('|')) : ( vars[v] ?? '' )
-
-            replaceList.push([m, o])
-        }
-
-        let o = format
-        for (let [r, t] of replaceList) o = o.replace(r, t)
-        return o.trim()
-    }
-
-    /** Configuration. */
-    static readonly config = config
-
-    protected constructor() { throw new ReferenceError('Class is not constructable') }
 }
