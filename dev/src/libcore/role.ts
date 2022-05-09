@@ -26,6 +26,14 @@ let config = {
 
 type groupStyleData = [ tag: string, style: string ]
 
+type groupJSONData = {
+    readonly id: string
+    pos: number
+    display: 'always' | 'auto' | 'never'
+    defaultStyle: string
+    styles: groupStyleData[]
+}
+
 class roleGroupStyle {
     #arr: groupStyleData[] = []
     #group: roleGroup
@@ -125,6 +133,17 @@ class roleGroup {
     }
 
     /**
+     * Creates role group from JSON data.
+     * @param json Group JSON data.
+     */
+    static readonly fromJSON = (json: groupJSONData) => {
+        const { id, pos, display, defaultStyle, styles } = json
+        const o = new this(id, pos, display, defaultStyle)
+        for (let [t, s] of styles) o.style.add(t, s)
+        return o
+    }
+
+    /**
      * Creates a role group.
      * @param id Identifier.
      * @param pos Position. See {@link roleGroup.prototype.pos here} for more info.
@@ -169,6 +188,12 @@ class roleGroup {
 
     /** Role group styles. */
     readonly style = new roleGroupStyle(auth, this)
+
+    /** Converts group to JSON data. */
+    readonly toJSON = (): groupJSONData => {
+        const {id, pos, display, defaultStyle} = this
+        return { id, pos, display, defaultStyle, styles: [...this.style] }
+    }
 
     /**
      * Gets group style from tags / player.
