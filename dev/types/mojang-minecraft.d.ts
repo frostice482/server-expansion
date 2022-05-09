@@ -3671,6 +3671,13 @@ declare module 'mojang-minecraft' {
         set level(v)
         /** `libcore/plr.ts` Player UID. */
         get uid(): number
+
+        /** `libcore/chat.ts` Player nickname. */
+        get nickname(): string
+        set nickname(v)
+
+        /** @deprecated private property for {@link Player.nickname nickname} */
+        __nickname: string
     }
     export class PlayerInventoryComponentContainer extends InventoryComponentContainer {
         readonly 'emptySlotsCount': number;
