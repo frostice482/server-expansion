@@ -183,7 +183,7 @@ class roleGroup {
         const has = Array.isArray(target) ? target.includes.bind(target) as typeof target.includes : target.hasTag.bind(target) as typeof target.hasTag
         const o: string[] = []
         m:
-        for (const group of groupList.values()) {
+        for (const group of [...groupList.values()].sort((a, b) => b.pos - a.pos)) {
             if (group.display == 'never') continue
             for (const [t, s] of group.style) {
                 if (has(t)) o.push(s)
