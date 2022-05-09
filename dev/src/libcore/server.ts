@@ -9,8 +9,10 @@ export default class server {
     static get ev() { return events }
     static get events() { return events }
 
+    static get ticker() { return ticker }
+
     static readonly start = () => {
-        world.events.tick.subscribe(() => ticker.next())
+        world.events.tick.subscribe(() => ticker[ticker.current]())
 
         world.events.tick.subscribe(() => {
             for (const plr of eventQueues.playerJoin)
@@ -166,61 +168,112 @@ let timeoutList: timeout[] = []
 let intervalList: Set<interval> = new Set
 let vThreadList: vThread[] = []
 
-const ticker = (function*(){
-    let delta = 0
-    while(true) {
-        const waitTill = Date.now() + 50 - delta
-        while ( Date.now() < waitTill ) {
-            // timeout
-            const newTimeoutList: timeout[] = []
-            for (let timeout of timeoutList) {
-                if (timeout.isClosed) continue
-                const t = Date.now()
-                if ( timeout.call <= t + timeout.tolerate )
-                    try { timeout.fn( t - timeout.creation ) }
-                    catch (e) { console.error(`server > timeout (${timeout.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
-                else newTimeoutList.push(timeout)
-            }
-            timeoutList = newTimeoutList
-
-            // interval
-            for (let interval of intervalList) {
-                let c = interval.maxCallPerTick,
-                    t: number
-                while ( c > 0 && interval.nextCall <= ( t = Date.now() ) + interval.tolerate )
-                    try { interval.fn( t - interval.lastCall ) }
-                    catch (e) { console.error(`server > interval (${interval.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
-                    finally {
-                        c--
-                        interval.lastCall = t
-                        interval.nextCall += interval.interval
-                    }
-                if ( !c && interval.nextCall <= ( t = Date.now() ) - interval.tolerate )
-                    interval.nextCall = t + interval.interval + interval.tolerate - ( t - interval.nextCall ) % interval.interval
-            }
-
-            // vthread
-            const newVThreadList: vThread[] = []
-            for (let thread of vThreadList) {
-                const t = Date.now()
-                if (t < thread.sleepUntil) {
-                    newVThreadList.push(thread)
-                    continue
-                }
-                try { if (thread.fn.next().done) continue }
-                catch (e) {
-                    console.error(`server > vThread (${thread.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`)
-                    continue
-                }
-                newVThreadList.push(thread)
-            }
-            vThreadList = newVThreadList
+const subticker = {
+    timeout: () => {
+        const newTimeoutList: timeout[] = []
+        for (let timeout of timeoutList) {
+            if (timeout.isClosed) continue
+            const t = Date.now()
+            if ( timeout.call <= t + timeout.tolerate )
+                try { timeout.fn( t - timeout.creation ) }
+                catch (e) { console.error(`server > timeout (${timeout.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
+            else newTimeoutList.push(timeout)
         }
-
-        const t1 = Date.now()
-        yield
-        delta = Date.now() - t1
+        timeoutList = newTimeoutList
+    },
+    interval: () => {
+        for (let interval of intervalList) {
+            let c = interval.maxCallPerTick,
+                t: number
+            while ( c > 0 && interval.nextCall <= ( t = Date.now() ) + interval.tolerate )
+                try { interval.fn( t - interval.lastCall ) }
+                catch (e) { console.error(`server > interval (${interval.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
+                finally {
+                    c--
+                    interval.lastCall = t
+                    interval.nextCall += interval.interval
+                }
+            if ( !c && interval.nextCall <= ( t = Date.now() ) - interval.tolerate )
+                interval.nextCall = t + interval.interval + interval.tolerate - ( t - interval.nextCall ) % interval.interval
+        }
+    },
+    vThread: () => {
+        const newVThreadList: vThread[] = []
+        for (let thread of vThreadList) {
+            const t = Date.now()
+            if (t < thread.sleepUntil) {
+                newVThreadList.push(thread)
+                continue
+            }
+            try { if (thread.fn.next().done) continue }
+            catch (e) {
+                console.error(`server > vThread (${thread.name}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`)
+                continue
+            }
+            newVThreadList.push(thread)
+        }
+        vThreadList = newVThreadList
     }
+}
+
+const ticker = (() => {
+    const { timeout, interval, vThread } = subticker
+    const o = {
+        /**
+         * Operates ticker at full usage.
+         * High precision timeout and interval, vThread executed every free loop
+         */
+        2: (() => {
+            const gen = (function*(){
+                let delta = 0
+                while(true) {
+                    const waitTill = Date.now() + 50 - delta
+                    while ( Date.now() < waitTill ) {
+                        timeout()
+                        interval()
+                        vThread()
+                    }
+                    const t1 = Date.now()
+                    delta = ( yield null ) ?? Date.now() - t1
+                    console.warn(delta)
+                }
+            })()
+            gen.next()
+            return gen.next.bind(gen) as typeof gen.next
+        })(),
+        /**
+         * Operates ticker at lower usage.
+         * Low precision timeout and interval, vThread executed once per tick
+         */
+        1: () => {
+            timeout()
+            interval()
+            vThread()
+        },
+        /**
+         * Operates ticker at lower usage.
+         * Low precision timeout and interval, vThread won't get executed
+         */
+        0: () => {
+            timeout()
+            interval()
+        },
+
+        get current() { return current },
+        set current(v) {
+            if ( v == current || (current != 0 && current != 1 && current != 2 ) ) return
+            current = v
+            switch (v) {
+                case 0:
+                case 1: {}; break
+                case 2: {
+                    o[2](0)
+                }; break
+            }
+        },
+    }
+    let current: 0 | 1 | 2 = 2
+    return o
 })()
 
 // event stuff
