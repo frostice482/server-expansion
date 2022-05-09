@@ -235,7 +235,6 @@ const ticker = (() => {
                     }
                     const t1 = Date.now()
                     delta = ( yield null ) ?? Date.now() - t1
-                    console.warn(delta)
                 }
             })()
             gen.next()
