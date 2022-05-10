@@ -65,6 +65,27 @@ type chatGroupJSONData = {
 
 class chatGroup {
     /**
+     * Edits a chat group.
+     * @param id Role group identifier.
+     */
+     static readonly edit = (id: string) => {
+        if (!groupList.has(id)) throw new ReferenceError(`Chat group with ID '${id}' not found`)
+        return groupList.get(id)
+    }
+
+    /**
+     * Checks if a chat group exists.
+     * @param id chat group identifier.
+     */
+    static readonly exist = (id: string) => groupList.has(id)
+
+    /**
+     * Deletes a chat group.
+     * @param id chat group identifier.
+     */
+    static readonly delete = (id: string) => groupList.delete(id)
+
+    /**
      * Gets group from player.
      * @param plr Player.
      */
@@ -145,6 +166,7 @@ class chatGroup {
     }
 
     constructor(id: string, priority?: number, tagFilter?: chatGroupTagFilter) {
+        if (groupList.has(id)) throw new Error(`Role group with ID '${id}' already exists`)
         this.id = id
         this.priority = priority ?? 1
         this.tagFilter = tagFilter ?? {}
