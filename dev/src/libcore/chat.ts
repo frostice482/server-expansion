@@ -38,6 +38,8 @@ export default class chat {
             case 2: if (evd.cancelMessage) sendMsgToPlayer(plr, evd.cancelMessage); break
         }
     }
+
+    protected constructor() { throw new ReferenceError('Class is not constructable') }
 }
 
 // chat group

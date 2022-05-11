@@ -25,6 +25,8 @@ export default class permission {
      * @param tags Tags.
      */
     static readonly getLevel = (tags: string[]) => tags.reduce((lev, tag) => ( tag in list && list[tag] > lev ) ? list[tag] : lev, 0)
+
+    protected constructor() { throw new ReferenceError('Class is not constructable') }
 }
 
 const list: List<number> = empty()

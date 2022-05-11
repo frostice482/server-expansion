@@ -7,6 +7,8 @@ import server from "./server.js";
 export default class plr {
     static get ev() { return events }
     static get events() { return events }
+
+    protected constructor() { throw new ReferenceError('Class is not constructable') }
 }
 
 // scoreboard

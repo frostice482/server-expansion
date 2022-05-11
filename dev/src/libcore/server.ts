@@ -41,6 +41,8 @@ export default class server {
             triggerEvent.playerLoad(plr)
         }
     }
+
+    protected constructor() { throw new ReferenceError('Class is not constructable') }
 }
 
 // interval, timeout, vthread
