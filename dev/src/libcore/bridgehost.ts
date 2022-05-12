@@ -45,6 +45,8 @@ class plugin {
 
         if (!pli.unload()) throw new Error(`Plugin cannot be unloaded`)
         pluginList.delete(id)
+        moduleList.delete(id)
+
         return true
     }
 
