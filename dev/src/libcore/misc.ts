@@ -217,3 +217,14 @@ export const viewObj = (() => {
     */
     return (obj: any) => exec(obj)
 })()
+
+/**
+ * Generates a string of random characters in the charset.
+ * @param length String length.
+ * @param charset Character set.
+ */
+export const randomstr = (length: number, charset = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz') => {
+    let o = ''
+    for (let i = 0; i < length; i++) o = o.concat( charset[ Math.floor( Math.random() * charset.length ) ] )
+    return o
+}
