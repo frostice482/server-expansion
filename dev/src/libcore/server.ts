@@ -249,20 +249,21 @@ const ticker = (() => {
         })(),
         /**
          * Operates ticker at lower usage.
-         * Low precision timeout and interval, vThread executed once per tick
+         * Low precision timeout and interval, vThread executed 10 times per tick
          */
         1: () => {
             timeout()
             interval()
-            vThread()
+            for (let i = 0; i < 10; i++) vThread()
         },
         /**
          * Operates ticker at lower usage.
-         * Low precision timeout and interval, vThread won't get executed
+         * Low precision timeout and interval, executed once per tick
          */
         0: () => {
             timeout()
             interval()
+            vThread()
         },
 
         get current() { return current },
@@ -278,7 +279,7 @@ const ticker = (() => {
             }
         },
     }
-    let current: 0 | 1 | 2 = 2
+    let current: 0 | 1 | 2 = 1
     return o
 })()
 
