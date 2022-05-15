@@ -12,7 +12,7 @@ export default class server {
     static get ticker() { return ticker }
 
     /** Server time. */
-    static serverTime: number
+    static time: number = null
 
     static readonly start = () => {
         world.events.tick.subscribe(() => ticker[ticker.current]())
@@ -223,25 +223,31 @@ const subticker = {
 
 const ticker = (() => {
     const { timeout, interval, vThread } = subticker
+    let tickerTime: number = null
     const o = {
         /**
          * Operates ticker at full usage.
          * High precision timeout and interval, vThread executed every free loop
-         * Allows serverTime
+         * Allows serverTime and tickerTime
          */
         2: (() => {
             const gen = (function*(){
                 let delta = 0
                 while(true) {
-                    const waitTill = Date.now() + 50 - delta
+                    const t1 = Date.now()
+                    const waitTill = t1 + 50 - delta
+                    
                     while ( Date.now() < waitTill ) {
                         timeout()
                         interval()
                         vThread()
                     }
-                    const t1 = Date.now()
-                    delta = ( yield null ) ?? Date.now() - t1
-                    server.serverTime = delta
+                    
+                    const t2 = Date.now()
+                    tickerTime = Math.max(50 - delta, 0)
+                    
+                    delta = ( yield null ) ?? Date.now() - t2
+                    server.time = delta
                 }
             })()
             gen.next()
@@ -250,26 +256,40 @@ const ticker = (() => {
         /**
          * Operates ticker at lower usage.
          * Low precision timeout and interval, vThread executed 10 times per tick
+         * allows tickerTime
          */
         1: () => {
+            const t1 = Date.now()
+            
             timeout()
             interval()
             for (let i = 0; i < 10; i++) vThread()
+            
+            const t2 = Date.now()
+            tickerTime = t2 - t1
         },
         /**
          * Operates ticker at lower usage.
          * Low precision timeout and interval, executed once per tick
+         * allows tickerTime
          */
         0: () => {
+            const t1 = Date.now()
+            
             timeout()
             interval()
             vThread()
+            
+            const t2 = Date.now()
+            tickerTime = t2 - t1
         },
 
         get current() { return current },
         set current(v) {
             if ( v == current || (current != 0 && current != 1 && current != 2 ) ) return
             current = v
+            server.time = null
+            tickerTime = null
             switch (v) {
                 case 0:
                 case 1: {}; break
@@ -278,6 +298,9 @@ const ticker = (() => {
                 }; break
             }
         },
+
+        /** Ticker time. */
+        get time() { return tickerTime }
     }
     let current: 0 | 1 | 2 = 1
     return o
