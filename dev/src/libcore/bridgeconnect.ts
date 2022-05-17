@@ -28,7 +28,7 @@ const BridgeConnector = class SEBridgeConnector {
             let l: Location
             while (!l) {
                 for (let i = 0; i < 5; i++) await 0
-                l = world.getPlayers()[Symbol.iterator]().next().value?.location
+                ;[{location: l}] = world.getPlayers()
             }
             l.y = 1023
             

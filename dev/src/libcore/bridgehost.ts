@@ -77,24 +77,18 @@ class plugin {
 
         let bridgeData: bridgeDataBind
         const fn = Object.defineProperties(
-            typeof fnstr == 'function' ? fnstr : new Function(`bridge`, `with (this) return (${fnstr})(bridge)`),
+            typeof fnstr == 'function' ? fnstr : new Function(`bridge`, `return (${fnstr})(bridge)`),
             { name: { value: `(plugin: ${id})` } }
         )
         this.execute = (requireStack = []) => {
             if (this.#isExecuted) return this.exports
             for (const { id, name } of this.requires)
                 if (!(moduleList.has(id) || pluginList.has(id))) throw new ReferenceError(`The following required plugin is missing: ${name ?? id}`)
-
-            const context = new Proxy(
-                Object.defineProperties( Object.create(null), { globalThis: { get: () => context } } ),
-                { get: (t, p) => p in t ? t[p] : globalThis[p] }
-            )
+            
             const bridgeInst = new bridge(auth, bridgeData = { requireStack })
-
-            const exports = fn.call(context, bridgeInst) ?? bridgeInst.exports
+            const exports = fn(bridgeInst) ?? bridgeInst.exports
 
             this.exports = exports
-
             moduleList.set(id, exports)
             this.#isExecuted = true
 
