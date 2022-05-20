@@ -86,12 +86,18 @@ class plugin {
                 if (!(moduleList.has(id) || pluginList.has(id))) throw new ReferenceError(`The following required plugin is missing: ${name ?? id}`)
             
             const bridgeInst = new bridge(auth, bridgeData = { requireStack })
-            const exports = fn(bridgeInst) ?? bridgeInst.exports
-
+            
+            let exports
+            try { exports = fn(bridgeInst) ?? bridgeInst.exports }
+            catch (e) {
+                this.#isExecuted = true
+                try { this.unload() } catch {}
+                throw e
+            }
             this.exports = exports
             moduleList.set(id, exports)
+            
             this.#isExecuted = true
-
             return exports
         }
         this.unload = () => {
