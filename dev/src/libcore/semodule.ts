@@ -11,7 +11,7 @@ import * as sendChat from './sendChat.js'
 import server from "./server.js";
 import * as _misc from "./misc.js";
 
-export type { pluginConnectorInfo } from './bridgehost.js'
+//export type { pluginConnectorInfo } from './bridgehost.js'
 
 const SEModule = empty({
     cc,
