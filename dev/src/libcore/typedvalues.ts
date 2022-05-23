@@ -18,6 +18,8 @@ export default class TypedValues {
      * @param jsonData JSON data.
      */
     static readonly fromJSON = (jsonData: JSONData['all'][]) => refId[jsonData[0].type].fromJSON(jsonData)
+
+    protected constructor() { throw new ReferenceError('Class is not constructable') }
 }
 
 export class TypedValue {
@@ -36,7 +38,7 @@ export class TypedValue {
         n.name = data.name
 
         const d = n.#data
-        const { data: { type: vType, objects: vObj, specifics: vSpec } } = data
+        const { data: { type: vType, objects: vObj = [], specifics: vSpec = {} } } = data
         for (const k of vType) d.type[k] = 1
         for (const i of vObj) {
             const objData = jsonData[i]
@@ -44,7 +46,7 @@ export class TypedValue {
             //@ts-ignore
             d[objData.type == 'object' ? 'objects' : 'arrays'].add( referenceStack[i] ??= refId[objData.type].fromJSON(jsonData, i) )
         };
-        for (const k of ['string', 'number', 'boolean'] as const)
+        for (const k in vSpec)
             for (const v of vSpec[k]) d.specifics[v] = 1
         
         return n
@@ -332,12 +334,12 @@ type JSONData = {
         name: string
         data: {
             type: valueTypes['valueType'][]
-            specifics: {
-                string: string[]
-                number: number[]
-                boolean: ('true' | 'false')[]
+            specifics?: {
+                string?: string[]
+                number?: number[]
+                boolean?: ('true' | 'false')[]
             }
-            objects: number[]
+            objects?: number[]
         }
     }
     TypedObject: {
