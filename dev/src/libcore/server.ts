@@ -42,7 +42,7 @@ export default class server {
         }
     }
 
-    protected constructor() { throw new ReferenceError('Class is not constructable') }
+    protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
 // interval, timeout, vthread

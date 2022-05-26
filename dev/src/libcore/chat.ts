@@ -39,7 +39,7 @@ export default class chat {
         }
     }
 
-    protected constructor() { throw new ReferenceError('Class is not constructable') }
+    protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
 // chat group
@@ -168,7 +168,7 @@ class chatGroup {
     }
 
     constructor(id: string, priority?: number, tagFilter?: chatGroupTagFilter) {
-        if (groupList.has(id)) throw new Error(`Role group with ID '${id}' already exists`)
+        if (groupList.has(id)) throw new ReferenceError(`Role group with ID '${id}' already exists`)
         this.id = id
         this.priority = priority ?? 1
         this.tagFilter = tagFilter ?? {}

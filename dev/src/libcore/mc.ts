@@ -38,7 +38,7 @@ class CommandError extends Error {
     readonly command: string
     constructor(key: typeof auth, code: number, message: string, command: string) {
         super()
-        if (key !== auth) throw new ReferenceError('Class is not constructable')
+        if (key !== auth) throw new TypeError('Class is not constructable')
         this.name = this.constructor.name
         this.message = `${message}\nCode: ${code}  -  Command: ${command}`
         this.stack = this.stack.replace(/.*\n/, '')

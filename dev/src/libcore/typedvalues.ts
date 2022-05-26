@@ -7,6 +7,7 @@ type valueTypes = {
     all: valueTypes[Exclude<keyof valueTypes, 'all'>]
 }
 type allTypes = TypedValue | TypedObject | TypedArray
+export { allTypes as typedValuesAll }
 
 export default class TypedValues {
     static get value() { return TypedValue }
@@ -19,7 +20,7 @@ export default class TypedValues {
      */
     static readonly fromJSON = (jsonData: JSONData['all'][]) => refId[jsonData[0].type].fromJSON(jsonData)
 
-    protected constructor() { throw new ReferenceError('Class is not constructable') }
+    protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
 export class TypedValue {

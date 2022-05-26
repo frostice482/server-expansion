@@ -65,7 +65,7 @@ export default class role {
     /** Configuration. */
     static get config() { return config }
 
-    protected constructor() { throw new ReferenceError('Class is not constructable') }
+    protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
 // config
@@ -148,7 +148,7 @@ class roleGroupStyle {
     get getGroupStyle() { return this.#group.getStyle }
 
     constructor(key: typeof auth, group: roleGroup) {
-        if (key !== auth) throw new ReferenceError('Class is not constructable')
+        if (key !== auth) throw new TypeError('Class is not constructable')
         this.#group = group
     }
 }
@@ -213,7 +213,7 @@ class roleGroup {
      * @param defaultStyle Default style. See {@link roleGroup.prototype.defaultStyle here} for more info.
      */
     constructor(id: string, pos?: number, display?: roleGroup['display'], defaultStyle?: string) {
-        if (groupList.has(id)) throw new Error(`Role group with ID '${id}' already exists`)
+        if (groupList.has(id)) throw new ReferenceError(`Role group with ID '${id}' already exists`)
         this.id = id
         this.pos = pos ?? 1
         this.display = display ?? 'auto'

@@ -11,7 +11,7 @@ export default class scoreboard {
     /** Scoreboard objective. */
     static get objective() { return objective }
 
-    protected constructor() { throw new ReferenceError('Class is not constructable') }
+    protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
 type displaySlot = 'sidebar' | 'list' | 'belowname'
@@ -85,10 +85,10 @@ class objective {
 
         const exist = objective.exist(id)
         if (create) {
-            if (exist) throw new Error(`Objective with ID '${id}' already exists.`)
+            if (exist) throw new ReferenceError(`Objective with ID '${id}' already exists.`)
             execCmd(`scoreboard objectives add ${execid} dummy ${execDisplay}`)
         } else {
-            if (!exist) throw new Error(`Objective with ID '${id}' not found.`)
+            if (!exist) throw new ReferenceError(`Objective with ID '${id}' not found.`)
         }
 
         this.#data = mcsb ? mcsb.getObjective(id) : null
@@ -164,7 +164,7 @@ class players {
     get dummies() { return this.#obj.dummies }
 
     constructor(key: typeof auth, obj: objective) {
-        if (key !== auth) throw new ReferenceError('Class is not constructable')
+        if (key !== auth) throw new TypeError('Class is not constructable')
         this.#obj = obj
     }
 }
@@ -212,7 +212,7 @@ class dummies {
     get players() { return this.#obj.players }
 
     constructor(key: typeof auth, obj: objective) {
-        if (key !== auth) throw new ReferenceError('Class is not constructable')
+        if (key !== auth) throw new TypeError('Class is not constructable')
         this.#obj = obj
     }
 }
@@ -233,7 +233,7 @@ class display {
     static readonly clearDisplay = (displaySlot: displaySlot) => void execCmd(`scoreboard objectives setdisplay ${displaySlot}`, dim.o, true)
 
     constructor(key: typeof auth, obj: objective) {
-        if (key !== auth) throw new ReferenceError('Class is not constructable')
+        if (key !== auth) throw new TypeError('Class is not constructable')
         this.#obj = obj
     }
 
