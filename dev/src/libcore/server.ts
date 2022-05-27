@@ -15,7 +15,7 @@ export default class server {
     static time: number = null
 
     static readonly start = () => {
-        world.events.tick.subscribe(() => ticker[ticker.current]())
+        world.events.tick.subscribe(() => ticker[ticker.level]())
 
         world.events.tick.subscribe(() => {
             for (const plr of eventQueues.playerJoin)
@@ -230,7 +230,7 @@ const ticker = (() => {
          * High precision timeout and interval, vThread executed every free loop
          * Allows serverTime and tickerTime
          */
-        2: (() => {
+        3: (() => {
             const gen = (function*(){
                 let delta = 0
                 while(true) {
@@ -242,6 +242,32 @@ const ticker = (() => {
                         interval()
                         vThread()
                     }
+                    
+                    const t2 = Date.now()
+                    tickerTime = Math.max(50 - delta, 0)
+                    
+                    delta = ( yield null ) ?? Date.now() - t2
+                    server.time = delta
+                }
+            })()
+            gen.next()
+            return gen.next.bind(gen) as typeof gen.next
+        })(),
+        /**
+         * Operates ticker at full usage.
+         * Low precision timeout and interval, vThread executed every free loop
+         * Allows serverTime and tickerTime
+         */
+        2: (() => {
+            const gen = (function*(){
+                let delta = 0
+                while(true) {
+                    const t1 = Date.now()
+                    const waitTill = t1 + 50 - delta
+                    
+                    timeout()
+                    interval()
+                    while ( Date.now() < waitTill ) vThread()
                     
                     const t2 = Date.now()
                     tickerTime = Math.max(50 - delta, 0)
@@ -284,25 +310,26 @@ const ticker = (() => {
             tickerTime = t2 - t1
         },
 
-        get current() { return current },
-        set current(v) {
+        get level() { return current },
+        set level(v) {
             if ( v == current || (current != 0 && current != 1 && current != 2 ) ) return
             current = v
             server.time = null
             tickerTime = null
             switch (v) {
                 case 0:
-                case 1: {}; break
-                case 2: {
-                    o[2](0)
-                }; break
+                case 1: break
+                case 2:
+                case 3:
+                    o[v](0)
+                break
             }
         },
 
         /** Ticker time. */
         get time() { return tickerTime }
     }
-    let current: 0 | 1 | 2 = 1
+    let current: 0 | 1 | 2 | 3 = 1
     return o
 })()
 
