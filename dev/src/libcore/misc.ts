@@ -198,12 +198,11 @@ export const viewObj = (() => {
 
                 default: {
                     let constructorName = objConstructor != Object ? objConstructor?.name ?? '[Object: null prototype]' : ''
-                    constructorName = constructorName ? `§7${constructorName}§r ` : ''
 
                     const keys = getKeys()
-                    if (!keys.size) return `${constructorName}{}`
+                    if (!keys.size) return `{} §7${constructorName}§r`
 
-                    o.push(`${constructorName}{`)
+                    o.push(`{ §7${constructorName}§r`)
                     for (const k of keys) o.push( kv(k) )
                     o.push(`${prevTab} }`)
 
