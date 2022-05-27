@@ -50,12 +50,13 @@ export const viewObj = (() => {
     /**
      * main execution function
      * @param obj Object to be parsed
-     * @param tab Tab
+     * @param oTab Tab
+     * @param tab Current tab level
      * @param objlist Object list
      * @param addObj Object to be added
      */
     // theres a lot of involvement between class instance and class prototype, so we must be careful
-    const exec = ( obj: any, tab = defTab, objlist: any[] = [], addObj = obj ) => {
+    const exec = ( obj: any, oTab = defTab, tab = oTab, objlist: any[] = [], addObj = obj ) => {
         if (objlist.includes(obj)) return '§b[Circular]'
 
         if (obj === null || obj === undefined) return `§8${obj}`
@@ -64,10 +65,11 @@ export const viewObj = (() => {
 
         const o: string[] = []
 
-        const prevTab = tab.slice(0, -defTab.length)
+        const prevTab = tab.slice(0, -oTab.length),
+            nextTab = tab + oTab
         const kv = (k: string | symbol) => {
                 const headings = `${tab} ${keyFormat(k)}${getGetterSetter(k)}: `
-                try { return headings + exec( obj[k], tab + defTab, objlist.concat([addObj]), obj[k] ) }
+                try { return headings + exec( obj[k], oTab, nextTab, objlist.concat([addObj]), obj[k] ) }
                 catch { return headings + errUnknown }
             },
             getKeys = () => {
@@ -178,7 +180,7 @@ export const viewObj = (() => {
                     if (!obj.size) return `[] §7Set<0>`
 
                     o.push(`[ §7Set<${obj.size}>`)
-                    for (const v of obj) o.push( `${tab} => ` + exec( v, tab + defTab, objlist.concat([addObj]), v ) )
+                    for (const v of obj) o.push( `${tab} => ` + exec( v, oTab, nextTab, objlist.concat([addObj]), v ) )
                     o.push(`${prevTab} ]`)
 
                     return o.join('\n§r')
@@ -188,19 +190,20 @@ export const viewObj = (() => {
                     if (!obj.size) return `[] §7Map<0>`
 
                     o.push(`[ §7Map<${obj.size}>`)
-                    for (const [a, b] of obj) o.push( `${tab} => ${exec( a, tab + defTab, objlist.concat([addObj]), a )} -> ${exec( b, tab + defTab, objlist.concat([addObj]), b )}` )
+                    for (const [a, b] of obj) o.push( `${tab} => ${exec( a, oTab, nextTab, objlist.concat([addObj]), a )} -> ${exec( b, oTab, nextTab, objlist.concat([addObj]), b )}` )
                     o.push(`${prevTab} ]`)
 
                     return o.join('\n§r')
                 }
 
                 default: {
-                    const constructorName = objConstructor?.name ?? '[Object: null prototype]'
+                    let constructorName = objConstructor != Object ? objConstructor?.name ?? '[Object: null prototype]' : ''
+                    constructorName = constructorName ? `§7${constructorName}§r ` : ''
 
                     const keys = getKeys()
-                    if (!keys.size) return `{} §7${constructorName}`
+                    if (!keys.size) return `${constructorName}{}`
 
-                    o.push(`{ §7${constructorName}`)
+                    o.push(`${constructorName}{`)
                     for (const k of keys) o.push( kv(k) )
                     o.push(`${prevTab} }`)
 
@@ -214,8 +217,9 @@ export const viewObj = (() => {
     /**
     * Generates a readable object.
     * @param obj Object.
+    * @param tab Tab.
     */
-    return (obj: any) => exec(obj)
+    return (obj: any, tab = defTab) => exec(obj, tab)
 })()
 
 /**
