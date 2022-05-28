@@ -181,7 +181,9 @@ export class TypedObject {
         const n = new this()
         referenceStack[index] = n
         n.name = data.name
-        n.#data = new Map( data.data.map( ([k, [i, r] ]) => [ k, [ referenceStack[i] ??= refId[jsonData[i].type].fromJSON(jsonData, referenceStack, i), r ] ] as [string, [allTypes, boolean]] ) )
+        n.#data = new Map( data.data.objData.map( ([k, [i, r] ]) => [ k, [ referenceStack[i] ??= refId[jsonData[i].type].fromJSON(jsonData, referenceStack, i), r ] ] as [string, [allTypes, boolean]] ) )
+        n.#allowUnusedProperties = data.data.allowUnusedProperties
+        n.#indexType = referenceStack[data.data.indexType] ??= refId[jsonData[data.data.indexType].type].fromJSON(jsonData, referenceStack, data.data.indexType)
 
         return n
     }
@@ -195,6 +197,28 @@ export class TypedObject {
 
     /** Type name. */
     name = ''
+    /** Allows unused properties. */
+    #allowUnusedProperties = false
+    /** Index type. Ignored if `allowUnusedProperties` is set to `false` or value is set to `null`. */
+    #indexType: allTypes = null
+
+    /**
+     * Allows extra / unused properties.
+     * @param v Type.
+     */
+    readonly allowUnusedProperties = (v: boolean) => {
+        this.#allowUnusedProperties = v
+        return this
+    }
+
+    /**
+     * Sets index type.
+     * @param v Type.
+     */
+     readonly setIndexType = (v: allTypes) => {
+        this.#indexType = v
+        return this
+    }
 
     /**
      * Defines a property.
@@ -214,13 +238,21 @@ export class TypedObject {
      * Tests if an array matches the type.
      * @param o Array to be tested.
      */
-    readonly test = (o: any[] = []) => {
+    readonly test = (o: any) => {
+        const keys = new Map(Object.entries(o))
         for (const [k, [t, r]] of this.#data) {
             if (!(k in o)) {
                 if (r) return false
                 else continue
             }
             if (!t.test(o[k])) return false
+            keys.delete(k)
+        }
+        if (keys.size) {
+            if (!this.#allowUnusedProperties) return false
+            if (!this.#indexType?.test) return true
+            for (const v of keys.values())
+                if (!this.#indexType.test(v)) return false
         }
         return true
     }
@@ -238,6 +270,7 @@ export class TypedObject {
         if (stack.includes(this)) return stack
         stack.push(this)
         for (const [t] of this.#data.values()) t.getReferenceList(stack)
+        this.#indexType?.getReferenceList(stack)
         return stack
     }
     
@@ -248,7 +281,11 @@ export class TypedObject {
     readonly JSONConvertion = (refData: Map<allTypes, number>): JSONData['TypedObject'] => ({
         type: 'object',
         name: this.name,
-        data: Array.from(this.#data, ([ k, [o, r] ]) => [ k, [ refData.get(o), r ] ] )
+        data: {
+            allowUnusedProperties: this.#allowUnusedProperties,
+            indexType: refData.get(this.#indexType),
+            objData: Array.from(this.#data, ([ k, [o, r] ]) => [ k, [ refData.get(o), r ] ] )
+        }
     })
 }
 
@@ -346,13 +383,17 @@ type JSONData = {
     TypedObject: {
         type: 'object'
         name: string
-        data: [
-            key: string,
-            propData: [
-                data: number,
-                required: boolean
-            ]
-        ][]
+        data: {
+            allowUnusedProperties: boolean
+            indexType: number
+            objData: [
+                key: string,
+                propData: [
+                    data: number,
+                    required: boolean
+                ]
+            ][]
+        }
     }
     TypedArray: {
         type: 'array'
