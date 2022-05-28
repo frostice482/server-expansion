@@ -61,7 +61,8 @@ export const viewObj = (() => {
 
         if (obj === null || obj === undefined) return `§8${obj}`
         const objConstructor = Object.getPrototypeOf(obj)?.constructor,
-            constructorIsObject = objConstructor === Object || objConstructor == null
+            constructorIsObject = objConstructor === Object || objConstructor == null,
+            constructorIsFunction = [ Function, GeneratorFunction, AsyncFunction, AsyncGeneratorFunction ].includes(objConstructor)
 
         const o: string[] = []
 
@@ -77,18 +78,25 @@ export const viewObj = (() => {
                     return new Set( Reflect.ownKeys(obj) )
                 } else {
                     // we want to get keys of an object
-                    // from the prototype, if object constructor is a function, use the object instance, otherwise use object constructor's prototype and object instance
+                    // from the prototype, if object constructor is a native function, use the object instance, otherwise use object constructor's prototype and object instance
                     // when using the object constructor's prototype, we need to check if the value still exists in the object instance
                     const o = new Set(
-                        ( objConstructor == Function || objConstructor == GeneratorFunction || objConstructor == AsyncFunction || objConstructor == AsyncGeneratorFunction ) ? Reflect.ownKeys(obj)
+                        constructorIsFunction ? Reflect.ownKeys(obj)
                         : Reflect.ownKeys(objConstructor.prototype).filter(v => v in obj).concat(Reflect.ownKeys(obj))
                     )
-                    o.delete('length')
-                    o.delete('name')
-                    o.delete('arguments')
-                    o.delete('caller')
-                    o.delete('prototype')
-                    o.delete('constructor')
+                    // delete all keys
+                    // from the prototype, if object constructor is a native function, delete function properties
+                    if (constructorIsFunction) {
+                        o.delete('length')
+                        o.delete('name')
+                        o.delete('arguments')
+                        o.delete('caller')
+                        o.delete('prototype')
+                        o.delete('constructor')
+                    // from the prototype, if object constructor is a function, delete 'constructor' property
+                    } else if (!constructorIsObject) {
+                        o.delete('constructor')
+                    }
                     return o
                 }
             },
