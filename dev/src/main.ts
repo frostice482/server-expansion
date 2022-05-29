@@ -38,7 +38,7 @@ new role.group('specials', 90)
         .add('vip', '[§2VIP§r]')
 
 // custom commands
-import './libcc/index.js'
+import './defaultcc/index.js'
 
 // start ticker
 import server from './libcore/server.js'
