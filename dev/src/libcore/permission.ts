@@ -21,6 +21,11 @@ export default class permission {
     static readonly deassign = (tag: string) => { const v = tag in list; return delete list[tag], v }
 
     /**
+     * Gets role group list.
+     */
+    static readonly getList = () => Object.entries(list)
+
+    /**
      * Gets permission level from tags.
      * @param tags Tags.
      */

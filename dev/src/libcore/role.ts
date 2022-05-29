@@ -170,6 +170,11 @@ class roleGroup {
     static readonly exist = (id: string) => groupList.has(id)
 
     /**
+     * Gets role group list.
+     */
+    static readonly getList = () => groupList.values()
+
+    /**
      * Deletes a role group.
      * @param id Role group identifier.
      */
