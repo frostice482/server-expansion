@@ -254,6 +254,5 @@ const nicknameChangeFn = (plr: Player, nickname: string) => {
 }
 
 server.ev.playerJoin.subscribe((plr) => {
-    plr.__nickname ??= plr.nameTag
-    nicknameChangeFn(plr, plr.nameTag)
-}, 90)
+    plr.__nickname = plr.nameTag
+}, 100)

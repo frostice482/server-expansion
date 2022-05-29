@@ -69,9 +69,16 @@ export default class role {
 }
 
 // config
+let _applyRoleToNametag = true
 let config = {
     /** Apply role to nametag. */
-    applyRoleToNametag: true,
+    get applyRoleToNametag() {return _applyRoleToNametag},
+    set applyRoleToNametag(v) {
+        if (_applyRoleToNametag == v) return
+        _applyRoleToNametag = v
+        if (v) for (const plr of world.getPlayers()) changeNametag(plr, true)
+        else for (const plr of world.getPlayers()) plr.nameTag = plr.nickname
+    },
     /** Nametag update interval. */
     get nametagUpdateInterval() { return nametagInterval.interval },
     set nametagUpdateInterval(v) { nametagInterval.interval = Math.max( Math.min( v, 120000 ), 30000 ) },
@@ -283,10 +290,11 @@ type EventList = MapEventList<{
 
 const { events, triggerEvent } = new eventManager<EventList>(['format'], 'role')
 
-const changeNametag = (plr: Player) => {
-    if (!config.applyRoleToNametag) return
+const changeNametag = (plr: Player, ignore = false) => {
+    if (!ignore && !config.applyRoleToNametag) return
     plr.nameTag = role.format(plr, 'nametag')
 }
+server.ev.playerJoin.subscribe(plr => changeNametag(plr), 90)
 chat.ev.nicknameChange.subscribe(({plr}) => changeNametag(plr), 90)
 const nametagInterval = new server.interval(() => { for (const plr of world.getPlayers()) changeNametag(plr) }, 30000)
 
