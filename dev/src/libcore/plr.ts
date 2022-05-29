@@ -27,12 +27,9 @@ Object.defineProperties(Player.prototype, {
         }
     },
     uid: {
-        get: (() => {
-            let c: number
-            return function getUID() {
-                return c ??= uidObj.players.get(this)
-            }
-        })()
+        get: function getUID() {
+            return uidObj.players.get(this)
+        }
     }
 })
 
