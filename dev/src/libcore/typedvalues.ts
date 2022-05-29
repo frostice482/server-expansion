@@ -402,3 +402,4 @@ type JSONData = {
     }
     all: JSONData[Exclude<keyof JSONData, 'all' | 'default'>]
 }
+export { JSONData as typedValuesJSON }
