@@ -3678,6 +3678,9 @@ declare module 'mojang-minecraft' {
 
         /** @deprecated private property for {@link Player.nickname nickname} */
         __nickname: string
+
+        /** `libcore/plr.ts` Sends a message to the player. */
+        sendMsg: (msg: any) => void
     }
     export class PlayerInventoryComponentContainer extends InventoryComponentContainer {
         readonly 'emptySlotsCount': number;

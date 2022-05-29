@@ -2,6 +2,7 @@ import { Player } from "mojang-minecraft";
 import eventManager, { MapEventList } from "./evmngr.js";
 import { execCmd } from "./mc.js";
 import scoreboard from "./scoreboard.js";
+import { sendMsgToPlayer } from "./sendChat.js";
 import server from "./server.js";
 
 export default class plr {
@@ -29,6 +30,11 @@ Object.defineProperties(Player.prototype, {
     uid: {
         get: function getUID() {
             return uidObj.players.get(this)
+        }
+    },
+    sendMsg: {
+        value: function sendMsg(msg) {
+            sendMsgToPlayer(this, msg)
         }
     }
 })
