@@ -9,7 +9,9 @@
         "outDir": "../pack/scripts",
         "removeComments": true,
         "allowJs": true,
-        "checkJs": false
+        "checkJs": false,
+
+        "useDefineForClassFields": true
     },
     "include": ["src", "types"]
 }
