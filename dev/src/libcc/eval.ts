@@ -61,7 +61,7 @@ ccmd.onTrigger = (v) => {
         new Function(`with (this) {\n${v.argFull}\n}`).call(o)
     } catch (e) {
         if (e instanceof Error) log(`${e}\n${e.stack}`)
-        else log([e])
+        else log(misc.viewObj(e))
         log(' ')
     }
 }
