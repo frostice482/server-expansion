@@ -162,10 +162,10 @@ class roleGroupStyle {
 
 class roleGroup {
     /**
-     * Edits a role group.
+     * Gets a role group.
      * @param id Role group identifier.
      */
-    static readonly edit = (id: string) => {
+    static readonly 'get' = (id: string) => {
         if (!groupList.has(id)) throw new ReferenceError(`Role group with ID '${id}' not found`)
         return groupList.get(id)
     }
@@ -197,10 +197,11 @@ class roleGroup {
         m:
         for (const group of [...groupList.values()].sort((a, b) => b.pos - a.pos)) {
             if (group.display == 'never') continue
-            for (const [t, s] of group.style) {
-                if (has(t)) o.push(s)
-                continue m
-            }
+            for (const [t, s] of group.styles)
+                if (has(t)) {
+                    o.push(s)
+                    continue m
+                }
             if (group.display == 'always') o.push(group.defaultStyle)
         }
         return o
@@ -213,7 +214,7 @@ class roleGroup {
     static readonly fromJSON = (json: groupJSONData) => {
         const { id, pos, display, defaultStyle, styles } = json
         const o = new this(id, pos, display, defaultStyle)
-        for (let [t, s] of styles) o.style.add(t, s)
+        for (let [t, s] of styles) o.styles.add(t, s)
         return o
     }
 
@@ -261,12 +262,12 @@ class roleGroup {
     defaultStyle: string
 
     /** Role group styles. */
-    readonly style = new roleGroupStyle(auth, this)
+    readonly styles = new roleGroupStyle(auth, this)
 
     /** Converts group to JSON data. */
     readonly toJSON = (): groupJSONData => {
         const {id, pos, display, defaultStyle} = this
-        return { id, pos, display, defaultStyle, styles: [...this.style] }
+        return { id, pos, display, defaultStyle, styles: [...this.styles] }
     }
 
     /**
@@ -277,7 +278,7 @@ class roleGroup {
         if (this.display == 'never') return
 
         const has = Array.isArray(target) ? target.includes.bind(target) as typeof target.includes : target.hasTag.bind(target) as typeof target.hasTag
-        for (const [t, s] of this.style) if (has(t)) return s
+        for (const [t, s] of this.styles) if (has(t)) return s
 
         if (this.display == 'always') return this.defaultStyle
     }

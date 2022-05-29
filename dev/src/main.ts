@@ -25,13 +25,13 @@ new chat.group('_default', 0)
 
 // role groups
 new role.group('admins', 100)
-    .style
+    .styles
         .add('owner', '[§bOWNER§r]')
         .add('admin', '[§3ADMIN§r]')
         .add('mod', '[§5MOD§r]')
 
 new role.group('specials', 90)
-    .style
+    .styles
         .add('mvpp', '[§e§lMVP+§r]')
         .add('mvp', '[§gMVP§r]')
         .add('vipp', '[§a§lVIP+§r]')
