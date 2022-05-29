@@ -40,5 +40,6 @@ new role.group('specials', 90)
 // custom commands
 import './libcc/index.js'
 
+// start ticker
 import server from './libcore/server.js'
 server.start()

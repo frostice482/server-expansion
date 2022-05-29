@@ -39,7 +39,7 @@ Object.defineProperties(Player.prototype, {
     }
 })
 
-server.ev.playerJoin.subscribe((plr) => {
+server.ev.playerLoad.subscribe((plr) => {
     if (!uidObj.players.exist(plr)) {
         uidObj.dummies.add('_current', 1)
 

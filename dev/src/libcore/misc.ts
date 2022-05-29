@@ -41,8 +41,8 @@ export const viewObj = (() => {
         defStrFormatDict = {
             '§k': 'OBF',
             '§l': 'BOLD',
-            '§o': 'RESET',
-            '§r': 'ITLC',
+            '§o': 'ITLC',
+            '§r': 'RESET',
         }
 
     const keyFormat = (k: string | symbol) => typeof k == 'symbol' ? `§a${String(k)}§r` : k[0] == '_' ? `§7${k}§r` : k
