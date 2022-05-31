@@ -312,7 +312,7 @@ const ticker = (() => {
 
         get level() { return current },
         set level(v) {
-            if ( v == current || (current != 0 && current != 1 && current != 2 ) ) return
+            if ( v == current || (current != 0 && current != 1 && current != 2 && current != 3 ) ) return
             current = v
             server.time = null
             tickerTime = null
