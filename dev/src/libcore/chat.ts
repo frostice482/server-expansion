@@ -73,6 +73,11 @@ class chatGroup {
     static readonly 'get' = (id: string) => groupList.get(id)
 
     /**
+     * Gets chat group list.
+     */
+     static readonly getList = () => groupList.values()
+
+    /**
      * Checks if a chat group exists.
      * @param id chat group identifier.
      */
