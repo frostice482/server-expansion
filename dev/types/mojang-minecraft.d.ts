@@ -317,7 +317,7 @@ declare module 'mojang-minecraft' {
         readonly 'type': BlockType;
         clone(): BlockPermutation;
         getAllProperties(): IBlockProperty[];
-        getProperty(propertyName: string): IBlockProperty;
+        getProperty(propertyName: typeof BlockProperties[Exclude<keyof typeof BlockProperties, 'prototype'>]): any;
         getTags(): string[];
         hasTag(tag: string): boolean;
         protected constructor();

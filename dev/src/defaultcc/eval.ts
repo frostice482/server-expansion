@@ -10,6 +10,7 @@ import plr from "../libcore/plr.js";
 import scoreboard from "../libcore/scoreboard.js";
 import * as sendChat from "../libcore/sendChat.js";
 import { sendMsg } from "../libcore/sendChat.js";
+import storage from "../libcore/storage.js";
 import server from "../libcore/server.js";
 import TypedValues from "../libcore/typedvalues.js";
 
@@ -34,6 +35,7 @@ const o = new Proxy({
     sendChat,
     sendMsg,
     server,
+    storage,
     TypedValues,
     get executer() { return  gExecuter },
     get evd() { return  gEvd },
