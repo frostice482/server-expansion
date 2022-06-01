@@ -165,10 +165,7 @@ class roleGroup {
      * Gets a role group.
      * @param id Role group identifier.
      */
-    static readonly 'get' = (id: string) => {
-        if (!groupList.has(id)) throw new ReferenceError(`Role group with ID '${id}' not found`)
-        return groupList.get(id)
-    }
+    static readonly 'get' = (id: string) => groupList.get(id)
 
     /**
      * Checks if a role group exists.

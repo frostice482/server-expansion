@@ -67,13 +67,10 @@ type chatGroupJSONData = {
 
 class chatGroup {
     /**
-     * Edits a chat group.
+     * Gets a chat group.
      * @param id Role group identifier.
      */
-     static readonly edit = (id: string) => {
-        if (!groupList.has(id)) throw new ReferenceError(`Chat group with ID '${id}' not found`)
-        return groupList.get(id)
-    }
+    static readonly 'get' = (id: string) => groupList.get(id)
 
     /**
      * Checks if a chat group exists.

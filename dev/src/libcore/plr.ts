@@ -13,7 +13,7 @@ export default class plr {
 }
 
 // scoreboard
-const uidObj = scoreboard.objective.for('_se_uid')
+const uidObj = scoreboard.objective.for('SEUID')
 if (!uidObj.dummies.exist('_current')) uidObj.dummies.set('_current', 0)
 
 // property, uid, player register stuff
