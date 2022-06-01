@@ -246,11 +246,11 @@ const ticker = (() => {
                     const t1 = Date.now()
                     const waitTill = t1 + 50 - delta
                     
-                    while ( Date.now() < waitTill ) {
+                    do {
                         timeout()
                         interval()
                         vThread()
-                    }
+                    } while ( Date.now() < waitTill )
                     
                     const t2 = Date.now()
                     tickerTime = Math.max(50 - delta, 0)
@@ -276,7 +276,8 @@ const ticker = (() => {
                     
                     timeout()
                     interval()
-                    while ( Date.now() < waitTill ) vThread()
+                    do vThread()
+                    while ( Date.now() < waitTill ) 
                     
                     const t2 = Date.now()
                     tickerTime = Math.max(50 - delta, 0)
