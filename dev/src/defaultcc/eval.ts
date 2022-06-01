@@ -3,14 +3,14 @@ import cc, { ccVars } from "../libcore/cc.js";
 import role from "../libcore/role.js";
 import chat from "../libcore/chat.js";
 import eventManager from '../libcore/evmngr.js'
-import { execCmd } from "../libcore/mc.js";
+import { dim, execCmd } from "../libcore/mc.js";
 import * as misc from '../libcore/misc.js'
 import permission from "../libcore/permission.js";
 import plr from "../libcore/plr.js";
 import scoreboard from "../libcore/scoreboard.js";
 import * as sendChat from "../libcore/sendChat.js";
 import { sendMsg } from "../libcore/sendChat.js";
-//import storage from "../libcore/storage.js";
+import storage from "../libcore/storage.js";
 import server from "../libcore/server.js";
 import TypedValues from "../libcore/typedvalues.js";
 
@@ -24,6 +24,7 @@ let gExecuter: mc.Player,
 const o = new Proxy({
     cc,
     chat,
+    dim,
     eventManager,
     world,
     execCmd,
@@ -35,7 +36,7 @@ const o = new Proxy({
     sendChat,
     sendMsg,
     server,
-    //storage,
+    storage,
     TypedValues,
     get executer() { return  gExecuter },
     get evd() { return  gEvd },
