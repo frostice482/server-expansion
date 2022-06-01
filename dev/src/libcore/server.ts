@@ -147,7 +147,7 @@ class vThread {
      * Sleeps the thread, waiting for the promise to be resolved / rejected, then reawakes the thread.
      * @param promise Promise.
      */
-    readonly sleepAwait = <T extends Promise<any>>(promise: T, response: vThreadAwaitResponse<T>) => {
+    readonly sleepAwait = <T extends Promise<any>>(promise: T, response: vThreadAwaitResponse<T> = {}) => {
         this.sleepUntil = Infinity
         promise.then((v) => {
             this.sleepUntil = -Infinity
@@ -171,8 +171,8 @@ class vThread {
      * Creates a new vThread data.
      * @param fn Generator function.
      */
-    constructor(fn: () => vThread['fn']) {
-        this.fn = fn()
+    constructor(fn: (v: vThread) => vThread['fn']) {
+        this.fn = fn(this)
         this.name = fn.name || '<anonymous>'
         vThreadList.push(this)
     }
