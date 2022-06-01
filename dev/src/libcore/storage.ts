@@ -414,7 +414,7 @@ const binCfg = {
 }
 const cfg = scoreboard.objective.for('SE_storage').dummies
 const load = async () => {
-        if (++loadLevel == 2)
+        if (loadLevel == 1) {
             while (true) {
                 try {
                     bin = new BinSearch( binCfg.startPos, binCfg.spaces, binCfg.size, binCfg.blockSize )
@@ -423,6 +423,9 @@ const load = async () => {
                 } catch {}
                 await server.nextTick
             }
+            loadLevel++
+        }
+        else loadLevel++
     }
 
 let loadLevel: number = +cfg.exist('isLoaded'),
@@ -433,6 +436,7 @@ if (!loadLevel) (async () => {
     while(true) {
         try {
             const ent = world.getDimension('overworld').spawnEntity('se:storage_loader', new Location(0, 400, 0))
+            console.warn('spawn')
             ent.teleport( new Location( xa + xsb * xs / 2, 400, za + zsb * zs / 2 ), dim.o, 0, 0 )
             await server.nextTick
 
