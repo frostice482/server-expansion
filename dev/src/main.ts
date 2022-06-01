@@ -1,11 +1,11 @@
-import { world } from 'mojang-minecraft'
 import cc from './libcore/cc.js'
 import role from './libcore/role.js'
 import chat from './libcore/chat.js'
 import permission from './libcore/permission.js'
 import './test.js'
 
-world.events.beforeChat.subscribe((evd) => {
+server.ev.beforeChat.subscribe((evd) => {
+    if (evd.cancel) return
     evd.cancel = true
     if (evd.message.startsWith(cc.prefix)) {
         cc.execute(evd)
@@ -13,7 +13,7 @@ world.events.beforeChat.subscribe((evd) => {
     } else {
         chat.send(evd.sender, evd.message)
     }
-})
+}, 0)
 
 // permissions
 permission.assign('owner', 100)

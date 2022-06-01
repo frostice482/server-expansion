@@ -1,4 +1,4 @@
-import { Player, world } from "mojang-minecraft"
+import { BeforeChatEvent, Player, world } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
 
 export default class server {
@@ -36,6 +36,8 @@ export default class server {
                     eventQueues.playerJoin.delete(plr)
                 }
         })
+
+        world.events.beforeChat.subscribe(triggerEvent.beforeChat)
 
         world.events.playerJoin.subscribe(({player}) => {
             eventQueues.playerJoin.add(player)
@@ -345,11 +347,12 @@ const ticker = (() => {
 
 // event stuff
 type EventList = MapEventList<{
+    beforeChat: (evd: BeforeChatEvent) => void
     playerJoin: (plr: Player) => void
     playerLoad: (plr: Player) => void
 }>
 
-const { events, triggerEvent } = new eventManager<EventList>(['playerLoad', 'playerJoin'], 'server')
+const { events, triggerEvent } = new eventManager<EventList>(['playerLoad', 'playerJoin', 'beforeChat'], 'server')
 
 const eventQueues = {
     playerJoin: new Set<Player>()
