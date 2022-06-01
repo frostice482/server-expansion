@@ -17,6 +17,13 @@
             "minecraft:collision_box": {
                 "width": 0,
                 "height": 0
+            },
+            "minecraft:conditional_bandwidth_optimization": {
+                "conditional_values": [],
+                "default_values": {
+                    "max_dropped_ticks": 20,
+                    "max_optimized_distance": 20
+                }
             }
         },
         "component_groups": {
