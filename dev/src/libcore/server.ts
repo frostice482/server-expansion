@@ -15,7 +15,13 @@ export default class server {
     static time: number = null
 
     static readonly start = () => {
-        world.events.tick.subscribe(() => ticker[ticker.level]())
+        world.events.tick.subscribe(() => {
+            // next tick
+            this.#nextTickRes()
+            this.nextTick = new Promise(res => this.#nextTickRes = res)
+            // ticker
+            ticker[ticker.level]()
+        })
 
         world.events.tick.subscribe(() => {
             for (const plr of eventQueues.playerJoin)
@@ -41,6 +47,9 @@ export default class server {
             triggerEvent.playerLoad(plr)
         }
     }
+
+    static #nextTickRes: (v?: any) => void
+    static nextTick = new Promise(res => this.#nextTickRes = res)
 
     protected constructor() { throw new TypeError('Class is not constructable') }
 }
