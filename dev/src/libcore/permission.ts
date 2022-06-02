@@ -34,4 +34,21 @@ export default class permission {
     protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
-const list: List<number> = empty()
+let list: List<number> = empty()
+
+// storage stuff
+import storage from "./storage.js"
+
+export type saveData = {
+    levels: [tag: string, level: number][]
+}
+
+storage.instance.default.ev.save.subscribe(function permissionSave (data) {
+    data.permission = {
+        levels: Object.entries(list)
+    }
+})
+storage.instance.default.ev.load.subscribe(function permissionLoad (data) {
+    if (!data.permission) return
+    list = empty(Object.fromEntries(data.permission.levels))
+})

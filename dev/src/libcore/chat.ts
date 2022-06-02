@@ -202,7 +202,7 @@ class chatGroup {
     }
 }
 
-const groupList: Map<string, chatGroup> = new Map
+let groupList: Map<string, chatGroup> = new Map
 
 // properties
 Object.defineProperties(Player.prototype, {
@@ -258,3 +258,15 @@ const nicknameChangeFn = (plr: Player, nickname: string) => {
 server.ev.playerJoin.subscribe((plr) => {
     plr.__nickname = plr.nameTag
 }, 100)
+
+// storage stuff
+import storage from "./storage.js"
+
+export type saveData = {
+    groups: chatGroupJSONData[]
+}
+
+storage.instance.default.ev.load.subscribe(function chatLoad (data) {
+    if (!data.chat) return
+    groupList = new Map(data.chat.groups.map(v => [ v.id, chatGroup.fromJSON(v) ]))
+})

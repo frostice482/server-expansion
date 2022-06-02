@@ -321,3 +321,20 @@ type formatEvd = {
     /** Variables. */
     readonly variables: formatVariables
 }
+
+// storage stuff
+import storage from "./storage.js"
+
+export type saveData = {
+    groups: groupJSONData[]
+}
+
+storage.instance.default.ev.save.subscribe(function roleSave (data) {
+    data.role = {
+        groups: Array.from(groupList.values(), v => v.toJSON())
+    }
+})
+storage.instance.default.ev.load.subscribe(function roleLoad (data) {
+    if (!data.role) return
+    groupList = new Map(data.role.groups.map(v => [ v.id, roleGroup.fromJSON(v) ]))
+})

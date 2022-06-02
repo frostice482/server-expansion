@@ -201,6 +201,10 @@ const storage = (() => {
 
 export default storage
 
+import type { saveData as permissionSaveData } from "./permission.js"
+import type { saveData as chatSaveData } from "./chat.js"
+import type { saveData as roleSaveData } from "./role.js"
+
 const instance = (() => {
     class storageInstance <T = {}> {
         /** Gets default instance. */
@@ -284,7 +288,36 @@ const instance = (() => {
         }
     }
 
-    const defaultInstance = new storageInstance<{}>('SE')
+    // default instance
+    const curVer = 1
+    const defaultInstance = new storageInstance<{
+        saveInfo: {
+            version: number
+        }
+        permission: permissionSaveData
+        chat: chatSaveData
+        role: roleSaveData
+    }>('SE')
+
+    defaultInstance.autosaveInterval = 30000
+    defaultInstance.ev.save.subscribe(function baseSave (data) {
+        data.saveInfo = {
+            version: 1
+        }
+    }, Infinity)
+    defaultInstance.ev.load.subscribe(function baseLoad (data, ctrl) {
+        const br = (type = Error, reason?: string, disableAutosave = true) => {
+            ctrl.break()
+            if (disableAutosave) {
+                defaultInstance.autosaveInterval = 0
+                reason += ` Autosave has been disabled.`
+            }
+            throw new type(reason)
+        }
+        if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
+        if (data.saveInfo.version >= curVer) br(RangeError, `Unsupported save version v${curVer}.`)
+        switch (data.saveInfo.version) {}
+    }, Infinity)
 
     // events
     type instanceEvents <T = {}> = MapEventList<{
