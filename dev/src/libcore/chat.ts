@@ -266,6 +266,11 @@ export type saveData = {
     groups: chatGroupJSONData[]
 }
 
+storage.instance.default.ev.save.subscribe(function chatSave (data) {
+    data.chat = {
+        groups: Array.from(groupList.values(), v => v.toJSON())
+    }
+})
 storage.instance.default.ev.load.subscribe(function chatLoad (data) {
     if (!data.chat) return
     groupList.clear()
