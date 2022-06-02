@@ -221,14 +221,26 @@ const instance = (() => {
             const saveInfo = storage.for(id)
 
             this.save = () => {
+                const t0 = Date.now()
+
                 const evd: any = {}
                 triggerEvent.save(evd)
-                saveInfo.value = JSON.stringify(evd)
+
+                const str = saveInfo.value = JSON.stringify(evd)
+                triggerEvent.postSave({ stringed: str, time: Date.now() - t0 })
+
                 return evd
             }
             this.load = () => {
+                const t0 = Date.now()
+
+                const str = saveInfo.value
+
                 const evd: any = JSON.parse(saveInfo.value)
                 triggerEvent.load(evd)
+                
+                triggerEvent.postLoad({ stringed: str, time: Date.now() - t0 })
+                
                 return evd
             }
             this.delete = () => {
@@ -322,7 +334,9 @@ const instance = (() => {
     // events
     type instanceEvents <T = {}> = MapEventList<{
         save: (evd: T) => void
+        postSave: (evd: { stringed: string, time: number } ) => void
         load: (evd: T) => void
+        postLoad: (evd: { stringed: string, time: number } ) => void
     }>
 
     return storageInstance
