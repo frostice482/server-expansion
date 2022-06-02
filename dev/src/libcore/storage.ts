@@ -218,20 +218,23 @@ const instance = (() => {
             this.id = id
             this.execId = JSON.stringify(this.id)
 
-            const saveInfo = storage.for(id)
+            let saveInfo: ReturnType<typeof storage.for>
+            storage.onLoad(() => saveInfo = storage.for(id))
 
             this.save = () => {
+                if (!saveInfo) return new instantEventReturnFalse
                 const t0 = Date.now()
 
                 const evd: any = {}
                 triggerEvent.save(evd)
 
                 const str = saveInfo.value = JSON.stringify(evd)
-                triggerEvent.postSave({ stringed: str, time: Date.now() - t0 })
+                triggerEvent.postSave(new instancePostEventEvd<T>(evd, str, Date.now() - t0))
 
-                return evd
+                return new instantEventReturnTrue(evd, str, Date.now() - t0)
             }
             this.load = () => {
+                if (!saveInfo) return new instantEventReturnFalse
                 const t0 = Date.now()
 
                 const str = saveInfo.value
@@ -239,9 +242,9 @@ const instance = (() => {
                 const evd: any = JSON.parse(saveInfo.value)
                 triggerEvent.load(evd)
                 
-                triggerEvent.postLoad({ stringed: str, time: Date.now() - t0 })
+                triggerEvent.postLoad(new instancePostEventEvd<T>(evd, str, Date.now() - t0))
                 
-                return evd
+                return new instantEventReturnTrue(evd, str, Date.now() - t0)
             }
             this.delete = () => {
                 if (!saveInfo.value) return false
@@ -249,7 +252,7 @@ const instance = (() => {
                 return true
             }
             
-            const { events, triggerEvent } = new eventManager<instanceEvents<T>>(['save', 'load'], `storage (${id})`)
+            const { events, triggerEvent } = new eventManager<instanceEvents<T>>(['save', 'load', 'postSave', 'postLoad'], `storage (${id})`)
             this.ev = this.events = events
 
             storage.onLoad(async () => {
@@ -271,11 +274,11 @@ const instance = (() => {
         /**
          * Saves current data.
          */
-        readonly save: () => T
+        readonly save: () => instantEventReturn<T>
         /**
          * Loads saved data.
          */
-        readonly load: () => T
+        readonly load: () => instantEventReturn<T>
         /**
          * Deletes saved data.
          */
@@ -327,17 +330,57 @@ const instance = (() => {
             throw new type(reason)
         }
         if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
-        if (data.saveInfo.version >= curVer) br(RangeError, `Unsupported save version v${curVer}.`)
+        if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
         switch (data.saveInfo.version) {}
     }, Infinity)
 
     // events
-    type instanceEvents <T = {}> = MapEventList<{
+    type instanceEvents <T> = MapEventList<{
         save: (evd: T) => void
-        postSave: (evd: { stringed: string, time: number } ) => void
+        postSave: (evd: instancePostEventEvd<T> ) => void
         load: (evd: T) => void
-        postLoad: (evd: { stringed: string, time: number } ) => void
+        postLoad: (evd: instancePostEventEvd<T> ) => void
     }>
+    
+    class instancePostEventEvd <T> {
+        constructor(data: T, stringed: string, time: number) {
+            this.data = data
+            this.stringed = stringed
+            this.time = time
+        }
+
+        /** Save data. */
+        readonly data: T
+        /** Stringed data. */
+        readonly stringed: string
+        /** Time taken. */
+        readonly time: number
+    }
+
+    type instantEventReturn <T> = instantEventReturnFalse | instantEventReturnTrue<T>
+    class instantEventReturnFalse {
+        constructor() {}
+
+        /** Event is not executed. */
+        readonly status = false
+    }
+    class instantEventReturnTrue <T> {
+        constructor(data: T, stringed: string, time: number) {
+            this.data = data
+            this.stringed = stringed
+            this.time = time
+        }
+
+        /** Event is executed. */
+        readonly status = false
+
+        /** Save data. */
+        readonly data: T
+        /** Stringed data. */
+        readonly stringed: string
+        /** Time taken. */
+        readonly time: number
+    }
 
     return storageInstance
 })()
