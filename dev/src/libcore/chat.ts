@@ -1,3 +1,4 @@
+import { SimulatedPlayer } from "mojang-gametest"
 import { Player, world } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
 import { empty } from "./misc.js"
@@ -206,6 +207,12 @@ let groupList: Map<string, chatGroup> = new Map
 
 // properties
 Object.defineProperties(Player.prototype, {
+    nickname: {
+        get: function() { return this.__nickname },
+        set: function(v) { nicknameChangeFn(this, v) }
+    }
+})
+Object.defineProperties(SimulatedPlayer.prototype, {
     nickname: {
         get: function() { return this.__nickname },
         set: function(v) { nicknameChangeFn(this, v) }

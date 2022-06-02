@@ -1,3 +1,4 @@
+import { SimulatedPlayer } from "mojang-gametest";
 import { Player } from "mojang-minecraft";
 import eventManager, { MapEventList } from "./evmngr.js";
 import { execCmd } from "./mc.js";
@@ -18,6 +19,27 @@ if (!uidObj.dummies.exist('_current')) uidObj.dummies.set('_current', 0)
 
 // property, uid, player register stuff
 Object.defineProperties(Player.prototype, {
+    level: {
+        get: function getLevel() {
+            return execCmd(`xp 0`, this, true).level
+        },
+        set: function setLevel(v) {
+            execCmd(`xp -32767l`, this, true)
+            execCmd(`xp ${v}l`, this, true)
+        }
+    },
+    uid: {
+        get: function getUID() {
+            return uidObj.players.get(this)
+        }
+    },
+    sendMsg: {
+        value: function sendMsg(msg) {
+            sendMsgToPlayer(this, msg)
+        }
+    }
+})
+Object.defineProperties(SimulatedPlayer.prototype, {
     level: {
         get: function getLevel() {
             return execCmd(`xp 0`, this, true).level
@@ -90,6 +112,21 @@ Object.defineProperties(Player.prototype, {
             }
             triggerEvent.nametagChange(evd)
             if (!evd.cancel) nameTagDesc.set.call(this, evd.nameTag)
+        }
+    }
+})
+
+const { nameTag: snameTagDesc } = Object.getOwnPropertyDescriptors(SimulatedPlayer.prototype)
+Object.defineProperties(SimulatedPlayer.prototype, {
+    nameTag: {
+        set: function nametagSet(v) {
+            const evd: nametagChangeEvd = {
+                plr: this,
+                cancel: false,
+                nameTag: v
+            }
+            triggerEvent.nametagChange(evd)
+            if (!evd.cancel) snameTagDesc.set.call(this, evd.nameTag)
         }
     }
 })
