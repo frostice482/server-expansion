@@ -268,5 +268,6 @@ export type saveData = {
 
 storage.instance.default.ev.load.subscribe(function chatLoad (data) {
     if (!data.chat) return
+    groupList.clear()
     groupList = new Map(data.chat.groups.map(v => [ v.id, chatGroup.fromJSON(v) ]))
 })

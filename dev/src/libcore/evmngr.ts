@@ -20,7 +20,7 @@ export default class eventManager <T extends MappedEventList> {
 
     /** Triggers an event. */
     readonly triggerEvent: {
-        [K in keyof T]: (eventData: Parameters<T[K]>[0]) => void
+        [K in keyof T]: (eventData: Parameters<T[K]>[0], ctrl?: triggerEventControl) => eventControlDataBind
     } = empty()
     /** Event manager data. */
     readonly data: {
@@ -49,24 +49,39 @@ export default class eventManager <T extends MappedEventList> {
                 unsubscribe: (evd) => localData.list.delete(evd)
             }
 
-            triggerEvent[k] = (evd) => {
+            triggerEvent[k] = (evd, ectrl = {}) => {
                 if (!localData.cached) {
                     localData.cached = true
                     localData.list = new Map([...localData.list].sort( (a, b) => b[1] - a[1]) )
                 }
+                
                 const dataBind: eventControlDataBind = { break: false }
                 const ctrl = new eventControl(dataBind)
                 for (const [fn] of localData.list)
                     try { fn(evd, ctrl) }
-                    catch(e) { console.warn(`${name} > events > ${k} (${fn.name || '<anonymous>'}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
+                    catch(e) {
+                        const d = { break: false, log: true, reason: e }
+                        ectrl.onError?.(d)
+
+                        if (d.log) console.warn(`${name} > events > ${k} (${fn.name || '<anonymous>'}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`)
+                        if (d.break) break
+                    }
                     finally { if (dataBind.break) break }
+                
+                return dataBind
             }
         }
     }
 }
 
+type triggerEventControl = {
+    onBreak?: (evd: { cancel: boolean, readonly reason?: any }) => void
+    onError?: (evd: { break: boolean, log: boolean, readonly reason: any }) => void
+}
+
 type eventControlDataBind = {
     break: boolean
+    breakReason?: any
 }
 
 class eventControl {
@@ -74,11 +89,23 @@ class eventControl {
      * Stops event execution.
      * Any function that has lower priority won't be executed.
      */
-    break: () => void
+    break: (reason?: any) => void
 
-    constructor(dataBind: eventControlDataBind) {
-        this.break = () => void (dataBind.break = true)
+    constructor(dataBind: eventControlDataBind, ctrl: EventControlControl = {}) {
+        this.break = (r) => {
+            const d = { cancel: false, reason: dataBind.breakReason }
+            ctrl.onBreak?.(d)
+
+            if (!d.cancel) {
+                dataBind.break = true
+                dataBind.breakReason = r
+            }
+        }
     }
+}
+
+type EventControlControl = {
+    onBreak?: (evd: { cancel: boolean, readonly reason?: any }) => void
 }
 
 type EventList = List<(eventData: any) => void>

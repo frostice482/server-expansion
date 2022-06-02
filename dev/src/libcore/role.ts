@@ -336,5 +336,6 @@ storage.instance.default.ev.save.subscribe(function roleSave (data) {
 })
 storage.instance.default.ev.load.subscribe(function roleLoad (data) {
     if (!data.role) return
+    groupList.clear()
     groupList = new Map(data.role.groups.map(v => [ v.id, roleGroup.fromJSON(v) ]))
 })

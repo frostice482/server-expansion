@@ -226,10 +226,10 @@ const instance = (() => {
                 const t0 = Date.now()
 
                 const evd: any = {}
-                triggerEvent.save(evd)
-
+                const d = triggerEvent.save(evd)
+                
                 const str = saveInfo.value = JSON.stringify(evd)
-                triggerEvent.postSave(new instancePostEventEvd<T>(evd, str, Date.now() - t0))
+                if (!d.break) triggerEvent.postSave(new instancePostEventEvd<T>(evd, str, Date.now() - t0))
 
                 return new instantEventReturnTrue(evd, str, Date.now() - t0)
             }
@@ -240,9 +240,9 @@ const instance = (() => {
                 const str = saveInfo.value
 
                 const evd: any = JSON.parse(saveInfo.value)
-                triggerEvent.load(evd)
-                
-                triggerEvent.postLoad(new instancePostEventEvd<T>(evd, str, Date.now() - t0))
+                const d = triggerEvent.load(evd)
+
+                if (!d.break) triggerEvent.postLoad(new instancePostEventEvd<T>(evd, str, Date.now() - t0))
                 
                 return new instantEventReturnTrue(evd, str, Date.now() - t0)
             }
