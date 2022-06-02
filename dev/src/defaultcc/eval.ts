@@ -29,6 +29,7 @@ ccmd.onTrigger = (v) => {
         executer.sendMsg([
             ` `,
             `Entering REPL mode.`,
+            `Type '.send' to send a message instead running a code.`,
             `Type '.exit' to exit.`,
             ` `
         ])
@@ -64,8 +65,10 @@ server.ev.beforeChat.subscribe((evd, ctrl) => {
         evd.sender.sendMsg(`Exited REPL.`)
         return replList.delete(evd.sender)
     }
-
-    execEval(evd, evd.message)
+    else if (evd.message == '.send') {
+        return chat.send(evd.sender, evd.message)
+    }
+    else execEval(evd, evd.message)
 }, 1)
 
 // variables
