@@ -237,7 +237,7 @@ const instance = (() => {
             this.ev = this.events = events
 
             storage.onLoad(async () => {
-                if (!this.autoload) return
+                if (!this.autoload || !saveInfo.value) return
                 await server.nextTick // ensures all have loaded, then execute autoload
                 this.load()
             })
