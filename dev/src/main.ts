@@ -26,9 +26,9 @@ new chat.group('_default', 0)
 // role groups
 new role.group('admins', 100)
     .styles
-        .add('owner', '[§bOWNER§r]')
-        .add('admin', '[§3ADMIN§r]')
-        .add('mod', '[§5MOD§r]')
+        .add('owner', '[§dOWNER§r]')
+        .add('admin', '[§5ADMIN§r]')
+        .add('mod', '[§3MOD§r]')
 
 new role.group('specials', 90)
     .styles
@@ -36,6 +36,15 @@ new role.group('specials', 90)
         .add('mvp', '[§gMVP§r]')
         .add('vipp', '[§a§lVIP+§r]')
         .add('vip', '[§2VIP§r]')
+
+// teams
+new chat.group('teamRed', 1, ['teamRed'])
+new chat.group('teamBlue', 1, ['teamBlue'])
+
+new role.group('team')
+    .styles
+        .add('teamRed', '[§cRED§r]')
+        .add('teamBlue', '[§bBLUE§r]')
 
 // custom commands
 import './defaultcc/index.js'
