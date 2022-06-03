@@ -1,4 +1,4 @@
-import { BlockLocation, Dimension, DynamicPropertiesDefinition, EntityTypes, Location, MinecraftDimensionTypes, world } from "mojang-minecraft"
+import { BlockLocation, Dimension, DynamicPropertiesDefinition, EntityQueryOptions, EntityTypes, Location, MinecraftDimensionTypes, world } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
 import { dim, execCmd } from "./mc.js"
 import scoreboard from "./scoreboard.js"
@@ -187,13 +187,23 @@ const storage = (() => {
         load()
     }
     
-    world.events.worldInitialize.subscribe(({propertyRegistry}) => {
+    world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
         const dataEnt = EntityTypes.get('se:storage_data'),
             dataDefs = new DynamicPropertiesDefinition()
         dataDefs.defineNumber('order')
         propertyRegistry.registerEntityTypeDynamicProperties(dataDefs, dataEnt)
-    
-        load()
+
+        const q = new EntityQueryOptions
+            q.location = loaderLoc
+
+        while(true) {
+            const [loader] = sDim.getEntities(q)
+            if (loader) {
+                load()
+                break
+            }
+            await server.nextTick
+        }
     })
 
     return storage
