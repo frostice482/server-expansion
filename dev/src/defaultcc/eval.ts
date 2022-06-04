@@ -17,24 +17,34 @@ import TypedValues from "../libcore/typedvalues.js";
 import * as mc from 'mojang-minecraft'
 import * as mcui from 'mojang-minecraft-ui'
 
-const ccmd = new cc('eval')
-ccmd.minPermLvl = 100
-ccmd.triggers = /^eval$/i
-ccmd.onTrigger = (v) => {
-    if (v.argFull)
-        execEval(v.beforeChatEvd, v.argFull)
-    else {
-        const {executer} = v
-        replList.add(executer)
-        executer.sendMsg([
-            ` `,
-            `Entering REPL mode.`,
-            `Type '.send' to send a message to chat.`,
-            `Type '.exit' to exit.`,
-            ` `
-        ])
+const ccmd = new cc('eval', {
+    description: new cc.description({
+        name: 'Eval',
+        description: 'Executes JavaScript code.',
+        aliases: ['eval'],
+        usage: [
+            [['eval'], 'Enters REPL mode.'],
+            [['eval', { type: [['value', 'any']], name: 'code' }], 'Executes JavaScript code.', 'eval console.warn("Hello World!")'],
+        ]
+    }),
+    minPermLvl: 100,
+    triggers: /^eval$/i,
+    onTrigger: (v) => {
+        if (v.argFull)
+            execEval(v.beforeChatEvd, v.argFull)
+        else {
+            const {executer} = v
+            replList.add(executer)
+            executer.sendMsg([
+                ` `,
+                `Entering REPL mode.`,
+                `Type '.send' to send a message to chat.`,
+                `Type '.exit' to exit.`,
+                ` `
+            ])
+        }
     }
-}
+})
 
 const execEval = (evd: mc.BeforeChatEvent, cmd: string) => {
     const { sender: executer } = evd
