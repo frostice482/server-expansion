@@ -6,13 +6,14 @@ type valueTypes = {
     objects: ( TypedObject | TypedArray )
     all: valueTypes[Exclude<keyof valueTypes, 'all'>]
 }
-type allTypes = TypedValue | TypedObject | TypedArray
+type allTypes = TypedValue | TypedObject | TypedArray | TypedArraySpecific
 export { allTypes as typedValuesAll }
 
 export default class TypedValues {
     static get value() { return TypedValue }
     static get object() { return TypedObject }
     static get array() { return TypedArray }
+    static get arraySpecific() { return TypedArraySpecific }
 
     /**
      * Creates a typed value, typed object, or typed array from JSON data.
@@ -354,10 +355,91 @@ export class TypedArray {
     })
 }
 
+export class TypedArraySpecific {
+    /**
+     * Creates a specific typed array from JSON data.
+     * @param jsonData JSON data.
+     * @param index Index to be parsed.
+     * @param referenceStack Reference stack.
+     */
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceStack: List<allTypes, number> = empty(), index = 0) => {
+        const data = jsonData[index]
+        if (data?.type != 'arraySpecific') throw new TypeError(`Type mismatched: expecting 'arraySpecific', got '${data.type}'`)
+
+        const n = new this()
+        referenceStack[index] = n
+        n.name = data.name
+        n.minLength = data.minLength
+        n.allowOverlength = data.allowOverlength
+        n.type = data.data.map(v => referenceStack[v] ??= refId[jsonData[v].type].fromJSON(jsonData, referenceStack, v))
+
+        return n
+    }
+
+    /**
+     * Creates a specific typed array.
+     * @param type Value types.
+     * @param minLength Minimum array length.
+     */
+    constructor(type: allTypes[] = [], minLength: number = type.length) {
+        this.type = type
+        this.minLength = minLength
+    }
+
+    /** Type data. */
+    type: allTypes[]
+    /** Minimum length. */
+    minLength: number
+    /** Allows array length goes beyond array type length. */
+    allowOverlength = false
+
+    /** Type name. */
+    name = ''
+
+    /**
+     * Tests if an array matches the type.
+     * @param o Array to be tested.
+     */
+    readonly test = (o: any[] = []) => (
+        Array.isArray(o)
+        && ( this.allowOverlength ? true : o.length <= this.type.length )
+        && this.type.every((type, i) => ( this.minLength < i && !(i in o) ) || type.test(o) )
+    )
+
+    /**
+     * Converts to JSON format.
+     */
+    readonly toJSON = () => toJSON(this)
+
+    /**
+     * Gets reference list.
+     * @param stack Reference stack.
+     */
+    readonly getReferenceList = (stack: allTypes[] = []): allTypes[] => {
+        if (stack.includes(this)) return stack
+        stack.push(this)
+        this.type.map(type => type.getReferenceList(stack))
+        return stack
+    }
+
+    /**
+     * Converts to JSON.
+     * @param refData Reference datas.
+     */
+    readonly JSONConvertion = (refData: Map<allTypes, number>): JSONData['TypedArraySpecific'] => ({
+        type: 'arraySpecific',
+        name: this.name,
+        minLength: this.minLength,
+        allowOverlength: this.allowOverlength,
+        data: this.type.map(v => refData.get(v))
+    })
+}
+
 const refId = {
     value: TypedValue,
     object: TypedObject,
     array: TypedArray,
+    arraySpecific: TypedArraySpecific
 }
 
 const toJSON = (type: allTypes) => {
@@ -399,6 +481,13 @@ type JSONData = {
         type: 'array'
         name: string
         data: number
+    }
+    TypedArraySpecific: {
+        type: 'arraySpecific'
+        name: string,
+        minLength: number,
+        allowOverlength: boolean,
+        data: number[]
     }
     all: JSONData[Exclude<keyof JSONData, 'all' | 'default'>]
 }
