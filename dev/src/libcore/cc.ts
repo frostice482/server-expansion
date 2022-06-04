@@ -1,12 +1,13 @@
-import { BeforeChatEvent, BlockAreaSize, Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, MinecraftBlockTypes, Player, world } from "mojang-minecraft"
+import { BeforeChatEvent, BlockAreaSize, Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, Player, world } from "mojang-minecraft"
 import { dim } from "./mc.js"
-import { empty } from "./misc.js"
+import { deepAssign, empty } from "./misc.js"
 import permission from "./permission.js"
 import TypedValues, { typedValuesAll, typedValuesJSON } from "./typedvalues.js"
 
 export default class cc {
     static get parser() { return parser }
     static get typedArgs() { return TypedArgs }
+    static get description() { return ccDescription }
 
     static #prefix: string = '!'
     static get prefix() { return this.#prefix }
@@ -63,17 +64,21 @@ export default class cc {
 
             const cmd = this.getCommandFromTrigger(command)
             if (!cmd) throw new Error(`Command not found: '${command}'`)
-            if (cmd.minPermLvl && permission.getLevel(executer.getTags()) < cmd.minPermLvl) throw new Error(`You have no permission to use this command: '${command}'`)
+            if (
+                cmd.minPermLvl && permission.getLevel(executer.getTags()) < cmd.minPermLvl
+                || !this.#testReqTags(cmd.reqTags, executer)
+            ) throw new Error(`You have no permission to use this command: '${command}'`)
 
             const argFull = message.substring(command.length + 1),
                 typedArgs = cmd.typedArgs?.parse(args) ?? args
 
             const vars: ccVars = empty({
+                command: cmd,
+                trigger: command,
                 executer,
                 args,
                 argFull,
                 typedArgs,
-                command,
                 beforeChatEvd: evd
             })
 
@@ -84,28 +89,62 @@ export default class cc {
                     e instanceof ccError
                     || e.name == 'Error'
                     || e.name == 'SyntaxError'
-                ) executer.sendMsg(`${e}`)
+                ) executer.sendMsg(`§c${e}`)
                 else executer.sendMsg(`An error occured when executing a custom command: \n${e}\n${e.stack}`)
             }
             else executer.sendMsg(e)
         }
     }
 
+    static #testReqTags = (() => {
+        const test = empty({
+            all: (v: number) => v == 1,
+            any: (v: number) => v > 0,
+            none: (v: number) => v == 0,
+        })
+        const exec = (reqTags: cc['reqTags'] = [], plr: Player) => {
+            let testCnt = 0, success = 0
+            
+            if (Array.isArray(reqTags))
+                for (const tag of reqTags) {
+                    testCnt++
+                    if (plr.hasTag(tag)) success++
+                }
+            
+            else
+                for (const k in reqTags) {
+                    if (!(k in test)) continue
+                    testCnt++
+                    const r = exec(reqTags[k], plr)
+                    if (test[k](r)) success++
+                }
+            
+            return testCnt ? success / testCnt : 1
+        }
+        return (reqTags: cc['reqTags'] = [], plr: Player) => test.all(exec(reqTags, plr))
+    })()
+
     /**
      * Creates a custom command.
      * @param id Custom command identifier.
+     * @param properties Initializer properties.
      */
-    constructor(id: string) {
+    constructor(id: string, properties: Optional<ExcludeSome<cc, 'id'>> = {} ) {
         this.id = id
+        Object.assign(this, properties)
         ccList.set(id, this)
     }
 
     /** Identfier. */
     readonly id: string
+    /** Command description. */
+    description?: ccDescription
     /** Minimum permission level to execute the command. */
-    minPermLvl: number = 0
+    minPermLvl?: number
+    /** Required tags. */
+    reqTags?: { [K in 'all' | 'any' | 'none']: this['reqTags'] } | string[]
     /** Typed arguments. */
-    typedArgs: TypedArgs = new TypedArgs
+    typedArgs?: TypedArgs
     /** Command triggers. */
     triggers: RegExp | string[] = []
     /** Function to be executed on trigger. */
@@ -114,10 +153,211 @@ export default class cc {
 
 const ccList = new Map<string, cc>()
 
+class ccDescription {
+    /**
+     * Creates a custom command description from JSON data.
+     * @param data JSON data.
+     */
+    static readonly toJSON = (data: ccDescriptionJSONData) => new this(data)
+
+    /**
+     * Creates a custom command description.
+     * @param properties Property initializers.
+     */
+    constructor(properties: Optional<ccDescriptionJSONData> = {}) {
+        deepAssign(this, properties)
+    }
+
+    /** Command name. */
+    name = ''
+    /** Command description. */
+    description = ''
+    /** Command aiases. */
+    aliases: string[] = []
+    /** Command usages. */
+    usage: [
+        usage: ( string | { type: [ type: 'keyword' | 'value', value: string ][], name?: string } )[],
+        description?: string,
+        example?: string
+    ][] = []
+
+    /** Variables. */
+    variables: List<any> = {}
+    /** Formats. */
+    formats: {
+        /** Aliases format. */
+        aliases?: {
+            /** Alias format. Escape with `#~` for alias. */
+            format?: string
+            /** Join separator. */
+            joinSeparator?: string
+        }
+        /** Value type format. */
+        type?: {
+            /** Type format. */
+            typeFormat?: {
+                /** Keyword format. Escape with `#~` for value. */
+                keyword?: string
+                /** Value format. Escape with `#~` for value. */
+                value?: string
+                /** Join separator. */
+                joinSeparator?: string
+            }
+            /** Value type format. */
+            format?: {
+                /** Type-only format. Escape with `#~t` for type. */
+                typeOnly?: string
+                /** Type and name format. Escape with `#~t` for type, `#~n` for name. */
+                withName?: string
+            }
+        }
+        /** Usage format. */
+        usage?: {
+            /** Usage format. */
+            format?: {
+                /** Usage-only format. Escape with `#~u` for usage. */
+                usageOnly?: string
+                /** Usage with description format. Escape with `#~u` for usage, `#~d` for description. */
+                withDescription?: string
+                /** Usage with description and example format. Escape with `#~u` for usage, `#~d` for description, `#~e` for example. */
+                withExample?: string
+                /** Usage join separator. */
+                joinSeparator?: string
+            }
+            /** Sequence format. */
+            sequenceFormat?: {
+                /** Keyword format. Escape with `#~` for keyword. */
+                keyword?: string
+                /** Value format. Escape with `#~` for type. */
+                type?: string
+                /** Keyword / type join separator. */
+                joinSeparator?: string
+            }
+        }
+    } = {
+        aliases: {
+            format: '§7#~§8',
+            joinSeparator: ', '
+        },
+        type: {
+            typeFormat: {
+                keyword: '§a#~§r',
+                value: '§e#~§r',
+                joinSeparator: ' | '
+            },
+            format: {
+                typeOnly: '{#~t}',
+                withName: '{§b#~n§r: #~t}'
+            }
+        },
+        usage: {
+            format: {
+                usageOnly: ' §8|§r #~u',
+                withDescription: ' §8|§r #~u §8- §7#~d',
+                withExample: ' §8|§r #~u §8- §7#~d\n§7Example: #~e',
+                joinSeparator: '\n'
+            },
+            sequenceFormat: {
+                keyword: '§a#~§r',
+                type: '#~',
+                joinSeparator: ' ',
+            }
+        }
+    }
+    /** Format. Escape with `#<var>`. */
+    format = ([
+        '#<name> §8- #<aliases>',
+        '#<description>',
+        ' ',
+        '§d==[ Usages ]==§r',
+        '#<usages>'
+    ]).join('\n')
+
+    /** Output. */
+    out?: string
+
+    get [Symbol.toPrimitive]() { return this.generate }
+    get toString() { return this.generate }
+
+    /**
+     * Generates a command description.
+     */
+    readonly generate = () => {
+        const {
+            type: {
+                format: {
+                    typeOnly: tfm0,
+                    withName: tfm1
+                },
+                typeFormat: {
+                    keyword: tfmkw,
+                    value: tfmv,
+                    joinSeparator: tfmj,
+                }
+            },
+            aliases: {
+                format: afmf,
+                joinSeparator: afmj
+            },
+            usage: {
+                format: {
+                    usageOnly: ufm0,
+                    withDescription: ufm1,
+                    withExample: ufm2,
+                    joinSeparator: ufmj
+                },
+                sequenceFormat: {
+                    joinSeparator: usfmj,
+                    keyword: usfmkw,
+                    type: usfmt
+                }
+            }
+        } = this.formats
+
+        const vars = empty({
+            name: this.name,
+            description: this.description,
+            v: this.variables,
+            usages:
+                this.usage.map(v => {
+                    let [u, d, e] = v
+                    const un = u.map(v => {
+                        if (typeof v == 'string') return usfmkw.replace('#~', v)
+                        const t = v.type.map( ([t, v]) => ( t == 'keyword' ? tfmkw : tfmv ).replace('#~', v) ).join(tfmj)
+                        console.warn(v.name)
+                        return usfmt.replace( '#~', ( v.name ? tfm1 : tfm0 ).replace( /#~([nt])/g, (m, x) => x == 't' ? t : v.name ?? '' ) )
+                    }).join(usfmj)
+                    return ( v.length == 3 ? ufm2 : v.length == 2 ? ufm1 : ufm0 ).replace( /#~([ude])/g, (m, v) => v == 'u' ? un : v == 'd' ? d : e )
+                }).join(ufmj),
+            aliases: this.aliases.map(v => afmf.replace('#~', v)).join(afmj)
+        })
+
+        return this.format.replace(/#<(\w+(.\w+)*)+>/g, (m, a: string) => {
+            let obj: any = vars
+            for (const p of a.split('.')) obj = (obj ?? {})[p]
+            return obj ?? ''
+        })
+    }
+
+    /**
+     * Converts description data to JSON.
+     */
+    readonly toJSON = (): ccDescriptionJSONData => {
+        const { name, description, aliases, usage, variables, formats, format, out } = this
+        return { name, description, aliases, usage, variables, formats, format, out }
+    }
+}
+
+type ccDescriptionJSONData = {
+    [K in Extract<Exclude<keyof ccDescription, 'toJSON' | 'generate' | 'toString'>, string>]: ccDescription[K]
+}
+
 export type ccVars = {
     [k: string]: any
+    /** Command triggered. */
+    readonly command: cc
     /** Command keyword used to call the command. */
-    readonly command: string
+    readonly trigger: string
     /** Full argument passed to the command. */
     readonly argFull: string
     /** Arguments passed to the command.  */
@@ -586,6 +826,8 @@ class parser {
         return Object.assign(fn, { toJSON: (): parserJSONData['selector'] => ({ type: 'selector' }) })
     })()
 
+    static readonly any = Object.assign( (v) => v, { toJSON: (): parserJSONData['any'] => ({ type: 'any' }) } )
+
     protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
@@ -601,6 +843,9 @@ type parserJSONData = {
     }
     selector: {
         type: 'selector'
+    }
+    any: {
+        type: 'any'
     }
     typedValue: {
         type: 'typedValue'
@@ -710,7 +955,8 @@ class TypedArgs {
             }
             return o
         }
-        throw new Error(`An error occured while parsing arguments. Errors are shown below: \n${ errMessage.map(v => ` : ${v}`).join('\n') }`)
+        const [e] = errMessage
+        throw new ccError(e.message, e.name)
     }
 }
 

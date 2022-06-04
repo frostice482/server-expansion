@@ -239,3 +239,18 @@ export const randomstr = (length: number, charset = '0123456789ABCDEFGHIJKLMNOPQ
     for (let i = 0; i < length; i++) o = o.concat( charset[ Math.floor( Math.random() * charset.length ) ] )
     return o
 }
+
+/**
+ * Deep assigns an object. Acts like an `Object.assign`, but deeply assigns an object. Ignores symbol properties.
+ * @param to Object.
+ * @param source Source.
+ */
+export const deepAssign = <A, B>(to: any, source: any): A & B => {
+    for (const k in source) {
+        const sv = source[k],
+            tv = to[k] ??= Array.isArray(sv) ? [] : {}
+        if (typeof sv == 'object' && typeof tv == 'object') deepAssign(tv, sv)
+        else to[k] = sv
+    }
+    return to
+}
