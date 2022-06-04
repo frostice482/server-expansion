@@ -23,8 +23,8 @@ const ccmd = new cc('eval', {
         description: 'Executes JavaScript code.',
         aliases: ['eval'],
         usage: [
-            [['eval'], 'Enters REPL mode.'],
-            [['eval', { type: [['value', 'any']], name: 'code' }], 'Executes JavaScript code.', 'eval console.warn("Hello World!")'],
+            [ [ 'eval' ], 'Enters REPL mode.'],
+            [ [ 'eval', { type: [['value', 'any']], name: 'code' } ], 'Executes JavaScript code.'],
         ]
     }),
     minPermLvl: 100,
