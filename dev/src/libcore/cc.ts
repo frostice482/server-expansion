@@ -271,7 +271,7 @@ class ccDescription {
         ' ',
         '§d==[ Usages ]==§r',
         '#<usages>'
-    ]).join('\n')
+    ]).join('\n§r')
 
     /** Output. */
     out?: string
