@@ -1,4 +1,4 @@
-import { Player as TMCPlayer } from 'mojang-minecraft'
+import {} from 'mojang-minecraft'
 
 type rawtext = {
     rawtext: (
@@ -26,4 +26,8 @@ declare global {
     type RequiredSome<V, K extends keyof V> = V & { [P in K]: V[P] }
     type ExcludeSome<V, K extends keyof V> = { [P in Exclude<keyof V, K>]: V[P] }
     type Optional<V> = { [P in keyof V]?: V[P] }
+    type FilterKeysIf<V, T> = { [K in keyof V]: V[K] extends T ? K : never }[keyof V]
+    type FilterKeysIfNot<V, T> = { [K in keyof V]: V[K] extends T ? never : K }[keyof V]
+    type ListIf<V, T> = { [K in FilterKeysIf<V, T>]: V[K] }
+    type ListIfNot<V, T> = { [K in FilterKeysIfNot<V, T>]: V[K] }
 }
