@@ -327,15 +327,18 @@ import storage from "./storage.js"
 
 export type saveData = {
     groups: groupJSONData[]
+    config: typeof config
 }
 
 storage.instance.default.ev.save.subscribe(function roleSave (data) {
     data.role = {
-        groups: Array.from(groupList.values(), v => v.toJSON())
+        groups: Array.from(groupList.values(), v => v.toJSON()),
+        config
     }
 })
 storage.instance.default.ev.load.subscribe(function roleLoad (data) {
     if (!data.role) return
+    Object.assign(config, data.role.config)
     groupList.clear()
     groupList = new Map(data.role.groups.map(v => [ v.id, roleGroup.fromJSON(v) ]))
 })
