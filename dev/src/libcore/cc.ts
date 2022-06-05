@@ -67,7 +67,7 @@ export default class cc {
             if (!cmd) throw new Error(`Command not found: '${command}'`)
             if (
                 cmd.minPermLvl && permission.getLevel(executer.getTags()) < cmd.minPermLvl
-                || !this.#testReqTags(cmd.reqTags, executer)
+                || !this.testReqTags(cmd.reqTags, executer)
             ) throw new Error(`You have no permission to use this command: ${cmd.description?.name ?? `'${cmd}'`}`)
             if (cmd.isDisabled) throw new Error(`Command is disabled: ${cmd.description?.name ?? `'${cmd}'`}`)
 
@@ -98,7 +98,7 @@ export default class cc {
         }
     }
 
-    static #testReqTags = (() => {
+    static testReqTags = (() => {
         const test = empty({
             all: (v: number) => v == 1,
             any: (v: number) => v > 0,

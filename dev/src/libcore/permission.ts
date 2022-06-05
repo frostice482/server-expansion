@@ -25,6 +25,12 @@ export default class permission {
      */
     static readonly getList = () => Object.entries(list)
 
+    /**.
+     * ets permission level assigned to the tag.
+     * @param tag Tag.
+     */
+    static readonly 'get' = (tag: string) => list[tag]
+
     /**
      * Gets permission level from tags.
      * @param tags Tags.
