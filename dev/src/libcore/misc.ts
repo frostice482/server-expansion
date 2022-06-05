@@ -9,7 +9,6 @@ export const viewObj = (() => {
     const GeneratorFunction: GeneratorFunction = Object.getPrototypeOf(function*(){}).constructor,
         AsyncFunction: any = Object.getPrototypeOf(async()=>{}).constructor,
         AsyncGeneratorFunction: AsyncGeneratorFunction = Object.getPrototypeOf(async function*() {}).constructor,
-        errUnknown = '§c[Unknown]§r',
         defTab = ' §8:§r ',
         defStrEscDict = {
             '\t': 'TAB',
@@ -71,7 +70,7 @@ export const viewObj = (() => {
         const kv = (k: string | symbol) => {
                 const headings = `${tab} ${keyFormat(k)}${getGetterSetter(k)}: `
                 try { return headings + exec( obj[k], oTab, nextTab, objlist.concat([addObj]), obj[k] ) }
-                catch { return headings + errUnknown }
+                catch (e) { return headings + '§c[Error]§r' }
             },
             getKeys = () => {
                 if (constructorIsObject) {
@@ -217,8 +216,8 @@ export const viewObj = (() => {
                     return o.join('\n§r')
                 }
             }
-        } catch {
-            return errUnknown
+        } catch (e) {
+            return '§c[Error]§r'
         }
     }
     /**
@@ -253,4 +252,28 @@ export const deepAssign = <A, B>(to: any, source: any): A & B => {
         else to[k] = sv
     }
     return to
+}
+
+/**
+ * Converts a number to readable time.
+ * @param time Time.
+ * @param isMillisecond Determines if time is in millisecond or not.
+ */
+export const convertToReadableTime = (time: number, isMillisecond = true) => {
+    if (time == Infinity) return 'eternity'
+    if (isMillisecond) time = time / 1000
+    const x: [string, number][] = [
+        [ 'year', ~~( time / 31536000 ) ],
+        [ 'week', ~~( time / 604800 % 7) ],
+        [ 'day', ~~( time / 86400 % 30 ) ],
+        [ 'hour', ~~( time / 3600 % 24 ) ],
+        [ 'minute', ~~( time / 60 % 60 ) ],
+        [ 'second', ~~( time % 60 ) ],
+    ]
+    for (const [i, [l, v]] of x.entries())
+        if (v != 0 || i == x.length - 2) {
+            x.splice(0, i + 1)
+            break
+        }
+    return x.map(([l, v]) => `${v} ${l}${v == 1 ? '' : 's'}`).join(' ') || '0 seconds'
 }

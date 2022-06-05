@@ -81,7 +81,7 @@ let config = {
     },
     /** Nametag update interval. */
     get nametagUpdateInterval() { return nametagInterval.interval },
-    set nametagUpdateInterval(v) { nametagInterval.interval = Math.max( Math.min( v, 120000 ), 30000 ) },
+    set nametagUpdateInterval(v) { nametagInterval.interval = Math.max( Math.min( v, 120000 ), 10000 ) },
     /** Nametag format. */
     nametagFormat: '#role #name',
     /** Message format. */
@@ -151,6 +151,15 @@ class roleGroupStyle {
      * @returns Style data.
      */
     readonly removeAt = (index: number) => this.#arr.splice(index, 1)[0]
+
+    /**
+     * Gets a style at specified index from the group.
+     * @param index Array index.
+     */
+    readonly getAt = (index: number) => this.#arr[index]
+
+    /** Style length. */
+    get length() { return this.#arr.length }
 
     get getGroupStyle() { return this.#group.getStyle }
 

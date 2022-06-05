@@ -8,6 +8,7 @@ export default class cc {
     static get parser() { return parser }
     static get typedArgs() { return TypedArgs }
     static get description() { return ccDescription }
+    static get error() { return ccError }
 
     static #prefix: string = '!'
     static get prefix() { return this.#prefix }
@@ -67,7 +68,8 @@ export default class cc {
             if (
                 cmd.minPermLvl && permission.getLevel(executer.getTags()) < cmd.minPermLvl
                 || !this.#testReqTags(cmd.reqTags, executer)
-            ) throw new Error(`You have no permission to use this command: '${command}'`)
+            ) throw new Error(`You have no permission to use this command: ${cmd.description?.name ?? `'${cmd}'`}`)
+            if (cmd.isDisabled) throw new Error(`Command is disabled: ${cmd.description?.name ?? `'${cmd}'`}`)
 
             const argFull = message.substring(command.length + 1),
                 typedArgs = cmd.typedArgs?.parse(args) ?? args
@@ -139,12 +141,20 @@ export default class cc {
     readonly id: string
     /** Command description. */
     description?: ccDescription
+
     /** Minimum permission level to execute the command. */
     minPermLvl?: number
     /** Required tags. */
     reqTags?: { [K in 'all' | 'any' | 'none']: this['reqTags'] } | string[]
+
     /** Typed arguments. */
     typedArgs?: TypedArgs
+
+    /** Deterines whether command is hidden or not. */
+    isHidden?: boolean
+    /** Deterines whether command is disabled or not. */
+    isDisabled?: boolean
+
     /** Command triggers. */
     triggers: RegExp | string[] = []
     /** Function to be executed on trigger. */
@@ -176,7 +186,7 @@ class ccDescription {
     aliases: string[] = []
     /** Command usages. */
     usage: [
-        usage: ( string | { type: [ type: 'keyword' | 'value', value: string ][], name?: string } )[],
+        usage: ( string | { type: [ type: 'keyword' | 'value', value: string ][], name?: string, required?: boolean } )[],
         description?: string,
         example?: string
     ][] = []
@@ -209,6 +219,10 @@ class ccDescription {
                 typeOnly?: string
                 /** Type and name format. Escape with `#~t` for type, `#~n` for name. */
                 withName?: string
+                /** Type-only format if optional. Escape with `#~t` for type. */
+                typeOnlyOptional?: string
+                /** Type and name format if optional. Escape with `#~t` for type, `#~n` for name. */
+                withNameOptional?: string
             }
         }
         /** Usage format. */
@@ -247,7 +261,9 @@ class ccDescription {
             },
             format: {
                 typeOnly: '{#~t}',
-                withName: '{§b#~n§r: #~t}'
+                withName: '{§b#~n§r: #~t}',
+                typeOnlyOptional: '{#~t?}',
+                withNameOptional: '{§b#~n§r?: #~t}'
             }
         },
         usage: {
@@ -273,21 +289,27 @@ class ccDescription {
         '#<usages>'
     ]).join('\n§r')
 
-    /** Output. */
-    out?: string
+    /** Cache output. */
+    cache?: string
 
     get [Symbol.toPrimitive]() { return this.generate }
     get toString() { return this.generate }
 
     /**
      * Generates a command description.
+     * @param ignoreCache Ignores cache.
      */
-    readonly generate = () => {
+    readonly generate = (ignoreCache = false) => {
+        const useCache = Object.keys(this.variables).length == 0
+        if (useCache && this.cache && !ignoreCache) return this.cache
+
         const {
             type: {
                 format: {
                     typeOnly: tfm0,
-                    withName: tfm1
+                    withName: tfm1,
+                    typeOnlyOptional: tfm2,
+                    withNameOptional: tfm3
                 },
                 typeFormat: {
                     keyword: tfmkw,
@@ -313,6 +335,8 @@ class ccDescription {
                 }
             }
         } = this.formats
+        const _a = [ufm2, ufm1, ufm0] as const,
+            _b = [ tfm0, tfm1, tfm2, tfm3 ] as const
 
         const vars = empty({
             name: this.name,
@@ -323,28 +347,37 @@ class ccDescription {
                     let [u, d, e] = v
                     const un = u.map(v => {
                         if (typeof v == 'string') return usfmkw.replace('#~', v)
-                        const t = v.type.map( ([t, v]) => ( t == 'keyword' ? tfmkw : tfmv ).replace('#~', v) ).join(tfmj)
-                        console.warn(v.name)
-                        return usfmt.replace( '#~', ( v.name ? tfm1 : tfm0 ).replace( /#~([nt])/g, (m, x) => x == 't' ? t : v.name ?? '' ) )
+                        const t = v.type
+                            .map( ([t, v]) => ( t == 'keyword' ? tfmkw : tfmv ).replace('#~', v) ) // map keyword / value, replaces escaping `#~`
+                            .join(tfmj)
+                        return usfmt
+                            .replace(
+                                '#~', // replaces escaping `#~`
+                                _b[ +!!v.name + +!( v.required ?? 1 ) * 2 ] // type format (0: type only, 1: type & name, 2: type only, optional, 3: type & name, optional)
+                                    .replace( /#~([nt])/g, (m, x) => x == 't' ? t : v.name ?? '' ) // replaces escaping `#~n`, `#~t`
+                            )
                     }).join(usfmj)
-                    return ( v.length == 3 ? ufm2 : v.length == 2 ? ufm1 : ufm0 ).replace( /#~([ude])/g, (m, v) => v == 'u' ? un : v == 'd' ? d : e )
+                    return _a[v.length - 1] // usage format (0: usage only, 1: usage & description, 2: usage, description, & examples)
+                        .replace( /#~([ude])/g, (m, v) => v == 'u' ? un : v == 'd' ? d : e ) // replaces escaping `#~u`, `#~d`, `#~e`
                 }).join(ufmj),
             aliases: this.aliases.map(v => afmf.replace('#~', v)).join(afmj)
         })
 
-        return this.format.replace(/#<(\w+(.\w+)*)+>/g, (m, a: string) => {
+        const v = this.format.replace(/#<(\w+(.\w+)*)+>/g, (m, a: string) => {
             let obj: any = vars
             for (const p of a.split('.')) obj = (obj ?? {})[p]
             return obj ?? ''
         })
+
+        return useCache && !ignoreCache ? this.cache = v : v
     }
 
     /**
      * Converts description data to JSON.
      */
     readonly toJSON = (): ccDescriptionJSONData => {
-        const { name, description, aliases, usage, variables, formats, format, out } = this
-        return { name, description, aliases, usage, variables, formats, format, out }
+        const { name, description, aliases, usage, variables, formats, format, cache } = this
+        return { name, description, aliases, usage, variables, formats, format, cache }
     }
 }
 
