@@ -263,8 +263,7 @@ export const convertToReadableTime = (time: number, isMillisecond = true) => {
     if (time == Infinity) return 'eternity'
     if (isMillisecond) time = time / 1000
     const x: [string, number][] = [
-        [ 'year', ~~( time / 31536000 ) ],
-        [ 'week', ~~( time / 604800 % 7) ],
+        [ 'week', ~~( time / 604800) ],
         [ 'day', ~~( time / 86400 % 30 ) ],
         [ 'hour', ~~( time / 3600 % 24 ) ],
         [ 'minute', ~~( time / 60 % 60 ) ],
