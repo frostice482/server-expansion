@@ -8,7 +8,7 @@
         "min_engine_version": [ 1, 18, 30 ]
     },
     "modules": [{
-        "type": "javascript",
+        "type": "script",
         "entry": "scripts/main.js",
         "uuid": "0eac2ae2-8980-4a07-99d3-f337b326b3f9",
         "version": [ 1, 0, 0 ]
