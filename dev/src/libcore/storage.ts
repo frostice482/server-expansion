@@ -1,7 +1,6 @@
-import { BlockLocation, Dimension, DynamicPropertiesDefinition, EntityQueryOptions, EntityTypes, Location, MinecraftDimensionTypes, world } from "mojang-minecraft"
+import { BlockLocation, Dimension, DynamicPropertiesDefinition, EntityTypes, Location, world } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
-import { dim, execCmd } from "./mc.js"
-import scoreboard from "./scoreboard.js"
+import { execCmd } from "./mc.js"
 import server from "./server.js"
 
 const storage = (() => {
@@ -10,7 +9,7 @@ const storage = (() => {
         static get isLoaded() { return loadLevel == 2 }
         /** Storage instance. */
         static get instance() { return instance }
-    
+
         /**
          * Executes a function on load.
          * @param fn Function to be executed.
@@ -21,37 +20,13 @@ const storage = (() => {
         }
     
         /**
-         * Creates a save data.
+         * Executes a save data.
          * @param id Identifier.
          */
-        static readonly create = (id: string) => {
+        static readonly for = (id: string) => {
             if (!this.isLoaded) throw new Error(`Storage is not loaded`)
-            if (list.exist(id)) throw new ReferenceError(`Save data with ID ${id} already exists`)
-    
-            list.add(id, 0)
             return new saveDataInfo(id)
         }
-    
-        /**
-         * Gets a save data.
-         * @param id Identifier.
-         */
-        static readonly 'get' = (id: string) => {
-            if (!this.isLoaded) throw new Error(`Storage is not loaded`)
-            return list.exist(id) ? new saveDataInfo(id) : undefined
-        }
-    
-        /**
-         * Gets a save data. Creates a new one if doesn't exist.
-         * @param id Identifier.
-         */
-        static readonly for = (id: string) => this[ this.exist(id) ? 'get' : 'create' ](id)
-    
-        /**
-         * Test if a save data exists.
-         * @param id Identifier.
-         */
-        static readonly exist = (id: string) => list.exist(id)
     
         /**
          * Deletes a save data.
@@ -59,13 +34,7 @@ const storage = (() => {
          */
         static readonly delete = (id: string) => {
             if (!this.isLoaded) throw new Error(`Storage is not loaded`)
-            if (!list.exist(id)) return false
-    
-            if (slist.exist(id)) execCmd(`structure delete ${ JSON.stringify('SES:' + id) }`, sDim, true) // delete
-            list.delete(id)
-            slist.delete(id)
-    
-            return true
+            return !execCmd(`structure delete ${ JSON.stringify(id) }`, dim, true).statusCode
         }
     
         protected constructor() { throw new TypeError('Class is not constructable') }
@@ -74,14 +43,15 @@ const storage = (() => {
     class saveDataInfo {
         constructor(id: string) {
             this.id = id
-            this.execId = JSON.stringify('SES:' + this.id)
-    
-            if (!slist.exist(id)) return
-            const l: string[] = []
-            execCmd(`structure load ${this.execId} ${xb} ${yb} ${zb}`, sDim, true) // load
-            for (const data of sDim.getEntitiesAtBlockLocation(blLoc)) l[data.getDynamicProperty('order') as number] = data.nameTag
-            clear()
-            this.#value = l.join('')
+            this.execId = JSON.stringify(this.id)
+
+            try {
+                execCmd(`structure load ${this.execId} ${x} ${y} ${z}`, dim) // load
+                const l: string[] = []
+                for (const data of dim.getEntitiesAtBlockLocation(blLoc)) l[data.getDynamicProperty('order') as number] = data.nameTag
+                clear()
+                this.#value = l.join('')
+            } catch {}
         }
     
         /** Save data identifier. */
@@ -95,115 +65,57 @@ const storage = (() => {
             if (this.#value == v) return
             this.#value = v
             if (v === undefined) {
-                slist.delete(this.id)
-                execCmd(`structure delete ${this.execId}`, sDim, true) // delete
+                execCmd(`structure delete ${this.execId}`, dim, true) // delete
             } else {
-                slist.add(this.id, 0)
                 for (let i = 0, m = v.length / 32767; i < m; i++) {
-                    const ent = sDim.spawnEntity('se:storage_data', entLoc)
+                    const ent = dim.spawnEntity('se:storage_data', entLoc)
                     ent.setDynamicProperty('order', i)
                     ent.nameTag = v.substr(i * 32767, 32767)
                 }
-                execCmd(`structure save ${this.execId} ${xb} ${yb} ${zb} ${xb} ${yb} ${zb} true disk`, sDim, true) // save
+                execCmd(`structure save ${this.execId} ${x} ${y} ${z} ${x} ${y} ${z} true disk`, dim, true) // save
             }
         }
     }
 
     const clear = () => {
-        for (const ent of sDim.getEntitiesAtBlockLocation(blLoc)) {
-            ent.teleport(Object.assign(ent.location, {y: 400}), sDim, 0, 0)
+        for (const ent of dim.getEntitiesAtBlockLocation(blLoc)) {
+            ent.teleport(Object.assign(ent.location, {y: 400}), dim, 0, 0)
             ent.triggerEvent('se:kill')
         }
     }
-    
-    // scoreboards
-    const cfg = scoreboard.objective.for('SES').dummies,
-        list = scoreboard.objective.for('SESlist').dummies,
-        slist = scoreboard.objective.for('SESStructList').dummies
-    
-    // locations
-    const [x, y, z] = [1572864, 0, 1572864],
-        [xc, yc, zc] = [x + 0.5, y + 0.5, z + 0.5]
-    
-    const loaderLoc = new Location(xc, yc, zc),
-        entLoc = new Location(xc, yc + 1, zc),
-        [xb, yb, zb] = [x, y + 1, z],
-        blLoc = new BlockLocation(xb, yb, zb)
-    
-    // loading
-    let loadQueues: (() => void)[] = []
+
+    // loaded
     let loadLevel = 0
-    let load = () => {
-        loadLevel++
-        if (loadLevel == 2) {
-            for (const fn of loadQueues)
-                try { fn() }
-                catch (e) { console.warn(`storage > onLoad (${ fn.name || '<anonymous>' }): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
-        }
+    const loadQueues: ( () => void )[] = []
+    const load = () => {
+        if (++loadLevel != 2) return
+
+        const {x: xl, y: yl, z: zl} = areaLoader.centerLoadLocation;
+        [x, y, z] = [xl, 0, zl]
+        entLoc = new Location(x + 0.5, y + 0.5, z + 0.5)
+        blLoc = new BlockLocation(x, y, z)
+        dim = areaLoader.dim
+
+        for (const fn of loadQueues)
+            try { fn() }
+            catch(e) { console.warn(`storage > onLoad (${fn.name || '<anonymous>'}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
     }
-    const dimIndex = {
-        [MinecraftDimensionTypes.overworld]: 0,
-        [MinecraftDimensionTypes.nether]: 1,
-        [MinecraftDimensionTypes.theEnd]: 2,
-        0: dim.o,
-        1: dim.n,
-        2: dim.e,
-    }
-    let sDim: Dimension
+    areaLoader.onLoad(load)
     
-    if (!cfg.exist('isInit'))
-        (async () => {
-            let tmpLoc: Location, tmpSet = false
-            while (true) {
-                await server.nextTick
-                try {
-                    const [plr] = world.getPlayers()
-                    if (!plr) throw 0
-    
-                    if (!tmpSet) {
-                        tmpSet = true
-                        tmpLoc = plr.location
-                        plr.teleport(loaderLoc, plr.dimension, 0, 0)
-                    }
-    
-                    const pDim = plr.dimension
-    
-                    const ent = pDim.spawnEntity('se:storage_loader', loaderLoc)
-                    execCmd(`setblock ~~~ air`, ent, true)
-    
-                    cfg.set('isInit', 1)
-                    sDim = pDim
-                    cfg.set('dim', dimIndex[pDim.id])
-    
-                    load()
-    
-                    plr.teleport(tmpLoc, pDim, 0, 0)
-                    break
-                } catch (e) {}
-            }
-        })()
-    else {
-        sDim = dimIndex[cfg.get('dim')]
-        load()
-    }
-    
-    world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
+    // locations & dimensions
+    let x: number, y: number, z: number,
+        entLoc: Location,
+        blLoc: BlockLocation,
+        dim: Dimension
+
+    // dynamic properties
+    world.events.worldInitialize.subscribe(({propertyRegistry}) => {
         const dataEnt = EntityTypes.get('se:storage_data'),
             dataDefs = new DynamicPropertiesDefinition()
         dataDefs.defineNumber('order')
         propertyRegistry.registerEntityTypeDynamicProperties(dataDefs, dataEnt)
 
-        const q = new EntityQueryOptions
-            q.location = loaderLoc
-
-        while(true) {
-            const [loader] = sDim.getEntities(q)
-            if (loader) {
-                load()
-                break
-            }
-            await server.nextTick
-        }
+        load()
     })
 
     return storage
@@ -214,19 +126,21 @@ export default storage
 import type { saveData as permissionSaveData } from "./permission.js"
 import type { saveData as chatSaveData } from "./chat.js"
 import type { saveData as roleSaveData } from "./role.js"
+import areaLoader from "./arealoader.js"
+import { randomstr } from "./misc.js"
 
 const instance = (() => {
     class storageInstance <T = {}> {
         /** Gets default instance. */
-        static get default() {return defaultInstance}
+        static get default() { return instanceDefault }
 
         /**
          * Creates a storage instance.
          * @param id Identifier.
          */
         constructor(id: string) {
-            this.id = id
-            this.execId = JSON.stringify(this.id)
+            this.#id = id
+            this.#execId = JSON.stringify(this.id)
 
             let saveInfo: ReturnType<typeof storage.for>
             storage.onLoad(() => saveInfo = storage.for(id))
@@ -271,11 +185,18 @@ const instance = (() => {
                 this.load()
             })
         }
-    
+
+        #id: string
         /** Identifier. */
-        readonly id: string
+        get id() { return this.#id }
+        set id(v) {
+            this.#id = v
+            this.#execId = JSON.stringify(v)
+        }
+
+        #execId: string
         /** Executable identifier. */
-        readonly execId: string
+        get execId() { return this.#execId }
 
         /** Events. */
         readonly ev: eventManager<instanceEvents<T>>['events']
@@ -313,37 +234,6 @@ const instance = (() => {
         }
     }
 
-    // default instance
-    const curVer = 1
-    const defaultInstance = new storageInstance<{
-        saveInfo: {
-            version: number
-        }
-        permission: permissionSaveData
-        chat: chatSaveData
-        role: roleSaveData
-    }>('SE')
-
-    defaultInstance.autosaveInterval = 30000
-    defaultInstance.ev.save.subscribe(function baseSave (data) {
-        data.saveInfo = {
-            version: 1
-        }
-    }, Infinity)
-    defaultInstance.ev.load.subscribe(function baseLoad (data, ctrl) {
-        const br = (type = Error, reason?: string, disableAutosave = true) => {
-            ctrl.break()
-            if (disableAutosave) {
-                defaultInstance.autosaveInterval = 0
-                reason += ` Autosave has been disabled.`
-            }
-            throw new type(reason)
-        }
-        if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
-        if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
-        switch (data.saveInfo.version) {}
-    }, Infinity)
-
     // events
     type instanceEvents <T> = MapEventList<{
         save: (evd: T) => void
@@ -367,6 +257,7 @@ const instance = (() => {
         readonly time: number
     }
 
+    // return
     type instantEventReturn <T> = instantEventReturnFalse | instantEventReturnTrue<T>
     class instantEventReturnFalse {
         constructor() {}
@@ -393,4 +284,47 @@ const instance = (() => {
     }
 
     return storageInstance
+})()
+
+const instanceDefault = (() => {
+    const curVer = 1
+    const defaultInstance = new instance<{
+        saveInfo: {
+            version: number
+        }
+        permission: permissionSaveData
+        chat: chatSaveData
+        role: roleSaveData
+    }>('SE_default')
+
+    defaultInstance.autosaveInterval = 30000
+    defaultInstance.ev.save.subscribe(function baseSave (data) {
+        data.saveInfo = {
+            version: 1
+        }
+    }, Infinity)
+    defaultInstance.ev.load.subscribe(function baseLoad (data, ctrl) {
+        const br = (type = Error, reason?: string, disableAutosave = true) => {
+            ctrl.break()
+            if (disableAutosave) {
+                defaultInstance.autosaveInterval = 0
+                reason += ` Autosave has been disabled.`
+            }
+            throw new type(reason)
+        }
+        if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
+        if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
+        switch (data.saveInfo.version) {}
+    }, Infinity)
+
+    world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
+        const reg = new DynamicPropertiesDefinition
+        reg.defineString('SES:defId', 12)
+        propertyRegistry.registerWorldDynamicProperties(reg)
+
+        const newId = randomstr(12)
+        defaultInstance.id = world.getDynamicProperty('SES:defId') as string ?? ( world.setDynamicProperty('SES:defId', newId), newId )
+    })
+
+    return defaultInstance
 })()
