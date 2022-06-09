@@ -50,12 +50,12 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
     try {
         // property registry
         const reg = new DynamicPropertiesDefinition
-        reg.defineBoolean('SEAL:isLoaded')
-        reg.defineNumber('SEAL:dimId')
+        reg.defineBoolean('ALDR:isLoaded')
+        reg.defineNumber('ALDR:dimId')
         propertyRegistry.registerWorldDynamicProperties(reg)
 
         // loading
-        if (!world.getDynamicProperty('SEAL:isLoaded')) {
+        if (!world.getDynamicProperty('ALDR:isLoaded')) {
             let tmpLoc: Location, tmpSet = false
             while (true) {
                 try {
@@ -70,8 +70,8 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
                     const pDim = plr.dimension
                     const ent = pDim.spawnEntity('se:area_loader', loaderLoc)
         
-                    world.setDynamicProperty('SEAL:isLoaded', true)
-                    world.setDynamicProperty('SEAL:dimId', dimIndex[pDim.id])
+                    world.setDynamicProperty('ALDR:isLoaded', true)
+                    world.setDynamicProperty('ALDR:dimId', dimIndex[pDim.id])
                     sDim = pDim
         
                     load()
@@ -82,7 +82,7 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
                 await server.nextTick
             }
         } else {
-            sDim = dimIndex[world.getDynamicProperty('SEAL:dimId') as number]
+            sDim = dimIndex[world.getDynamicProperty('ALDR:dimId') as number]
             while(true) {
                 if ( sDim.getEntitiesAtBlockLocation(blLoc).some(v => v.id == 'se:area_loader') ) break
                 await server.nextTick

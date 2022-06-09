@@ -319,11 +319,11 @@ const instanceDefault = (() => {
 
     world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
         const reg = new DynamicPropertiesDefinition
-        reg.defineString('SES:defId', 12)
+        reg.defineString('STR:defId', 12)
         propertyRegistry.registerWorldDynamicProperties(reg)
 
         const newId = randomstr(12)
-        defaultInstance.id = world.getDynamicProperty('SES:defId') as string ?? ( world.setDynamicProperty('SES:defId', newId), newId )
+        defaultInstance.id = world.getDynamicProperty('STR:defId') as string ?? ( world.setDynamicProperty('STR:defId', newId), newId )
     })
 
     return defaultInstance
