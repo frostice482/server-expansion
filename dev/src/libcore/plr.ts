@@ -1,8 +1,7 @@
 import { SimulatedPlayer } from "mojang-gametest";
-import { Player } from "mojang-minecraft";
+import { DynamicPropertiesDefinition, EntityTypes, Player, world } from "mojang-minecraft";
 import eventManager, { MapEventList } from "./evmngr.js";
 import { execCmd } from "./mc.js";
-import scoreboard from "./scoreboard.js";
 import { sendMsgToPlayer } from "./sendChat.js";
 import server from "./server.js";
 
@@ -13,11 +12,19 @@ export default class plr {
     protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
-// scoreboard
-const uidObj = scoreboard.objective.for('SEUID')
-if (!uidObj.dummies.exist('_current')) uidObj.dummies.set('_current', 0)
-
 // property, uid, player register stuff
+world.events.worldInitialize.subscribe(({propertyRegistry}) => {
+    const regWorld = new DynamicPropertiesDefinition
+    regWorld.defineNumber('PLR:uidc')
+    propertyRegistry.registerWorldDynamicProperties(regWorld)
+
+    world.setDynamicProperty('PLR:uidc', world.getDynamicProperty('PLR:uidc') ?? 1)
+
+    const regPlr = new DynamicPropertiesDefinition
+    regPlr.defineNumber('PLR:uid')
+    propertyRegistry.registerEntityTypeDynamicProperties(regPlr, EntityTypes.get('player'))
+})
+
 Object.defineProperties(Player.prototype, {
     level: {
         get: function getLevel() {
@@ -30,7 +37,7 @@ Object.defineProperties(Player.prototype, {
     },
     uid: {
         get: function getUID() {
-            return uidObj.players.get(this)
+            return this.getDynamicProperty('PLR:uid')
         }
     },
     sendMsg: {
@@ -40,20 +47,6 @@ Object.defineProperties(Player.prototype, {
     }
 })
 Object.defineProperties(SimulatedPlayer.prototype, {
-    level: {
-        get: function getLevel() {
-            return execCmd(`xp 0`, this, true).level
-        },
-        set: function setLevel(v) {
-            execCmd(`xp -32767l`, this, true)
-            execCmd(`xp ${v}l`, this, true)
-        }
-    },
-    uid: {
-        get: function getUID() {
-            return uidObj.players.get(this)
-        }
-    },
     sendMsg: {
         value: function sendMsg(msg) {
             sendMsgToPlayer(this, msg)
@@ -62,35 +55,22 @@ Object.defineProperties(SimulatedPlayer.prototype, {
 })
 
 server.ev.playerLoad.subscribe((plr) => {
-    if (!uidObj.players.exist(plr)) {
-        uidObj.dummies.add('_current', 1)
+    if (plr.getDynamicProperty('PLR:uid') == undefined) {
+        const nuid = world.getDynamicProperty('PLR:uidc') as number
+        plr.setDynamicProperty('PLR:uid', nuid)
+        world.setDynamicProperty('PLR:uidc', nuid + 1)
 
-        const newUID = uidObj.dummies.get('_current')
-        uidObj.players.set(plr, newUID)
-
-        const evd: playerRegisterEvd = {
-            plr,
-            uid: newUID
-        }
-        triggerEvent.playerRegister(evd)
+        triggerEvent.playerRegister(plr)
     }
-    plr.nameTag = plr.nameTag
 }, 100)
 
 // event stuff
 type EventList = MapEventList<{
     nametagChange: (evd: nametagChangeEvd) => void
-    playerRegister: (evd: playerRegisterEvd) => void
+    playerRegister: (evd: Player) => void
 }>
 
 const { events, triggerEvent } = new eventManager<EventList>(['nametagChange', 'playerRegister'], 'plr')
-
-type playerRegisterEvd = {
-    /** Player that has been registered. */
-    readonly plr: Player
-    /** Player new UID. */
-    readonly uid: number
-}
 
 type nametagChangeEvd = {
     /** Player whose nametag has been changed. */
