@@ -108,6 +108,7 @@ class chatGroup {
         const o: Player[] = []
         for (const plr of world.getPlayers())
             if (this.testGroupFilter(group, plr)) o.push(plr)
+        return o
     }
 
     /**
