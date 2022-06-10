@@ -49,7 +49,16 @@ export default class cc {
      * Deletes a custom command.
      * @param id Identifier / command data.
      */
-    static readonly delete = (id: string | cc) => ccList.delete(typeof id == 'string' ? id : id.id)
+    static readonly delete = (id: string | cc) => {
+        id = typeof id == 'string' ? id : id.id
+        if (!ccList.has(id)) return false
+        
+        const ccData = ccList.get(id)
+        ccData.onDelete()
+        ccList.delete(id)
+
+        return true
+    }
 
     /**
      * Executes a custom command.
@@ -159,6 +168,9 @@ export default class cc {
     triggers: RegExp | string[] = []
     /** Function to be executed on trigger. */
     onTrigger: (vars: ccVars) => void = () => {}
+
+    /** Function to be executed on delete. */
+    onDelete: () => void
 }
 
 const ccList = new Map<string, cc>()
