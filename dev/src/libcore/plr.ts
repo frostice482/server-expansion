@@ -14,15 +14,15 @@ export default class plr {
 
 // property, uid, player register stuff
 world.events.worldInitialize.subscribe(({propertyRegistry}) => {
+    const regPlr = new DynamicPropertiesDefinition
+    regPlr.defineNumber('PLR:uid')
+    propertyRegistry.registerEntityTypeDynamicProperties(regPlr, EntityTypes.get('player'))
+    
     const regWorld = new DynamicPropertiesDefinition
     regWorld.defineNumber('PLR:uidc')
     propertyRegistry.registerWorldDynamicProperties(regWorld)
 
     world.setDynamicProperty('PLR:uidc', world.getDynamicProperty('PLR:uidc') ?? 1)
-
-    const regPlr = new DynamicPropertiesDefinition
-    regPlr.defineNumber('PLR:uid')
-    propertyRegistry.registerEntityTypeDynamicProperties(regPlr, EntityTypes.get('player'))
 })
 
 Object.defineProperties(Player.prototype, {
@@ -54,7 +54,7 @@ Object.defineProperties(SimulatedPlayer.prototype, {
     }
 })
 
-server.ev.playerLoad.subscribe((plr) => {
+server.ev.playerJoin.subscribe((plr) => {
     if (plr.getDynamicProperty('PLR:uid') == undefined) {
         const nuid = world.getDynamicProperty('PLR:uidc') as number
         plr.setDynamicProperty('PLR:uid', nuid)
@@ -62,7 +62,7 @@ server.ev.playerLoad.subscribe((plr) => {
 
         triggerEvent.playerRegister(plr)
     }
-}, 100)
+}, 80)
 
 // event stuff
 type EventList = MapEventList<{

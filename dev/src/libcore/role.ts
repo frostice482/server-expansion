@@ -301,8 +301,8 @@ const changeNametag = (plr: Player, ignore = false) => {
     if (!ignore && !config.applyRoleToNametag) return
     plr.nameTag = role.format(plr, 'nametag')
 }
-server.ev.playerJoin.subscribe(plr => changeNametag(plr), 90)
-chat.ev.nicknameChange.subscribe(({plr}) => changeNametag(plr), 90)
+server.ev.playerJoin.subscribe(plr => changeNametag(plr))
+chat.ev.nicknameChange.subscribe(({plr}) => changeNametag(plr))
 const nametagInterval = new server.interval(() => { for (const plr of world.getPlayers()) changeNametag(plr) }, 30000)
 
 // format stuff

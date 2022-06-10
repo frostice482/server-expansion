@@ -14,7 +14,7 @@ export default class server {
     /** Server time. */
     static time: number = null
 
-    static readonly start = () => {
+    static readonly start = async () => {
         world.events.tick.subscribe(() => {
             // next tick
             this.#nextTickRes()
@@ -43,6 +43,9 @@ export default class server {
             eventQueues.playerJoin.add(player)
             triggerEvent.playerJoin(player)
         })
+
+        await server.nextTick
+        await server.nextTick
 
         for (const plr of world.getPlayers()) {
             triggerEvent.playerJoin(plr)

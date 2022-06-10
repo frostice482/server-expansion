@@ -2,6 +2,8 @@ import { BlockLocation, Dimension, DynamicPropertiesDefinition, EntityTypes, Loc
 import eventManager, { MapEventList } from "./evmngr.js"
 import { execCmd } from "./mc.js"
 import server from "./server.js"
+import areaLoader from "./arealoader.js"
+import { randomstr } from "./misc.js"
 
 const storage = (() => {
     class storage {
@@ -126,8 +128,6 @@ export default storage
 import type { saveData as permissionSaveData } from "./permission.js"
 import type { saveData as chatSaveData } from "./chat.js"
 import type { saveData as roleSaveData } from "./role.js"
-import areaLoader from "./arealoader.js"
-import { randomstr } from "./misc.js"
 
 const instance = (() => {
     class storageInstance <T = {}> {
@@ -289,8 +289,12 @@ const instance = (() => {
 const instanceDefault = (() => {
     const curVer = 1
     const defaultInstance = new instance<{
+        [k: string]: any
         saveInfo: {
             version: number
+        }
+        storage: {
+            autosaveInterval: number
         }
         permission: permissionSaveData
         chat: chatSaveData
@@ -316,6 +320,16 @@ const instanceDefault = (() => {
         if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
         switch (data.saveInfo.version) {}
     }, Infinity)
+
+    defaultInstance.ev.save.subscribe((data) => {
+        data.storage = {
+            autosaveInterval: defaultInstance.autosaveInterval
+        }
+    })
+    defaultInstance.ev.load.subscribe((data) => {
+        if (!data.storage) return
+        defaultInstance.autosaveInterval = data.storage.autosaveInterval
+    })
 
     world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
         const reg = new DynamicPropertiesDefinition
