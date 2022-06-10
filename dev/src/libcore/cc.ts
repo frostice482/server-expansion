@@ -780,7 +780,7 @@ class parser {
                         }; break
                         case 'p': {
                             const [_a, p1] = dimT.getPlayers(o.queryOptions)
-                            yield p1
+                            yield p1 ?? _a
                         }; break
                         case 'r': {
                             const pList = [...dimT.getPlayers(o.queryOptions)]

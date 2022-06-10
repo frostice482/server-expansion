@@ -1,5 +1,5 @@
 import { SimulatedPlayer } from "mojang-gametest";
-import { DynamicPropertiesDefinition, EntityTypes, Player, world } from "mojang-minecraft";
+import { DynamicPropertiesDefinition, Entity, EntityTypes, Player, world } from "mojang-minecraft";
 import eventManager, { MapEventList } from "./evmngr.js";
 import { execCmd } from "./mc.js";
 import { sendMsgToPlayer } from "./sendChat.js";
@@ -63,6 +63,10 @@ server.ev.playerJoin.subscribe((plr) => {
         triggerEvent.playerRegister(plr)
     }
 }, 80)
+
+// instance
+Object.defineProperty(Player, Symbol.hasInstance, { value: (v) => Object.getPrototypeOf(v).constructor == SimulatedPlayer })
+Object.defineProperty(Entity, Symbol.hasInstance, { value: (v) => [ SimulatedPlayer, Player ].includes(Object.getPrototypeOf(v).constructor) })
 
 // event stuff
 type EventList = MapEventList<{
