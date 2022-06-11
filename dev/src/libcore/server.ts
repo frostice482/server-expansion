@@ -43,14 +43,6 @@ export default class server {
             eventQueues.playerJoin.add(player)
             triggerEvent.playerJoin(player)
         })
-
-        await server.nextTick
-        await server.nextTick
-
-        for (const plr of world.getPlayers()) {
-            triggerEvent.playerJoin(plr)
-            triggerEvent.playerLoad(plr)
-        }
     }
 
     static #nextTickRes: (v?: any) => void

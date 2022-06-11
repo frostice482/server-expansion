@@ -83,10 +83,7 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
             }
         } else {
             sDim = dimIndex[world.getDynamicProperty('ALDR:dimId') as number]
-            while(true) {
-                if ( sDim.getEntitiesAtBlockLocation(blLoc).some(v => v.id == 'se:area_loader') ) break
-                await server.nextTick
-            }
+            while(! sDim.getEntitiesAtBlockLocation(blLoc).some(v => v.id == 'se:area_loader') ) await server.nextTick
             load()
         }
     } catch(e) {

@@ -111,12 +111,13 @@ const storage = (() => {
         dim: Dimension
 
     // dynamic properties
-    world.events.worldInitialize.subscribe(({propertyRegistry}) => {
+    world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
         const dataEnt = EntityTypes.get('se:storage_data'),
             dataDefs = new DynamicPropertiesDefinition()
         dataDefs.defineNumber('order')
         propertyRegistry.registerEntityTypeDynamicProperties(dataDefs, dataEnt)
-
+        await 0
+        
         load()
     })
 
