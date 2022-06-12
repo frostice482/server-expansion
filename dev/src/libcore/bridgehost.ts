@@ -100,15 +100,24 @@ class Plugin {
 
         const pliRefs = gRefs.refs[this.id] = { execOrder: [], refStack: [] }
         gRefs.refStack.push(this.id)
-        
-        const o = await this.#im[this.#execMain]( new Plugin.inst( auth, this, gRefs, this.#execMain ) )
-        this.#exportCache ??= o
-        for (const fn of pliRefs.execOrder) fn()
+
+        this.#isLoaded = true
+        try {
+            const o = await this.#im[this.#execMain]( new Plugin.inst( auth, this, gRefs, this.#execMain ) )
+            this.#exportCache ??= o
+            for (const fn of pliRefs.execOrder) fn()
+        } catch(e) {
+            this.#isLoaded = false
+
+            gRefs.refStack.pop()
+            delete gRefs.refs[this.id]
+
+            throw e
+        }
 
         gRefs.refStack.pop()
         delete gRefs.refs[this.id]
 
-        this.#isLoaded = true
         return this.#exportCache
     }
     /** Executes the plugin. */
@@ -161,7 +170,7 @@ class Plugin {
          * Imports an internal module.
          * @param name Module name.
          */
-        readonly 'importInternal' = (name: string) => new Promise<any>(async res => {
+        readonly 'importInternal' = (name: string) => new Promise<any>(async (res, rej) => {
             const pli = this.#pli
             if (name in pli.#imCache) return res(pli.#imCache[name])
             if (!(name in pli.#im)) throw new ReferenceError(`Internal module with ID '${name}' not found. \n${this.#refStack}`) 
@@ -171,7 +180,7 @@ class Plugin {
             pliRefs.refStack.push(imName)
 
             let d = false
-            const r = (v: any) => {
+            const r = (v: any, t = res) => {
                 if (d) return
                 d = true
 
@@ -180,11 +189,11 @@ class Plugin {
             }
 
             const i = new Plugin.inst( auth, pli, this.#gRefs, name, r )
-            const o = pli.#im[name](i)
-                pli.#imCache[name] ??= o
-
-            try { r(await o) }
-            catch(e) { r(e) }
+            try {
+                const o = await pli.#im[name](i)
+                r( pli.#imCache[name] ??= o )
+            }
+            catch(e) { r(e, rej) }
         })
 
         /**
@@ -219,7 +228,7 @@ class Plugin {
 
             #inst: BridgeInstance
             #storage: ReturnType<typeof storage.for>
-            #data: List<string | number | boolean> = empty()
+            #data: List<any> = empty()
             #update = () => this.#storage.value = JSON.stringify(this.#data)
 
             /** Unique save identifier. */
