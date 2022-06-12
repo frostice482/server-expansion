@@ -37,6 +37,19 @@ class Plugin {
      */
     static readonly getList = () => pluginList.values()
 
+    /**
+     * Deletes a plugin. Plugin most not in loaded state so it can be deleted.
+     * @param id Plugin identifier.
+     */
+    static readonly delete = (id: string) => {
+        const d = pluginList.get(id)
+        if (!d || d.isLoaded) return false
+
+        storage.delete(`SEP_${d.#unique}_P`)
+        storage.delete(`SEP_${d.#unique}_D`)
+        return true
+    }
+
     constructor(key: typeof auth, data: importJSONData) {
         if (key !== auth) throw new TypeError('Class is not constructable')
         if (pluginList.has(data.id)) throw new ReferenceError(`Plugin with ID '${data.id}' already exists. Consider deleting it first before adding another one.`)
