@@ -109,8 +109,13 @@ const o = new Proxy({
     SEBridgeConnector,
     get executer() { return gExecuter },
     mc,
-    mcui
+    mcui,
+    [Symbol.unscopables]: {}
 }, {
-    get: (t, p) => p in t ? t[p] : globalThis[p],
+    get: (t, p) => {
+        if (p in t) return t[p]
+        if (p in globalThis) return globalThis[p]
+        throw new ReferenceError(`'${String(p)}' is not defined`)
+    },
     has: () => true
 })
