@@ -263,8 +263,8 @@ const nicknameChangeFn = (plr: Player, nickname: string) => {
     if (!evd.cancel) plr.__nickname = evd.nickname
 }
 
-server.ev.playerJoin.subscribe(plr => plr.__nickname = plr.nameTag, 100)
-for (const plr of world.getPlayers()) plr.__nickname = plr.nameTag
+server.ev.playerJoin.subscribe(plr => plr.__nickname = plr.name, 100)
+for (const plr of world.getPlayers()) plr.__nickname = plr.name
 
 // storage stuff
 import storage from "./storage.js"
