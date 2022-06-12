@@ -14,6 +14,8 @@ import { sendMsg } from "../libcore/sendChat.js";
 import storage from "../libcore/storage.js";
 import server from "../libcore/server.js";
 import TypedValues from "../libcore/typedvalues.js";
+import SEBridgeConnector from "../libcore/bridgeconnector.js";
+import SEBridgeHost from "../libcore/bridgehost.js";
 
 import * as mc from 'mojang-minecraft'
 import * as mcui from 'mojang-minecraft-ui'
@@ -56,7 +58,7 @@ const execEval = (evd: mc.BeforeChatEvent, cmd: string) => {
     let v
     try {
         log(`> ${cmd}`)
-        v = Object.defineProperty( Function( `context`, `with (context) return eval(${JSON.stringify(cmd)})` ), 'name', { value: 'runInThisContext' } )(o)
+        v = misc.renameFn( Function( `context`, `with (context) return eval(${JSON.stringify(cmd)})` ), 'runInThisContext' )(o)
     } catch (e) {
         return log( 'Uncaught ' + ( e instanceof Error ? `${e}\n${e.stack}` : misc.viewObj(e) ) )
     }
@@ -103,6 +105,8 @@ const o = new Proxy({
     server,
     storage,
     TypedValues,
+    SEBridgeHost,
+    SEBridgeConnector,
     get executer() { return gExecuter },
     mc,
     mcui

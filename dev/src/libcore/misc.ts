@@ -276,3 +276,11 @@ export const convertToReadableTime = (time: number, isMillisecond = true) => {
         }
     return x.map(([l, v]) => `${v} ${l}${v == 1 ? '' : 's'}`).join(' ') || '0 seconds'
 }
+
+/**
+ * Renames a function.
+ * @param fn Function to be renamed.
+ * @param name New function name.
+ */
+export const renameFn = <fn extends Function>(fn: fn, name: string | ((fName: string) => string)) =>
+    Object.defineProperty(fn, 'name', { value: typeof name == 'function' ? name(fn.name) : name })
