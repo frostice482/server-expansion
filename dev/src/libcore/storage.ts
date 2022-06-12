@@ -129,6 +129,7 @@ export default storage
 import type { saveData as permissionSaveData } from "./permission.js"
 import type { saveData as chatSaveData } from "./chat.js"
 import type { saveData as roleSaveData } from "./role.js"
+import type { BridgeHostSaveData } from "./bridgehost.js"
 
 const instance = (() => {
     class storageInstance <T = {}> {
@@ -300,6 +301,7 @@ const instanceDefault = (() => {
         permission: permissionSaveData
         chat: chatSaveData
         role: roleSaveData
+        bridgeHost: BridgeHostSaveData
     }>('SE_default')
 
     defaultInstance.autosaveInterval = 30000
