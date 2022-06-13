@@ -197,7 +197,7 @@ export const viewObj = (() => {
      * @param tab Tab
      * @param tabSeparator Separator between tab and property
      */
-    return (o: any, tab = '   ', tabSeparator = ' ') => exec(o, [], tab, 0, tabSeparator)
+    return (o: any, tab = ' §7:§r ', tabSeparator = ' ') => exec(o, [], tab, 0, tabSeparator)
 })()
 
 /**

@@ -109,6 +109,7 @@ declare module 'mojang-minecraft' {
         (componentName: 'food'          | 'minecraft:food'         ): ItemFoodComponent
         (componentName: string ): any
     }
+    export type dimensionNames = 'overworld' | 'nether' | 'the end'
     export enum Direction {
         down = 0,
         up = 1,
@@ -3739,7 +3740,7 @@ declare module 'mojang-minecraft' {
     export class World {
         readonly 'events': Events;
         readonly 'scoreboard': Scoreboard;
-        getDimension(dimensionId: string): Dimension;
+        getDimension(dimensionId: dimensionNames): Dimension;
         getDynamicProperty(identifier: string): boolean | number | string;
         getPlayers(options?: EntityQueryOptions): PlayerIterator;
         playMusic(trackID: string, musicOptions?: MusicOptions): void;
