@@ -4,8 +4,6 @@
 //                 Mike Ammerlaan <https://github.com/mammerla>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-// Taken from https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/mojang-minecraft/index.d.ts
-
 /***************************************************************************************************************\
 |                                                                                                               |
 |    Copyright (c) Microsoft Corporation.                                                                       |
@@ -29,90 +27,88 @@
 /** */
 
 declare module 'mojang-minecraft' {
-    type dimensionNames = 'overworld' | 'nether' | 'the end'
-
+    abstract class EventSignal<evd, opts = void> {
+        subscribe<fn extends (evd: evd, opts?: opts) => void>(callback: fn): fn
+        unsubscribe<fn extends (evd: evd) => void>(callback: fn): void
+        protected constructor()
+    }
     type EntityGetComponentFn = {
-        (componentName: 'minecraft:ageable'                     | 'ageable'                     ): EntityAgeableComponent
-        (componentName: 'minecraft:breathable'                  | 'breathable'                  ): EntityBreathableComponent
-        (componentName: 'minecraft:color'                       | 'color'                       ): EntityColorComponent
-        (componentName: 'minecraft:flying_speed'                | 'flying_speed'                ): EntityFlyingSpeedComponent
-        (componentName: 'minecraft:healable'                    | 'healable'                    ): EntityHealableComponent
-        (componentName: 'minecraft:health'                      | 'health'                      ): EntityHealthComponent
-        (componentName: 'minecraft:item'                        | 'item'                        ): EntityItemComponent
-        (componentName: 'minecraft:inventory'                   | 'inventory'                   ): EntityInventoryComponent
-        (componentName: 'minecraft:lava_movement'               | 'lava_movement'               ): EntityLavaMovementComponent
-        (componentName: 'minecraft:leashable'                   | 'leashable'                   ): EntityLeashableComponent
-        (componentName: 'minecraft:movement.amphibious'         | 'movement.amphibious'         ): EntityMovementAmphibiousComponent
-        (componentName: 'minecraft:movement.basic'              | 'movement.basic'              ): EntityMovementBasicComponent
-        (componentName: 'minecraft:movement'                    | 'movement'                    ): EntityMovementComponent
-        (componentName: 'minecraft:movement.fly'                | 'movement.fly'                ): EntityMovementFlyComponent
-        (componentName: 'minecraft:movement.generic'            | 'movement.generic'            ): EntityMovementGenericComponent
-        (componentName: 'minecraft:movement.glide'              | 'movement.glide'              ): EntityMovementGlideComponent
-        (componentName: 'minecraft:movement.hover'              | 'movement.hover'              ): EntityMovementHoverComponent
-        (componentName: 'minecraft:movement.jump'               | 'movement.jump'               ): EntityMovementJumpComponent
-        (componentName: 'minecraft:movement.skip'               | 'movement.skip'               ): EntityMovementSkipComponent
-        (componentName: 'minecraft:movement.sway'               | 'movement.sway'               ): EntityMovementSwayComponent
-        (componentName: 'minecraft:navigation.climb'            | 'navigation.climb'            ): EntityNavigationClimbComponent
-        (componentName: 'minecraft:navigation.float'            | 'navigation.float'            ): EntityNavigationFloatComponent
-        (componentName: 'minecraft:navigation.fly'              | 'navigation.fly'              ): EntityNavigationFlyComponent
-        (componentName: 'minecraft:navigation.generic'          | 'navigation.generic'          ): EntityNavigationGenericComponent
-        (componentName: 'minecraft:navigation.hover'            | 'navigation.hover'            ): EntityNavigationHoverComponent
-        (componentName: 'minecraft:navigation.walk'             | 'navigation.walk'             ): EntityNavigationWalkComponent
-        (componentName: 'minecraft:rideable'                    | 'rideable'                    ): EntityRideableComponent
-        (componentName: 'minecraft:strength'                    | 'strength'                    ): EntityStrengthComponent
-        (componentName: 'minecraft:tameable'                    | 'tameable'                    ): EntityTameableComponent
-        (componentName: 'minecraft:underwater_movement'         | 'underwater_movement'         ): EntityUnderwaterMovementComponent
-        (componentName: 'minecraft:can_climb'                   | 'can_climb'                   ): EntityCanClimbComponent
-        (componentName: 'minecraft:can_fly'                     | 'can_fly'                     ): EntityCanFlyComponent
-        (componentName: 'minecraft:can_power_jump'              | 'can_power_jump'              ): EntityCanPowerJumpComponent
-        (componentName: 'minecraft:fire_immune'                 | 'fire_immune'                 ): EntityFireImmuneComponent
-        (componentName: 'minecraft:floats_in_liquid'            | 'floats_in_liquid'            ): EntityFloatsInLiquidComponent
-        (componentName: 'minecraft:is_dyable'                   | 'is_dyable'                   ): EntityIsDyableComponent
-        (componentName: 'minecraft:is_baby'                     | 'is_baby'                     ): EntityIsBabyComponent
-        (componentName: 'minecraft:is_charged'                  | 'is_charged'                  ): EntityIsChargedComponent
-        (componentName: 'minecraft:is_chested'                  | 'is_chested'                  ): EntityIsChestedComponent
-        (componentName: 'minecraft:is_hidden_when_invisible'    | 'is_hidden_when_invisible'    ): EntityIsHiddenWhenInvisibleComponent
-        (componentName: 'minecraft:is_ignited'                  | 'is_ignited'                  ): EntityIsIgnitedComponent
-        (componentName: 'minecraft:is_illager_captain'          | 'is_illager_captain'          ): EntityIsIllagerCaptainComponent
-        (componentName: 'minecraft:is_saddled'                  | 'is_saddled'                  ): EntityIsSaddledComponent
-        (componentName: 'minecraft:is_shaking'                  | 'is_shaking'                  ): EntityIsShakingComponent
-        (componentName: 'minecraft:is_sheared'                  | 'is_sheared'                  ): EntityIsShearedComponent
-        (componentName: 'minecraft:is_stackable'                | 'is_stackable'                ): EntityIsStackableComponent
-        (componentName: 'minecraft:is_stunned'                  | 'is_stunned'                  ): EntityIsStunnedComponent
-        (componentName: 'minecraft:is_tamed'                    | 'is_tamed'                    ): EntityIsTamedComponent
-        (componentName: 'minecraft:wants_jockey'                | 'wants_jockey'                ): EntityWantsJockeyComponent
-        (componentName: 'minecraft:friction_modifier'           | 'friction_modifier'           ): EntityFrictionModifierComponent
-        (componentName: 'minecraft:ground_offset'               | 'ground_offset'               ): EntityGroundOffsetComponent
-        (componentName: 'minecraft:mark_variant'                | 'mark_variant'                ): EntityMarkVariantComponent
-        (componentName: 'minecraft:push_through'                | 'push_through'                ): EntityPushThroughComponent
-        (componentName: 'minecraft:scale'                       | 'scale'                       ): EntityScaleComponent
-        (componentName: 'minecraft:skin_id'                     | 'skin_id'                     ): EntitySkinIdComponent
-        (componentName: 'minecraft:variant'                     | 'variant'                     ): EntityVariantComponent
-        // (componentName: string): EntityAddPassengerComponent
-        // (componentName: string): EntityAddRiderComponent
-        // (componentName: string): EntityMountTamingComponent
-        (componentName: string): any
+        (componentName: 'addrider'                 | 'minecraft:addrider'                 ): EntityAddRiderComponent
+        (componentName: 'ageable'                  | 'minecraft:ageable'                  ): EntityAgeableComponent
+        (componentName: 'breathable'               | 'minecraft:breathable'               ): EntityBreathableComponent
+        (componentName: 'can_climb'                | 'minecraft:can_climb'                ): EntityCanClimbComponent
+        (componentName: 'can_fly'                  | 'minecraft:can_fly'                  ): EntityCanFlyComponent
+        (componentName: 'can_power_jump'           | 'minecraft:can_power_jump'           ): EntityCanPowerJumpComponent
+        (componentName: 'color'                    | 'minecraft:color'                    ): EntityColorComponent
+        (componentName: 'fire_immune'              | 'minecraft:fire_immune'              ): EntityFireImmuneComponent
+        (componentName: 'floats_in_liquid'         | 'minecraft:floats_in_liquid'         ): EntityFloatsInLiquidComponent
+        (componentName: 'flying_speed'             | 'minecraft:flying_speed'             ): EntityFlyingSpeedComponent
+        (componentName: 'friction_modifier'        | 'minecraft:friction_modifier'        ): EntityFrictionModifierComponent
+        (componentName: 'ground_offset'            | 'minecraft:ground_offset'            ): EntityGroundOffsetComponent
+        (componentName: 'healable'                 | 'minecraft:healable'                 ): EntityHealableComponent
+        (componentName: 'health'                   | 'minecraft:health'                   ): EntityHealthComponent
+        (componentName: 'inventory'                | 'minecraft:inventory'                ): EntityInventoryComponent
+        (componentName: 'is_baby'                  | 'minecraft:is_baby'                  ): EntityIsBabyComponent
+        (componentName: 'is_charged'               | 'minecraft:is_charged'               ): EntityIsChargedComponent
+        (componentName: 'is_chested'               | 'minecraft:is_chested'               ): EntityIsChestedComponent
+        (componentName: 'is_dyeable'               | 'minecraft:is_dyeable'               ): EntityIsDyableComponent
+        (componentName: 'is_hidden_when_invisible' | 'minecraft:is_hidden_when_invisible' ): EntityIsHiddenWhenInvisibleComponent
+        (componentName: 'is_ignited'               | 'minecraft:is_ignited'               ): EntityIsIgnitedComponent
+        (componentName: 'is_illager_captain'       | 'minecraft:is_illager_captain'       ): EntityIsIllagerCaptainComponent
+        (componentName: 'is_saddled'               | 'minecraft:is_saddled'               ): EntityIsSaddledComponent
+        (componentName: 'is_shaking'               | 'minecraft:is_shaking'               ): EntityIsShakingComponent
+        (componentName: 'is_sheared'               | 'minecraft:is_sheared'               ): EntityIsShearedComponent
+        (componentName: 'is_stackable'             | 'minecraft:is_stackable'             ): EntityIsStackableComponent
+        (componentName: 'is_stunned'               | 'minecraft:is_stunned'               ): EntityIsStunnedComponent
+        (componentName: 'is_tamed'                 | 'minecraft:is_tamed'                 ): EntityIsTamedComponent
+        (componentName: 'lava_movement'            | 'minecraft:lava_movement'            ): EntityLavaMovementComponent
+        (componentName: 'leashable'                | 'minecraft:leashable'                ): EntityLeashableComponent
+        (componentName: 'mark_variant'             | 'minecraft:mark_variant'             ): EntityMarkVariantComponent
+        (componentName: 'tamemount'                | 'minecraft:tamemount'                ): EntityMountTamingComponent
+        (componentName: 'movement.amphibious'      | 'minecraft:movement.amphibious'      ): EntityMovementAmphibiousComponent
+        (componentName: 'movement.basic'           | 'minecraft:movement.basic'           ): EntityMovementBasicComponent
+        (componentName: 'movement'                 | 'minecraft:movement'                 ): EntityMovementComponent
+        (componentName: 'movement.fly'             | 'minecraft:movement.fly'             ): EntityMovementFlyComponent
+        (componentName: 'movement.generic'         | 'minecraft:movement.generic'         ): EntityMovementGenericComponent
+        (componentName: 'movement.glide'           | 'minecraft:movement.glide'           ): EntityMovementGlideComponent
+        (componentName: 'movement.hover'           | 'minecraft:movement.hover'           ): EntityMovementHoverComponent
+        (componentName: 'movement.jump'            | 'minecraft:movement.jump'            ): EntityMovementJumpComponent
+        (componentName: 'movement.skip'            | 'minecraft:movement.skip'            ): EntityMovementSkipComponent
+        (componentName: 'movement.sway'            | 'minecraft:movement.sway'            ): EntityMovementSwayComponent
+        (componentName: 'navigation.climb'         | 'minecraft:navigation.climb'         ): EntityNavigationClimbComponent
+        (componentName: 'navigation.float'         | 'minecraft:navigation.float'         ): EntityNavigationFloatComponent
+        (componentName: 'navigation.fly'           | 'minecraft:navigation.fly'           ): EntityNavigationFlyComponent
+        (componentName: 'navigation.generic'       | 'minecraft:navigation.generic'       ): EntityNavigationGenericComponent
+        (componentName: 'navigation.hover'         | 'minecraft:navigation.hover'         ): EntityNavigationHoverComponent
+        (componentName: 'navigation.walk'          | 'minecraft:navigation.walk'          ): EntityNavigationWalkComponent
+        (componentName: 'push_through'             | 'minecraft:push_through'             ): EntityPushThroughComponent
+        (componentName: 'rideable'                 | 'minecraft:rideable'                 ): EntityRideableComponent
+        (componentName: 'scale'                    | 'minecraft:scale'                    ): EntityScaleComponent
+        (componentName: 'skin_id'                  | 'minecraft:skin_id'                  ): EntitySkinIdComponent
+        (componentName: 'strength'                 | 'minecraft:strength'                 ): EntityStrengthComponent
+        (componentName: 'tameable'                 | 'minecraft:tameable'                 ): EntityTameableComponent
+        (componentName: 'underwater_movement'      | 'minecraft:underwater_movement'      ): EntityUnderwaterMovementComponent
+        (componentName: 'variant'                  | 'minecraft:variant'                  ): EntityVariantComponent
+        (componentName: 'wants_jockey'             | 'minecraft:wants_jockey'             ): EntityWantsJockeyComponent
+        (componentName: 'item'                     | 'minecraft:item'                     ): EntityItemComponent
+        (componentName: string ): any
     }
-
     type BlockGetComponentFn = {
-        (componentName: 'minecraft:inventory'                   | 'inventory'                   ): BlockInventoryComponent
-        // (componentName: string): BlockLavaContainerComponent
-        // (componentName: string): BlockPistonComponent
-        // (componentName: string): BlockPotionContainerComponent
-        // (componentName: string): BlockRecordPlayerComponent
-        // (componentName: string): BlockSnowContainerComponent
-        // (componentName: string): BlockWaterContainerComponent
-        (componentName: string): any
+        (componentName: 'inventory' | 'minecraft:inventory' ): BlockInventoryComponent
+        //(componentName: unknown ): BlockLavaContainerComponent
+        //(componentName: unknown ): BlockPistonComponent
+        //(componentName: unknown ): BlockPotionContainerComponent
+        //(componentName: unknown ): BlockSnowContainerComponent
+        //(componentName: unknown ): BlockWaterContainerComponent
+        (componentName: string ): any
     }
-
     type ItemGetComponentFn = {
-        (componentName: 'minecraft:cooldown'                    | 'cooldown'                    ): ItemCooldownComponent
-        (componentName: 'minecraft:enchantments'                | 'enchantments'                ): ItemEnchantsComponent
-        (componentName: 'minecraft:durability'                  | 'durability'                  ): ItemDurabilityComponent
-        (componentName: 'minecraft:food'                        | 'food'                        ): ItemFoodComponent
-        (componentName: string): any
+        (componentName: 'cooldown'      | 'minecraft:cooldown'     ): ItemCooldownComponent
+        (componentName: 'durability'    | 'minecraft:durability'   ): ItemDurabilityComponent
+        (componentName: 'enchantments'  | 'minecraft:enchantments' ): ItemEnchantsComponent
+        (componentName: 'food'          | 'minecraft:food'         ): ItemFoodComponent
+        (componentName: string ): any
     }
-
     export enum Direction {
         down = 0,
         up = 1,
@@ -126,6 +122,11 @@ declare module 'mojang-minecraft' {
         creative = 1,
         adventure = 2,
     }
+    export enum ScoreboardIdentityType {
+        player = 1,
+        entity = 2,
+        fakePlayer = 3,
+    }
     export class BeforeChatEvent {
         'cancel': boolean;
         'message': string;
@@ -134,11 +135,7 @@ declare module 'mojang-minecraft' {
         'targets': Player[];
         protected constructor();
     }
-    export class BeforeChatEventSignal {
-        subscribe(callback: (arg: BeforeChatEvent) => void): (arg: BeforeChatEvent) => void;
-        unsubscribe(callback: (arg: BeforeChatEvent) => void): void;
-        protected constructor();
-    }
+    export class BeforeChatEventSignal extends EventSignal<BeforeChatEvent> {}
     export class BeforeDataDrivenEntityTriggerEvent {
         'cancel': boolean;
         readonly 'entity': Entity;
@@ -146,14 +143,7 @@ declare module 'mojang-minecraft' {
         'modifiers': DefinitionModifier[];
         protected constructor();
     }
-    export class BeforeDataDrivenEntityTriggerEventSignal {
-        subscribe(
-            callback: (arg: BeforeDataDrivenEntityTriggerEvent) => void,
-            options?: EntityDataDrivenTriggerEventOptions,
-        ): (arg: BeforeDataDrivenEntityTriggerEvent) => void;
-        unsubscribe(callback: (arg: BeforeDataDrivenEntityTriggerEvent) => void): void;
-        protected constructor();
-    }
+    export class BeforeDataDrivenEntityTriggerEventSignal extends EventSignal<BeforeDataDrivenEntityTriggerEvent, EntityDataDrivenTriggerEventOptions> {}
     export class BeforeExplosionEvent {
         'cancel': boolean;
         readonly 'dimension': Dimension;
@@ -161,18 +151,8 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class BeforeExplosionEventSignal {
-        subscribe(callback: (arg: BeforeExplosionEvent) => void): (arg: BeforeExplosionEvent) => void;
-        unsubscribe(callback: (arg: BeforeExplosionEvent) => void): void;
-        protected constructor();
-    }
-    export class BeforeItemDefinitionEventSignal {
-        subscribe(
-            callback: (arg: BeforeItemDefinitionTriggeredEvent) => void,
-        ): (arg: BeforeItemDefinitionTriggeredEvent) => void;
-        unsubscribe(callback: (arg: BeforeItemDefinitionTriggeredEvent) => void): void;
-        protected constructor();
-    }
+    export class BeforeExplosionEventSignal extends EventSignal<BeforeExplosionEvent> {}
+    export class BeforeItemDefinitionEventSignal extends EventSignal<BeforeItemDefinitionTriggeredEvent> {}
     export class BeforeItemDefinitionTriggeredEvent {
         'cancel': boolean;
         readonly 'eventName': string;
@@ -186,11 +166,7 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class BeforeItemUseEventSignal {
-        subscribe(callback: (arg: BeforeItemUseEvent) => void): (arg: BeforeItemUseEvent) => void;
-        unsubscribe(callback: (arg: BeforeItemUseEvent) => void): void;
-        protected constructor();
-    }
+    export class BeforeItemUseEventSignal extends EventSignal<BeforeItemUseEvent> {}
     export class BeforeItemUseOnEvent {
         readonly 'blockFace': Direction;
         readonly 'blockLocation': BlockLocation;
@@ -201,11 +177,7 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class BeforeItemUseOnEventSignal {
-        subscribe(callback: (arg: BeforeItemUseOnEvent) => void): (arg: BeforeItemUseOnEvent) => void;
-        unsubscribe(callback: (arg: BeforeItemUseOnEvent) => void): void;
-        protected constructor();
-    }
+    export class BeforeItemUseOnEventSignal extends EventSignal<BeforeItemUseOnEvent> {}
     export class BeforePistonActivateEvent extends BlockEvent {
         readonly 'block': Block;
         'cancel': boolean;
@@ -214,11 +186,7 @@ declare module 'mojang-minecraft' {
         readonly 'piston': BlockPistonComponent;
         protected constructor();
     }
-    export class BeforePistonActivateEventSignal {
-        subscribe(callback: (arg: BeforePistonActivateEvent) => void): (arg: BeforePistonActivateEvent) => void;
-        unsubscribe(callback: (arg: BeforePistonActivateEvent) => void): void;
-        protected constructor();
-    }
+    export class BeforePistonActivateEventSignal extends EventSignal<BeforePistonActivateEvent> {}
     export class Block {
         readonly 'dimension': Dimension;
         readonly 'id': string;
@@ -230,7 +198,7 @@ declare module 'mojang-minecraft' {
         readonly 'x': number;
         readonly 'y': number;
         readonly 'z': number;
-        getComponent: BlockGetComponentFn;
+        getComponent(componentName: string): any;
         getTags(): string[];
         hasTag(tag: string): boolean;
         setPermutation(permutation: BlockPermutation): void;
@@ -251,11 +219,7 @@ declare module 'mojang-minecraft' {
         readonly 'player': Player;
         protected constructor();
     }
-    export class BlockBreakEventSignal {
-        subscribe(callback: (arg: BlockBreakEvent) => void): (arg: BlockBreakEvent) => void;
-        unsubscribe(callback: (arg: BlockBreakEvent) => void): void;
-        protected constructor();
-    }
+    export class BlockBreakEventSignal extends EventSignal<BlockBreakEvent> {}
     // tslint:disable-next-line:no-unnecessary-class
     export class BlockComponent {
         protected constructor();
@@ -271,11 +235,7 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class BlockExplodeEventSignal {
-        subscribe(callback: (arg: BlockExplodeEvent) => void): (arg: BlockExplodeEvent) => void;
-        unsubscribe(callback: (arg: BlockExplodeEvent) => void): void;
-        protected constructor();
-    }
+    export class BlockExplodeEventSignal extends EventSignal<BlockExplodeEvent> {}
     export class BlockHitInformation {
         readonly 'block': Block;
         readonly 'face': Direction;
@@ -283,7 +243,7 @@ declare module 'mojang-minecraft' {
         readonly 'faceLocationY': number;
         protected constructor();
     }
-    export class BlockInventoryComponent {
+    export class BlockInventoryComponent extends BlockComponent {
         readonly 'container': BlockInventoryComponentContainer;
         readonly 'location': BlockLocation;
         protected constructor();
@@ -298,7 +258,7 @@ declare module 'mojang-minecraft' {
         transferItem(fromSlot: number, toSlot: number, toContainer: Container): boolean;
         protected constructor();
     }
-    export class BlockLavaContainerComponent {
+    export class BlockLavaContainerComponent extends BlockComponent {
         'fillLevel': number;
         readonly 'location': BlockLocation;
         protected constructor();
@@ -317,12 +277,12 @@ declare module 'mojang-minecraft' {
         readonly 'type': BlockType;
         clone(): BlockPermutation;
         getAllProperties(): IBlockProperty[];
-        getProperty(propertyName: typeof BlockProperties[Exclude<keyof typeof BlockProperties, 'prototype'>]): any;
+        getProperty(propertyName: BlockPropertyValues): IBlockProperty;
         getTags(): string[];
         hasTag(tag: string): boolean;
         protected constructor();
     }
-    export class BlockPistonComponent {
+    export class BlockPistonComponent extends BlockComponent {
         readonly 'attachedBlocks': BlockLocation[];
         readonly 'isExpanded': boolean;
         readonly 'isExpanding': boolean;
@@ -338,18 +298,15 @@ declare module 'mojang-minecraft' {
         readonly 'player': Player;
         protected constructor();
     }
-    export class BlockPlaceEventSignal {
-        subscribe(callback: (arg: BlockPlaceEvent) => void): (arg: BlockPlaceEvent) => void;
-        unsubscribe(callback: (arg: BlockPlaceEvent) => void): void;
-        protected constructor();
-    }
-    export class BlockPotionContainerComponent {
+    export class BlockPlaceEventSignal extends EventSignal<BlockPlaceEvent> {}
+    export class BlockPotionContainerComponent extends BlockComponent {
         'fillLevel': number;
         readonly 'location': BlockLocation;
         setPotionType(item: ItemStack): void;
         protected constructor();
     }
     // tslint:disable-next-line:no-unnecessary-class
+    export type BlockPropertyValues = typeof BlockProperties[Exclude<keyof typeof BlockProperties, 'prototype'>]
     export class BlockProperties {
         static readonly 'active' = 'active';
         static readonly 'age' = 'age';
@@ -369,6 +326,7 @@ declare module 'mojang-minecraft' {
         static readonly 'brewingStandSlotCBit' = 'brewing_stand_slot_c_bit';
         static readonly 'buttonPressedBit' = 'button_pressed_bit';
         static readonly 'candles' = 'candles';
+        static readonly 'canSummon' = 'can_summon';
         static readonly 'cauldronLiquid' = 'cauldron_liquid';
         static readonly 'chemistryTableType' = 'chemistry_table_type';
         static readonly 'chiselType' = 'chisel_type';
@@ -432,6 +390,7 @@ declare module 'mojang-minecraft' {
         static readonly 'portalAxis' = 'portal_axis';
         static readonly 'poweredBit' = 'powered_bit';
         static readonly 'prismarineBlockType' = 'prismarine_block_type';
+        static readonly 'propaguleStage' = 'propagule_stage';
         static readonly 'railDataBit' = 'rail_data_bit';
         static readonly 'railDirection' = 'rail_direction';
         static readonly 'redstoneSignal' = 'redstone_signal';
@@ -481,7 +440,6 @@ declare module 'mojang-minecraft' {
         'includeLiquidBlocks': boolean;
         'includePassableBlocks': boolean;
         'maxDistance': number;
-        constructor();
     }
     export class BlockRecordPlayerComponent {
         clearRecord(): void;
@@ -489,7 +447,7 @@ declare module 'mojang-minecraft' {
         setRecord(recordItemType: ItemType): void;
         protected constructor();
     }
-    export class BlockSnowContainerComponent {
+    export class BlockSnowContainerComponent extends BlockComponent {
         'fillLevel': number;
         readonly 'location': BlockLocation;
         protected constructor();
@@ -500,7 +458,7 @@ declare module 'mojang-minecraft' {
         createDefaultBlockPermutation(): BlockPermutation;
         protected constructor();
     }
-    export class BlockWaterContainerComponent {
+    export class BlockWaterContainerComponent extends BlockComponent {
         'customColor': Color;
         'fillLevel': number;
         readonly 'location': BlockLocation;
@@ -513,6 +471,13 @@ declare module 'mojang-minecraft' {
         'value': boolean;
         protected constructor();
     }
+    export class ButtonPushEvent extends BlockEvent {
+        readonly 'block': Block;
+        readonly 'dimension': Dimension;
+        readonly 'source': Entity;
+        protected constructor();
+    }
+    export class ButtonPushEventSignal extends EventSignal<ButtonPushEvent> {}
     export class ChatEvent {
         'message': string;
         'sender': Player;
@@ -520,17 +485,17 @@ declare module 'mojang-minecraft' {
         'targets': Player[];
         protected constructor();
     }
-    export class ChatEventSignal {
-        subscribe(callback: (arg: ChatEvent) => void): (arg: ChatEvent) => void;
-        unsubscribe(callback: (arg: ChatEvent) => void): void;
-        protected constructor();
-    }
+    export class ChatEventSignal extends EventSignal<ChatEvent> {}
     export class Color {
         'alpha': number;
         'blue': number;
         'green': number;
         'red': number;
         constructor(red: number, green: number, blue: number, alpha: number);
+    }
+    export class CommandResult {
+        readonly 'successCount': number;
+        protected constructor();
     }
     export class Container {
         readonly 'emptySlotsCount': number;
@@ -548,19 +513,11 @@ declare module 'mojang-minecraft' {
         readonly 'modifiers': DefinitionModifier[];
         protected constructor();
     }
-    export class DataDrivenEntityTriggerEventSignal {
-        subscribe(
-            callback: (arg: DataDrivenEntityTriggerEvent) => void,
-            options?: EntityDataDrivenTriggerEventOptions,
-        ): (arg: DataDrivenEntityTriggerEvent) => void;
-        unsubscribe(callback: (arg: DataDrivenEntityTriggerEvent) => void): void;
-        protected constructor();
-    }
+    export class DataDrivenEntityTriggerEventSignal extends EventSignal<DataDrivenEntityTriggerEvent, EntityDataDrivenTriggerEventOptions> {}
     export class DefinitionModifier {
         readonly 'componentGroupsToAdd': string[];
         readonly 'componentGroupsToRemove': string[];
         'triggers': Trigger[];
-        constructor();
     }
     export class Dimension {
         readonly 'id': string;
@@ -573,13 +530,13 @@ declare module 'mojang-minecraft' {
         getPlayers(getPlayers?: EntityQueryOptions): PlayerIterator;
         isEmpty(location: BlockLocation): boolean;
         runCommand(commandString: string): any;
+        runCommandAsync(commandString: string): Promise<CommandResult>;
         spawnEntity(identifier: string, location: BlockLocation | Location): Entity;
         spawnItem(item: ItemStack, location: BlockLocation | Location): Entity;
         spawnParticle(effectName: string, location: Location, molangVariables: MolangVariableMap): void;
         protected constructor();
     }
     export class DynamicPropertiesDefinition {
-        constructor();
         defineBoolean(identifier: string): void;
         defineNumber(identifier: string): void;
         defineString(identifier: string, maxLength: number): void;
@@ -596,11 +553,7 @@ declare module 'mojang-minecraft' {
         'entity': Entity;
         protected constructor();
     }
-    export class EffectAddEventSignal {
-        subscribe(callback: (arg: EffectAddEvent) => void, options?: EntityEventOptions): (arg: EffectAddEvent) => void;
-        unsubscribe(callback: (arg: EffectAddEvent) => void): void;
-        protected constructor();
-    }
+    export class EffectAddEventSignal extends EventSignal<EffectAddEvent, EntityEventOptions> {}
     export class EffectType {
         getName(): string;
         protected constructor();
@@ -655,20 +608,21 @@ declare module 'mojang-minecraft' {
         protected constructor();
     }
     export class Entity {
-        readonly 'bodyRotation': number;
         readonly 'dimension': Dimension;
         readonly 'headLocation': Location;
         readonly 'id': string;
         'isSneaking': boolean;
         readonly 'location': Location;
         'nameTag': string;
+        readonly 'rotation': XYRotation;
+        readonly 'scoreboard': ScoreboardIdentity;
         'target': Entity;
         readonly 'velocity': Vector;
         readonly 'viewVector': Vector;
         addEffect(effectType: EffectType, duration: number, amplifier?: number, showParticles?: boolean): void;
         addTag(tag: string): boolean;
         getBlockFromViewVector(options?: BlockRaycastOptions): Block;
-        getComponent: EntityGetComponentFn;
+        getComponent(componentId: string): IEntityComponent;
         getComponents(): IEntityComponent[];
         getDynamicProperty(identifier: string): boolean | number | string;
         getEffect(effectType: EffectType): Effect;
@@ -680,13 +634,20 @@ declare module 'mojang-minecraft' {
         removeDynamicProperty(identifier: string): boolean;
         removeTag(tag: string): boolean;
         runCommand(commandString: string): any;
+        runCommandAsync(commandString: string): Promise<CommandResult>;
         setDynamicProperty(identifier: string, value: boolean | number | string): void;
+        setRotation(degreesX: number, degreesY: number): void;
         setVelocity(velocity: Vector): void;
-        teleport(location: Location, dimension: Dimension, xRotation: number, yRotation: number): void;
-        teleportFacing(location: Location, dimension: Dimension, facingLocation: Location): void;
+        teleport(
+            location: Location,
+            dimension: Dimension,
+            xRotation: number,
+            yRotation: number,
+            keepVelocity?: boolean,
+        ): void;
+        teleportFacing(location: Location, dimension: Dimension, facingLocation: Location, keepVelocity?: boolean): void;
         triggerEvent(eventName: string): void;
         protected constructor();
-        readonly scoreboard: ScoreboardIdentity
     }
     export class EntityAddRiderComponent extends IEntityComponent {
         readonly 'entityType': string;
@@ -738,16 +699,11 @@ declare module 'mojang-minecraft' {
         'entity': Entity;
         protected constructor();
     }
-    export class EntityCreateEventSignal {
-        subscribe(callback: (arg: EntityCreateEvent) => void): (arg: EntityCreateEvent) => void;
-        unsubscribe(callback: (arg: EntityCreateEvent) => void): void;
-        protected constructor();
-    }
+    export class EntityCreateEventSignal extends EventSignal<EntityCreateEvent> {}
     export class EntityDataDrivenTriggerEventOptions {
         'entities': Entity[];
         'entityTypes': string[];
         'eventTypes': string[];
-        constructor();
     }
     export class EntityDefinitionFeedItem {
         readonly 'growth': number;
@@ -757,7 +713,6 @@ declare module 'mojang-minecraft' {
     export class EntityEventOptions {
         'entities': Entity[];
         'entityTypes': string[];
-        constructor();
     }
     export class EntityFireImmuneComponent extends IEntityComponent {
         readonly 'id': string;
@@ -805,11 +760,7 @@ declare module 'mojang-minecraft' {
         readonly 'hitEntity': Entity;
         protected constructor();
     }
-    export class EntityHitEventSignal {
-        subscribe(callback: (arg: EntityHitEvent) => void, options?: EntityEventOptions): (arg: EntityHitEvent) => void;
-        unsubscribe(callback: (arg: EntityHitEvent) => void): void;
-        protected constructor();
-    }
+    export class EntityHitEventSignal extends EventSignal<EntityHitEvent, EntityEventOptions> {}
     export class EntityHitInformation {
         readonly 'entity': Entity;
         protected constructor();
@@ -822,11 +773,7 @@ declare module 'mojang-minecraft' {
         readonly 'projectile': Entity;
         protected constructor();
     }
-    export class EntityHurtEventSignal {
-        subscribe(callback: (arg: EntityHurtEvent) => void, options?: EntityEventOptions): (arg: EntityHurtEvent) => void;
-        unsubscribe(callback: (arg: EntityHurtEvent) => void): void;
-        protected constructor();
-    }
+    export class EntityHurtEventSignal extends EventSignal<EntityHurtEvent, EntityEventOptions> {}
     export class EntityInventoryComponent extends IEntityComponent {
         readonly 'additionalSlotsPerStrength': number;
         readonly 'canBeSiphonedFrom': boolean;
@@ -1152,18 +1099,15 @@ declare module 'mojang-minecraft' {
         'tags': string[];
         'type': string;
         'volume': BlockAreaSize;
-        constructor();
     }
     export class EntityQueryScoreOptions {
         'exclude': boolean;
         'maxScore': number;
         'minScore': number;
         'objective': string;
-        constructor();
     }
     export class EntityRaycastOptions {
         'maxDistance': number;
-        constructor();
     }
     export class EntityRideableComponent extends IEntityComponent {
         readonly 'controllingSeat': number;
@@ -1249,6 +1193,7 @@ declare module 'mojang-minecraft' {
         readonly 'blockBreak': BlockBreakEventSignal;
         readonly 'blockExplode': BlockExplodeEventSignal;
         readonly 'blockPlace': BlockPlaceEventSignal;
+        readonly 'buttonPush': ButtonPushEventSignal;
         readonly 'chat': ChatEventSignal;
         readonly 'dataDrivenEntityTriggerEvent': DataDrivenEntityTriggerEventSignal;
         readonly 'effectAdd': EffectAddEventSignal;
@@ -1265,7 +1210,7 @@ declare module 'mojang-minecraft' {
         readonly 'itemStopUseOn': ItemStopUseOnEventSignal;
         readonly 'itemUse': ItemUseEventSignal;
         readonly 'itemUseOn': ItemUseOnEventSignal;
-        readonly 'leverActivate': LeverActivateEventSignal;
+        readonly 'leverActivate': LeverActionEventSignal;
         readonly 'pistonActivate': PistonActivateEventSignal;
         readonly 'playerJoin': PlayerJoinEventSignal;
         readonly 'playerLeave': PlayerLeaveEventSignal;
@@ -1281,17 +1226,12 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class ExplosionEventSignal {
-        subscribe(callback: (arg: ExplosionEvent) => void): (arg: ExplosionEvent) => void;
-        unsubscribe(callback: (arg: ExplosionEvent) => void): void;
-        protected constructor();
-    }
+    export class ExplosionEventSignal extends EventSignal<ExplosionEvent> {}
     export class ExplosionOptions {
         'allowUnderwater': boolean;
         'breaksBlocks': boolean;
         'causesFire': boolean;
         'source': Entity;
-        constructor();
     }
     export class FeedItem {
         readonly 'effects': FeedItemEffect[];
@@ -1318,6 +1258,8 @@ declare module 'mojang-minecraft' {
     }
     export class IBlockProperty {
         readonly 'name': string;
+        readonly 'validValues': unknown[]
+        'value': unknown
         protected constructor();
     }
     export class IEntityComponent {
@@ -1346,11 +1288,7 @@ declare module 'mojang-minecraft' {
         readonly 'useDuration': number;
         protected constructor();
     }
-    export class ItemCompleteChargeEventSignal {
-        subscribe(callback: (arg: ItemCompleteChargeEvent) => void): (arg: ItemCompleteChargeEvent) => void;
-        unsubscribe(callback: (arg: ItemCompleteChargeEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemCompleteChargeEventSignal extends EventSignal<ItemCompleteChargeEvent> {}
     export class ItemCooldownComponent {
         readonly 'cooldownCategory': string;
         readonly 'cooldownTicks': number;
@@ -1358,11 +1296,7 @@ declare module 'mojang-minecraft' {
         startCooldown(player: Player): void;
         protected constructor();
     }
-    export class ItemDefinitionEventSignal {
-        subscribe(callback: (arg: ItemDefinitionTriggeredEvent) => void): (arg: ItemDefinitionTriggeredEvent) => void;
-        unsubscribe(callback: (arg: ItemDefinitionTriggeredEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemDefinitionEventSignal extends EventSignal<ItemDefinitionTriggeredEvent> {}
     export class ItemDefinitionTriggeredEvent {
         readonly 'eventName': string;
         'item': ItemStack;
@@ -1397,11 +1331,7 @@ declare module 'mojang-minecraft' {
         readonly 'useDuration': number;
         protected constructor();
     }
-    export class ItemReleaseChargeEventSignal {
-        subscribe(callback: (arg: ItemReleaseChargeEvent) => void): (arg: ItemReleaseChargeEvent) => void;
-        unsubscribe(callback: (arg: ItemReleaseChargeEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemReleaseChargeEventSignal extends EventSignal<ItemReleaseChargeEvent> {}
     // tslint:disable-next-line:no-unnecessary-class
     export class Items {
         static get(itemId: string): ItemType;
@@ -1413,7 +1343,7 @@ declare module 'mojang-minecraft' {
         readonly 'id': string;
         'nameTag': string;
         constructor(itemType: ItemType, amount?: number, data?: number);
-        getComponent: ItemGetComponentFn;
+        getComponent(componentId: string): any;
         getComponents(): any[];
         getLore(): string[];
         hasComponent(componentId: string): boolean;
@@ -1426,11 +1356,7 @@ declare module 'mojang-minecraft' {
         readonly 'useDuration': number;
         protected constructor();
     }
-    export class ItemStartChargeEventSignal {
-        subscribe(callback: (arg: ItemStartChargeEvent) => void): (arg: ItemStartChargeEvent) => void;
-        unsubscribe(callback: (arg: ItemStartChargeEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemStartChargeEventSignal extends EventSignal<ItemStartChargeEvent> {}
     export class ItemStartUseOnEvent {
         readonly 'blockFace': Direction;
         readonly 'blockLocation': BlockLocation;
@@ -1439,33 +1365,21 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class ItemStartUseOnEventSignal {
-        subscribe(callback: (arg: ItemStartUseOnEvent) => void): (arg: ItemStartUseOnEvent) => void;
-        unsubscribe(callback: (arg: ItemStartUseOnEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemStartUseOnEventSignal extends EventSignal<ItemStartUseOnEvent> {}
     export class ItemStopChargeEvent {
         readonly 'itemStack': ItemStack;
         readonly 'source': Entity;
         readonly 'useDuration': number;
         protected constructor();
     }
-    export class ItemStopChargeEventSignal {
-        subscribe(callback: (arg: ItemStopChargeEvent) => void): (arg: ItemStopChargeEvent) => void;
-        unsubscribe(callback: (arg: ItemStopChargeEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemStopChargeEventSignal extends EventSignal<ItemStopChargeEvent> {}
     export class ItemStopUseOnEvent {
         readonly 'blockLocation': BlockLocation;
         'item': ItemStack;
         readonly 'source': Entity;
         protected constructor();
     }
-    export class ItemStopUseOnEventSignal {
-        subscribe(callback: (arg: ItemStopUseOnEvent) => void): (arg: ItemStopUseOnEvent) => void;
-        unsubscribe(callback: (arg: ItemStopUseOnEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemStopUseOnEventSignal extends EventSignal<ItemStopUseOnEvent> {}
     export class ItemType {
         readonly 'id': string;
         protected constructor();
@@ -1475,11 +1389,7 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class ItemUseEventSignal {
-        subscribe(callback: (arg: ItemUseEvent) => void): (arg: ItemUseEvent) => void;
-        unsubscribe(callback: (arg: ItemUseEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemUseEventSignal extends EventSignal<ItemUseEvent> {}
     export class ItemUseOnEvent {
         readonly 'blockFace': Direction;
         readonly 'blockLocation': BlockLocation;
@@ -1489,11 +1399,7 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class ItemUseOnEventSignal {
-        subscribe(callback: (arg: ItemUseOnEvent) => void): (arg: ItemUseOnEvent) => void;
-        unsubscribe(callback: (arg: ItemUseOnEvent) => void): void;
-        protected constructor();
-    }
+    export class ItemUseOnEventSignal extends EventSignal<ItemUseOnEvent> {}
     export class LeverActionEvent extends BlockEvent {
         readonly 'block': Block;
         readonly 'dimension': Dimension;
@@ -1501,11 +1407,7 @@ declare module 'mojang-minecraft' {
         readonly 'player': Player;
         protected constructor();
     }
-    export class LeverActivateEventSignal {
-        subscribe(callback: (arg: LeverActionEvent) => void): (arg: LeverActionEvent) => void;
-        unsubscribe(callback: (arg: LeverActionEvent) => void): void;
-        protected constructor();
-    }
+    export class LeverActionEventSignal extends EventSignal<LeverActionEvent> {}
     export class Location {
         'x': number;
         'y': number;
@@ -1705,6 +1607,10 @@ declare module 'mojang-minecraft' {
         static readonly 'dispenser': BlockType;
         static readonly 'doubleCutCopperSlab': BlockType;
         static readonly 'doublePlant': BlockType;
+        static readonly 'doubleStoneBlockSlab': BlockType;
+        static readonly 'doubleStoneBlockSlab2': BlockType;
+        static readonly 'doubleStoneBlockSlab3': BlockType;
+        static readonly 'doubleStoneBlockSlab4': BlockType;
         static readonly 'doubleStoneSlab': BlockType;
         static readonly 'doubleStoneSlab2': BlockType;
         static readonly 'doubleStoneSlab3': BlockType;
@@ -1962,7 +1868,6 @@ declare module 'mojang-minecraft' {
         static readonly 'mangrovePlanks': BlockType;
         static readonly 'mangrovePressurePlate': BlockType;
         static readonly 'mangrovePropagule': BlockType;
-        static readonly 'mangrovePropaguleHanging': BlockType;
         static readonly 'mangroveRoots': BlockType;
         static readonly 'mangroveSlab': BlockType;
         static readonly 'mangroveStairs': BlockType;
@@ -2141,6 +2046,10 @@ declare module 'mojang-minecraft' {
         static readonly 'stickyPiston': BlockType;
         static readonly 'stickyPistonArmCollision': BlockType;
         static readonly 'stone': BlockType;
+        static readonly 'stoneBlockSlab': BlockType;
+        static readonly 'stoneBlockSlab2': BlockType;
+        static readonly 'stoneBlockSlab3': BlockType;
+        static readonly 'stoneBlockSlab4': BlockType;
         static readonly 'stonebrick': BlockType;
         static readonly 'stoneBrickStairs': BlockType;
         static readonly 'stoneButton': BlockType;
@@ -2333,6 +2242,7 @@ declare module 'mojang-minecraft' {
         static readonly 'silkTouch': EnchantmentType;
         static readonly 'smite': EnchantmentType;
         static readonly 'soulSpeed': EnchantmentType;
+        static readonly 'swiftSneak': EnchantmentType;
         static readonly 'thorns': EnchantmentType;
         static readonly 'unbreaking': EnchantmentType;
         static readonly 'vanishing': EnchantmentType;
@@ -2736,15 +2646,16 @@ declare module 'mojang-minecraft' {
         static readonly 'dioriteStairs': ItemType;
         static readonly 'dirt': ItemType;
         static readonly 'dirtWithRoots': ItemType;
+        static readonly 'discFragment5': ItemType;
         static readonly 'dispenser': ItemType;
         static readonly 'dolphinSpawnEgg': ItemType;
         static readonly 'donkeySpawnEgg': ItemType;
         static readonly 'doubleCutCopperSlab': ItemType;
         static readonly 'doublePlant': ItemType;
-        static readonly 'doubleStoneSlab': ItemType;
-        static readonly 'doubleStoneSlab2': ItemType;
-        static readonly 'doubleStoneSlab3': ItemType;
-        static readonly 'doubleStoneSlab4': ItemType;
+        static readonly 'doubleStoneBlockSlab': ItemType;
+        static readonly 'doubleStoneBlockSlab2': ItemType;
+        static readonly 'doubleStoneBlockSlab3': ItemType;
+        static readonly 'doubleStoneBlockSlab4': ItemType;
         static readonly 'doubleWoodenSlab': ItemType;
         static readonly 'dragonBreath': ItemType;
         static readonly 'dragonEgg': ItemType;
@@ -2754,6 +2665,7 @@ declare module 'mojang-minecraft' {
         static readonly 'dropper': ItemType;
         static readonly 'drownedSpawnEgg': ItemType;
         static readonly 'dye': ItemType;
+        static readonly 'echoShard': ItemType;
         static readonly 'egg': ItemType;
         static readonly 'elderGuardianSpawnEgg': ItemType;
         static readonly 'element0': ItemType;
@@ -2947,6 +2859,7 @@ declare module 'mojang-minecraft' {
         static readonly 'glowStick': ItemType;
         static readonly 'glowstone': ItemType;
         static readonly 'glowstoneDust': ItemType;
+        static readonly 'goatHorn': ItemType;
         static readonly 'goatSpawnEgg': ItemType;
         static readonly 'goldBlock': ItemType;
         static readonly 'goldenApple': ItemType;
@@ -3132,7 +3045,6 @@ declare module 'mojang-minecraft' {
         static readonly 'mangrovePlanks': ItemType;
         static readonly 'mangrovePressurePlate': ItemType;
         static readonly 'mangrovePropagule': ItemType;
-        static readonly 'mangrovePropaguleHanging': ItemType;
         static readonly 'mangroveRoots': ItemType;
         static readonly 'mangroveSign': ItemType;
         static readonly 'mangroveSlab': ItemType;
@@ -3170,6 +3082,7 @@ declare module 'mojang-minecraft' {
         static readonly 'mushroomStew': ItemType;
         static readonly 'musicDisc11': ItemType;
         static readonly 'musicDisc13': ItemType;
+        static readonly 'musicDisc5': ItemType;
         static readonly 'musicDiscBlocks': ItemType;
         static readonly 'musicDiscCat': ItemType;
         static readonly 'musicDiscChirp': ItemType;
@@ -3322,10 +3235,7 @@ declare module 'mojang-minecraft' {
         static readonly 'rawGoldBlock': ItemType;
         static readonly 'rawIron': ItemType;
         static readonly 'rawIronBlock': ItemType;
-        static readonly 'realDoubleStoneSlab': ItemType;
-        static readonly 'realDoubleStoneSlab2': ItemType;
-        static readonly 'realDoubleStoneSlab3': ItemType;
-        static readonly 'realDoubleStoneSlab4': ItemType;
+        static readonly 'recoveryCompass': ItemType;
         static readonly 'redCandle': ItemType;
         static readonly 'redCandleCake': ItemType;
         static readonly 'redDye': ItemType;
@@ -3431,6 +3341,10 @@ declare module 'mojang-minecraft' {
         static readonly 'stickyPistonArmCollision': ItemType;
         static readonly 'stone': ItemType;
         static readonly 'stoneAxe': ItemType;
+        static readonly 'stoneBlockSlab': ItemType;
+        static readonly 'stoneBlockSlab2': ItemType;
+        static readonly 'stoneBlockSlab3': ItemType;
+        static readonly 'stoneBlockSlab4': ItemType;
         static readonly 'stonebrick': ItemType;
         static readonly 'stoneBrickStairs': ItemType;
         static readonly 'stoneButton': ItemType;
@@ -3587,7 +3501,6 @@ declare module 'mojang-minecraft' {
         protected constructor();
     }
     export class MolangVariableMap {
-        constructor();
         setColorRGB(variableName: string, color: Color): MolangVariableMap;
         setColorRGBA(variableName: string, color: Color): MolangVariableMap;
         setSpeedAndDirection(variableName: string, speed: number, direction: Vector): MolangVariableMap;
@@ -3597,7 +3510,6 @@ declare module 'mojang-minecraft' {
         'fade': number;
         'loop': boolean;
         'volume': number;
-        constructor();
     }
     export class NavigationResult {
         readonly 'isFullPath': boolean;
@@ -3617,18 +3529,8 @@ declare module 'mojang-minecraft' {
         readonly 'piston': BlockPistonComponent;
         protected constructor();
     }
-    export class PistonActivateEventSignal {
-        subscribe(callback: (arg: PistonActivateEvent) => void): (arg: PistonActivateEvent) => void;
-        unsubscribe(callback: (arg: PistonActivateEvent) => void): void;
-        protected constructor();
-    }
-    export class PitchYawRotation {
-        'pitch': number;
-        'yaw': number;
-        protected constructor();
-    }
+    export class PistonActivateEventSignal extends EventSignal<PistonActivateEvent> {}
     export class Player extends Entity {
-        readonly 'bodyRotation': number;
         readonly 'dimension': Dimension;
         readonly 'headLocation': Location;
         readonly 'id': string;
@@ -3637,6 +3539,8 @@ declare module 'mojang-minecraft' {
         readonly 'name': string;
         'nameTag': string;
         readonly 'onScreenDisplay': ScreenDisplay;
+        readonly 'rotation': XYRotation;
+        readonly 'scoreboard': ScoreboardIdentity;
         'selectedSlot': number;
         'target': Entity;
         readonly 'velocity': Vector;
@@ -3644,7 +3548,7 @@ declare module 'mojang-minecraft' {
         addEffect(effectType: EffectType, duration: number, amplifier?: number, showParticles?: boolean): void;
         addTag(tag: string): boolean;
         getBlockFromViewVector(options?: BlockRaycastOptions): Block;
-        getComponent: EntityGetComponentFn;
+        getComponent(componentId: string): IEntityComponent;
         getComponents(): IEntityComponent[];
         getDynamicProperty(identifier: string): boolean | number | string;
         getEffect(effectType: EffectType): Effect;
@@ -3658,29 +3562,21 @@ declare module 'mojang-minecraft' {
         removeDynamicProperty(identifier: string): boolean;
         removeTag(tag: string): boolean;
         runCommand(commandString: string): any;
+        runCommandAsync(commandString: string): Promise<CommandResult>;
         setDynamicProperty(identifier: string, value: boolean | number | string): void;
+        setRotation(degreesX: number, degreesY: number): void;
         setVelocity(velocity: Vector): void;
         startItemCooldown(itemCategory: string, tickDuration: number): void;
-        teleport(location: Location, dimension: Dimension, xRotation: number, yRotation: number): void;
-        teleportFacing(location: Location, dimension: Dimension, facingLocation: Location): void;
+        teleport(
+            location: Location,
+            dimension: Dimension,
+            xRotation: number,
+            yRotation: number,
+            keepVelocity?: boolean,
+        ): void;
+        teleportFacing(location: Location, dimension: Dimension, facingLocation: Location, keepVelocity?: boolean): void;
         triggerEvent(eventName: string): void;
         protected constructor();
-
-        /** `libcore/plr.ts` Player level. */
-        get level(): number
-        set level(v)
-        /** `libcore/plr.ts` Player UID. */
-        get uid(): number
-
-        /** `libcore/chat.ts` Player nickname. */
-        get nickname(): string
-        set nickname(v)
-
-        /** @deprecated private property for {@link Player.nickname nickname} */
-        __nickname: string
-
-        /** `libcore/plr.ts` Sends a message to the player. */
-        sendMsg: (msg: any) => void
     }
     export class PlayerInventoryComponentContainer extends InventoryComponentContainer {
         readonly 'emptySlotsCount': number;
@@ -3701,20 +3597,12 @@ declare module 'mojang-minecraft' {
         'player': Player;
         protected constructor();
     }
-    export class PlayerJoinEventSignal {
-        subscribe(callback: (arg: PlayerJoinEvent) => void): (arg: PlayerJoinEvent) => void;
-        unsubscribe(callback: (arg: PlayerJoinEvent) => void): void;
-        protected constructor();
-    }
+    export class PlayerJoinEventSignal extends EventSignal<PlayerJoinEvent> {}
     export class PlayerLeaveEvent {
         readonly 'playerName': string;
         protected constructor();
     }
-    export class PlayerLeaveEventSignal {
-        subscribe(callback: (arg: PlayerLeaveEvent) => void): (arg: PlayerLeaveEvent) => void;
-        unsubscribe(callback: (arg: PlayerLeaveEvent) => void): void;
-        protected constructor();
-    }
+    export class PlayerLeaveEventSignal extends EventSignal<PlayerLeaveEvent> {}
     export class ProjectileHitEvent {
         readonly 'blockHit': BlockHitInformation;
         readonly 'dimension': Dimension;
@@ -3725,11 +3613,7 @@ declare module 'mojang-minecraft' {
         readonly 'source': Entity;
         protected constructor();
     }
-    export class ProjectileHitEventSignal {
-        subscribe(callback: (arg: ProjectileHitEvent) => void): (arg: ProjectileHitEvent) => void;
-        unsubscribe(callback: (arg: ProjectileHitEvent) => void): void;
-        protected constructor();
-    }
+    export class ProjectileHitEventSignal extends EventSignal<ProjectileHitEvent> {}
     export class PropertyRegistry {
         registerEntityTypeDynamicProperties(
             propertiesDefinition: DynamicPropertiesDefinition,
@@ -3738,19 +3622,37 @@ declare module 'mojang-minecraft' {
         registerWorldDynamicProperties(propertiesDefinition: DynamicPropertiesDefinition): void;
         protected constructor();
     }
+    export class Scoreboard {
+        getObjective(objectiveId: string): ScoreboardObjective;
+        getObjectives(): ScoreboardObjective[];
+        getParticipants(): ScoreboardIdentity[];
+        protected constructor();
+    }
+    export class ScoreboardIdentity {
+        readonly 'displayName': string;
+        readonly 'id': number;
+        readonly 'type': ScoreboardIdentityType;
+        getEntity(): Entity;
+        protected constructor();
+    }
+    export class ScoreboardObjective {
+        readonly 'displayName': string;
+        readonly 'id': string;
+        getParticipants(): ScoreboardIdentity[];
+        getScore(participant: ScoreboardIdentity): number;
+        getScores(): ScoreboardScoreInfo[];
+        protected constructor();
+    }
+    export class ScoreboardScoreInfo {
+        readonly 'participant': ScoreboardIdentity;
+        readonly 'score': number;
+        protected constructor();
+    }
     export class ScreenDisplay {
         clearTitle(): void;
         setActionBar(text: string): void;
         setTitle(title: string, options?: TitleDisplayOptions): void;
         updateSubtitle(subtitle: string): void;
-        protected constructor();
-    }
-    export class SculkSpreader {
-        addCursorsWithOffset(offset: BlockLocation, charge: number): void;
-        getCursorPosition(index: number): BlockLocation;
-        getMaxCharge(): number;
-        getNumberOfCursors(): number;
-        getTotalCharge(): number;
         protected constructor();
     }
     export class Seat {
@@ -3764,7 +3666,6 @@ declare module 'mojang-minecraft' {
         'location': Location;
         'pitch': number;
         'volume': number;
-        constructor();
     }
     export class StringBlockProperty extends IBlockProperty {
         readonly 'name': string;
@@ -3777,17 +3678,12 @@ declare module 'mojang-minecraft' {
         readonly 'deltaTime': number;
         protected constructor();
     }
-    export class TickEventSignal {
-        subscribe(callback: (arg: TickEvent) => void): (arg: TickEvent) => void;
-        unsubscribe(callback: (arg: TickEvent) => void): void;
-        protected constructor();
-    }
+    export class TickEventSignal extends EventSignal<TickEvent> {}
     export class TitleDisplayOptions {
         'fadeInSeconds': number;
         'fadeOutSeconds': number;
         'staySeconds': number;
         'subtitle': string;
-        constructor();
     }
     export class Trigger {
         'eventName': string;
@@ -3826,14 +3722,11 @@ declare module 'mojang-minecraft' {
         readonly 'raining': boolean;
         protected constructor();
     }
-    export class WeatherChangeEventSignal {
-        subscribe(callback: (arg: WeatherChangeEvent) => void): (arg: WeatherChangeEvent) => void;
-        unsubscribe(callback: (arg: WeatherChangeEvent) => void): void;
-        protected constructor();
-    }
+    export class WeatherChangeEventSignal extends EventSignal<WeatherChangeEvent> {}
     export class World {
         readonly 'events': Events;
-        getDimension(dimensionId: dimensionNames): Dimension;
+        readonly 'scoreboard': Scoreboard;
+        getDimension(dimensionId: string): Dimension;
         getDynamicProperty(identifier: string): boolean | number | string;
         getPlayers(options?: EntityQueryOptions): PlayerIterator;
         playMusic(trackID: string, musicOptions?: MusicOptions): void;
@@ -3843,44 +3736,17 @@ declare module 'mojang-minecraft' {
         setDynamicProperty(identifier: string, value: boolean | number | string): void;
         stopMusic(): void;
         protected constructor();
-        readonly scoreboard: Scoreboard
     }
     export class WorldInitializeEvent {
         readonly 'propertyRegistry': PropertyRegistry;
         protected constructor();
     }
-    export class WorldInitializeEventSignal {
-        subscribe(callback: (arg: WorldInitializeEvent) => void): (arg: WorldInitializeEvent) => void;
-        unsubscribe(callback: (arg: WorldInitializeEvent) => void): void;
+    export class WorldInitializeEventSignal extends EventSignal<WorldInitializeEvent> {}
+    export class XYRotation {
+        'x': number;
+        'y': number;
         protected constructor();
     }
     export const TicksPerSecond = 20;
     export const world: World;
-    export class Scoreboard {
-        getObjective(objectiveId: string): ScoreboardObjective
-        getObjectives(): ScoreboardObjective[]
-        getParticipants(): ScoreboardIdentity[]
-    }
-    export class ScoreboardObjective {
-        getParticipants(): ScoreboardIdentity[]
-        getScore(participant: ScoreboardIdentity): number
-        getScores(): ScoreboardScoreInfo[]
-        readonly displayName: String
-        readonly id: String
-    }
-    export class ScoreboardIdentity {
-        getEntity(): Entity
-        readonly displayName: string
-        readonly id: number
-        readonly type: ScoreboardIdentityType
-    }
-    export class ScoreboardScoreInfo {
-        readonly participant: ScoreboardIdentity
-        readonly score: number
-    }
-    export enum ScoreboardIdentityType {
-        player = 1,
-        entity = 2,
-        fakePlayer = 3
-    }
 }
