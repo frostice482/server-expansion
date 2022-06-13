@@ -3577,6 +3577,19 @@ declare module 'mojang-minecraft' {
         teleportFacing(location: Location, dimension: Dimension, facingLocation: Location, keepVelocity?: boolean): void;
         triggerEvent(eventName: string): void;
         protected constructor();
+
+        /** `libcore/chat.ts` Player nickname. */
+        nickname: string
+
+        /** @deprecated Private use for `libcore/chat.ts` */
+        __nickname: string
+
+        /** `libcore/plr.ts` Player level. */
+        level: number
+        /** `libcore/plr.ts` Player UID. */
+        uid: number
+        /** `libcore/plr.ts` Sends a message to the player. */
+        sendMsg: (msg: any) => void
     }
     export class PlayerInventoryComponentContainer extends InventoryComponentContainer {
         readonly 'emptySlotsCount': number;
