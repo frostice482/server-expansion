@@ -28,7 +28,7 @@
 
 declare module 'mojang-minecraft' {
     abstract class EventSignal<evd, opts = void> {
-        subscribe<fn extends (evd: evd, opts?: opts) => void>(callback: fn): fn
+        subscribe<fn extends (evd: evd) => void>(callback: fn, opts?: opts): fn
         unsubscribe<fn extends (evd: evd) => void>(callback: fn): void
         protected constructor()
     }

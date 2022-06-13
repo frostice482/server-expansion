@@ -4,8 +4,6 @@
 //                 Mike Ammerlaan <https://github.com/mammerla>
 // Definitions: https://github.com/DefinitelyTyped/DefinitelyTyped
 
-// Taken from https://github.com/DefinitelyTyped/DefinitelyTyped/tree/master/types/mojang-gametest/index.d.ts
-
 /***************************************************************************************************************\
 |                                                                                                               |
 |    Copyright (c) Microsoft Corporation.                                                                       |
@@ -41,6 +39,7 @@ declare module 'mojang-gametest' {
         readonly 'north': boolean;
         readonly 'south': boolean;
         readonly 'west': boolean;
+        protected constructor();
     }
     export class GameTestSequence {
         thenExecute(callback: () => void): GameTestSequence;
@@ -51,6 +50,7 @@ declare module 'mojang-gametest' {
         thenSucceed(): void;
         thenWait(callback: () => void): GameTestSequence;
         thenWaitAfter(delayTicks: number, callback: () => void): GameTestSequence;
+        protected constructor();
     }
     export class RegistrationBuilder {
         batch(batchName: 'night' | 'day'): RegistrationBuilder;
@@ -63,29 +63,47 @@ declare module 'mojang-gametest' {
         setupTicks(tickCount: number): RegistrationBuilder;
         structureName(structureName: string): RegistrationBuilder;
         tag(tag: string): RegistrationBuilder;
+        protected constructor();
+    }
+    export class SculkSpreader {
+        readonly 'maxCharge': number;
+        addCursorsWithOffset(offset: mojangminecraft.BlockLocation, charge: number): void;
+        getCursorPosition(index: number): mojangminecraft.BlockLocation;
+        getNumberOfCursors(): number;
+        getTotalCharge(): number;
+        protected constructor();
     }
     export class SimulatedPlayer extends mojangminecraft.Player {
-        readonly 'bodyRotation': number;
         readonly 'dimension': mojangminecraft.Dimension;
         readonly 'headLocation': mojangminecraft.Location;
-        readonly 'headRotation': mojangminecraft.PitchYawRotation;
+        readonly 'headRotation': mojangminecraft.XYRotation;
         readonly 'id': string;
         'isSneaking': boolean;
         readonly 'location': mojangminecraft.Location;
         readonly 'name': string;
         'nameTag': string;
+        readonly 'onScreenDisplay': mojangminecraft.ScreenDisplay;
+        readonly 'rotation': mojangminecraft.XYRotation;
+        readonly 'scoreboard': mojangminecraft.ScoreboardIdentity;
         'selectedSlot': number;
         'target': mojangminecraft.Entity;
         readonly 'velocity': mojangminecraft.Vector;
         readonly 'viewVector': mojangminecraft.Vector;
-        addEffect(effectType: mojangminecraft.EffectType, duration: number, amplifier: number): void;
+        addEffect(
+            effectType: mojangminecraft.EffectType,
+            duration: number,
+            amplifier?: number,
+            showParticles?: boolean,
+        ): void;
+        addExperience(amount: number): boolean;
         addTag(tag: string): boolean;
         attack(): boolean;
         attackEntity(entity: mojangminecraft.Entity): boolean;
         breakBlock(blockLocation: mojangminecraft.BlockLocation, direction?: number): boolean;
         getBlockFromViewVector(options?: mojangminecraft.BlockRaycastOptions): mojangminecraft.Block;
-        //getComponent(componentId: string): mojangminecraft.IEntityComponent;
+        getComponent(componentId: string): mojangminecraft.IEntityComponent;
         getComponents(): mojangminecraft.IEntityComponent[];
+        getDynamicProperty(identifier: string): boolean | number | string;
         getEffect(effectType: mojangminecraft.EffectType): mojangminecraft.Effect;
         getEntitiesFromViewVector(options?: mojangminecraft.EntityRaycastOptions): mojangminecraft.Entity[];
         getItemCooldown(itemCategory: string): number;
@@ -110,12 +128,16 @@ declare module 'mojang-gametest' {
         navigateToLocation(location: mojangminecraft.Location, speed?: number): mojangminecraft.NavigationResult;
         navigateToLocations(locations: mojangminecraft.Location[], speed?: number): void;
         playSound(soundID: string, soundOptions?: mojangminecraft.SoundOptions): void;
+        removeDynamicProperty(identifier: string): boolean;
         removeTag(tag: string): boolean;
         rotateBody(angleInDegrees: number): void;
         runCommand(commandString: string): any;
+        runCommandAsync(commandString: string): Promise<mojangminecraft.CommandResult>;
         setBodyRotation(angleInDegrees: number): void;
+        setDynamicProperty(identifier: string, value: boolean | number | string): void;
         setGameMode(gameMode: mojangminecraft.GameMode): void;
         setItem(itemStack: mojangminecraft.ItemStack, slot: number, selectSlot?: boolean): boolean;
+        setRotation(degreesX: number, degreesY: number): void;
         setVelocity(velocity: mojangminecraft.Vector): void;
         startItemCooldown(itemCategory: string, tickDuration: number): void;
         stopBreakingBlock(): void;
@@ -150,6 +172,7 @@ declare module 'mojang-gametest' {
             faceLocationX?: number,
             faceLocationY?: number,
         ): boolean;
+        protected constructor();
     }
     // tslint:disable-next-line:no-unnecessary-class
     export class Tags {
@@ -157,6 +180,7 @@ declare module 'mojang-gametest' {
         static readonly 'suiteDebug' = 'suite:debug';
         static readonly 'suiteDefault' = 'suite:default';
         static readonly 'suiteDisabled' = 'suite:disabled';
+        protected constructor();
     }
     export class Test {
         assert(condition: boolean, message: string): void;
@@ -221,11 +245,13 @@ declare module 'mojang-gametest' {
             isPresent?: boolean,
         ): void;
         assertRedstonePower(blockLocation: mojangminecraft.BlockLocation, power: number): void;
+        destroyBlock(blockLocation: mojangminecraft.BlockLocation, dropResources?: boolean): void;
         fail(errorMessage: string): void;
         failIf(callback: () => void): void;
         getBlock(blockLocation: mojangminecraft.BlockLocation): mojangminecraft.Block;
         getDimension(): mojangminecraft.Dimension;
         getFenceConnectivity(blockLocation: mojangminecraft.BlockLocation): FenceConnectivity;
+        getSculkSpreader(blockLocation: mojangminecraft.BlockLocation): SculkSpreader;
         getTestDirection(): mojangminecraft.Direction;
         idle(tickDelay: number): Promise<void>;
         killAllEntities(): void;
@@ -237,6 +263,7 @@ declare module 'mojang-gametest' {
         relativeLocation(worldLocation: mojangminecraft.Location): mojangminecraft.Location;
         removeSimulatedPlayer(simulatedPlayer: SimulatedPlayer): void;
         rotateDirection(direction: mojangminecraft.Direction): mojangminecraft.Direction;
+        rotateVector(vector: mojangminecraft.Vector): mojangminecraft.Vector;
         runAfterDelay(delayTicks: number, callback: () => void): void;
         runAtTickTime(tick: number, callback: () => void): void;
         setBlockPermutation(
@@ -299,6 +326,7 @@ declare module 'mojang-gametest' {
         walkToLocation(mob: mojangminecraft.Entity, location: mojangminecraft.Location, speedModifier?: number): void;
         worldBlockLocation(relativeBlockLocation: mojangminecraft.BlockLocation): mojangminecraft.BlockLocation;
         worldLocation(relativeLocation: mojangminecraft.Location): mojangminecraft.Location;
+        protected constructor();
     }
     export function register(
         testClassName: string,
