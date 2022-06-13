@@ -63,6 +63,8 @@ class Plugin {
 
         storage.for(`SEP_${nc}_P`).value = JSON.stringify(data)
 
+        this.#localStorage = new Plugin.localStorage(auth, this)
+
         if (data.loadOnRegister) this.#iexec()
     }
 
@@ -93,6 +95,8 @@ class Plugin {
 
     #im: List<fnExec> = empty()
     #imCache: List<any> = empty()
+
+    #localStorage: typeof Plugin.localStorage.prototype
 
     #iexec = async ( gRefs: importGlobalRefs = { refs: empty({}), refStack: [] } ) => {
         if (this.#isLoaded) return this.#exportCache
@@ -140,7 +144,6 @@ class Plugin {
             //this.#refStack = getImportStack(gRefs).join('\n')
             this.#imName = imName
             this.#onExport = onExport
-            this.localStorage = new Plugin.inst.localStorage(auth, this)
         }
 
         #pli: Plugin
@@ -185,7 +188,7 @@ class Plugin {
                 d = true
 
                 pliRefs.refStack.pop()
-                res(v)
+                t(v)
             }
 
             const i = new Plugin.inst( auth, pli, this.#gRefs, name, r )
@@ -210,47 +213,48 @@ class Plugin {
                 this.#pli.#isLoaded = true
                 res()
             }
-            execOrder.push(res)
+            execOrder.unshift(res)
         })
 
         /** Plugin local storage. */
-        readonly localStorage: typeof Plugin.inst.localStorage.prototype
+        get localStorage() { return this.#pli.#localStorage }
+    }
 
-        static localStorage = class bridgeInstanceLocalStorage {
-            constructor(key: typeof auth, inst: BridgeInstance) {
-                if (key !== auth) throw new TypeError('Class is not constructable')
+    /** Local storage. */
+    static localStorage = class bridgeInstanceLocalStorage {
+        constructor(key: typeof auth, pli: Plugin) {
+            if (key !== auth) throw new TypeError('Class is not constructable')
 
-                this.#storage = storage.for(`SEP_${inst.#pli.#unique}_D`)
-                Object.assign(this.#data, empty(JSON.parse(this.#storage.value ?? '{}')))
+            this.#storage = storage.for(`SEP_${pli.#unique}_D`)
+            Object.assign(this.#data, empty(JSON.parse(this.#storage.value ?? '{}')))
 
-                this.#inst = inst
-            }
-
-            #inst: BridgeInstance
-            #storage: ReturnType<typeof storage.for>
-            #data: List<any> = empty()
-            #update = () => this.#storage.value = JSON.stringify(this.#data)
-
-            /** Unique save identifier. */
-            get id() { return this.#inst.#pli.#unique }
-
-            /** Save data. */
-            readonly data = new Proxy(this.#data, {
-                defineProperty: (t, p, d) => {
-                    if (typeof p == 'symbol') throw new TypeError(`Property key cannot be a symbol`)
-
-                    t[p] = d.value
-                    this.#update()
-                    return true
-                },
-                deleteProperty: (t, p) => {
-                    if (typeof p == 'symbol') throw new TypeError(`Property key cannot be a symbol`)
-                    delete t[p]
-                    this.#update()
-                    return true
-                }
-            })
+            this.#pli = pli
         }
+
+        #pli: Plugin
+        #storage: ReturnType<typeof storage.for>
+        #data: List<any> = empty()
+        #update = () => this.#storage.value = JSON.stringify(this.#data)
+
+        /** Unique save identifier. */
+        get id() { return this.#pli.#unique }
+
+        /** Save data. */
+        readonly data = new Proxy(this.#data, {
+            defineProperty: (t, p, d) => {
+                if (typeof p == 'symbol') throw new TypeError(`Property key cannot be a symbol`)
+
+                t[p] = d.value
+                this.#update()
+                return true
+            },
+            deleteProperty: (t, p) => {
+                if (typeof p == 'symbol') throw new TypeError(`Property key cannot be a symbol`)
+                delete t[p]
+                this.#update()
+                return true
+            }
+        })
     }
 }
 
