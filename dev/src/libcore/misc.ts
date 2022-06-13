@@ -16,6 +16,9 @@ export const viewObj = (() => {
         SetIteratorObj = Object.getPrototypeOf(new Set().values()),
         MapIteratorObj = Object.getPrototypeOf(new Map().values())
     
+    Object.defineProperty(GeneratorObjCst, 'name', { value: 'Generator' })
+    Object.defineProperty(AsyncGeneratorObjCst, 'name', { value: 'AsyncGenerator' })
+    
     const excludeProtoKeys: {
         oc: any[]
         op: any[]
