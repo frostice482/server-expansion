@@ -1,4 +1,4 @@
-import { BlockLocation, Dimension, DynamicPropertiesDefinition, EntityTypes, Location, world } from "mojang-minecraft"
+import { BlockLocation, Dimension, DynamicPropertiesDefinition, Entity, EntityTypes, Location, world } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
 import { execCmd } from "./mc.js"
 import server from "./server.js"
@@ -48,10 +48,13 @@ const storage = (() => {
             this.execId = JSON.stringify(this.id)
 
             try {
-                execCmd(`structure load ${this.execId} ${x} ${y} ${z}`, dim) // load
+                execCmd(`structure load ${this.execId} ${x} ${y} ${z} 0_degrees none true false`, dim) // load
                 const l: string[] = []
-                for (const data of dim.getEntitiesAtBlockLocation(blLoc)) l[data.getDynamicProperty('order') as number] = data.nameTag
-                clear()
+                for (const data of dim.getEntitiesAtBlockLocation(blLoc)) {
+                    if (data.id != 'se:storage_data') continue
+                    l[data.getDynamicProperty('order') as number] = data.nameTag
+                    clear(data)
+                }
                 this.#value = l.join('')
             } catch {}
         }
@@ -74,16 +77,16 @@ const storage = (() => {
                     ent.setDynamicProperty('order', i)
                     ent.nameTag = v.substr(i * 32767, 32767)
                 }
-                execCmd(`structure save ${this.execId} ${x} ${y} ${z} ${x} ${y} ${z} true disk`, dim, true) // save
+                execCmd(`structure save ${this.execId} ${x} ${y} ${z} ${x} ${y} ${z} true disk false`, dim, true) // save
+                for (const ent of dim.getEntitiesAtBlockLocation(blLoc))
+                    if (ent.id != 'se:storage_data') clear(ent)
             }
         }
     }
 
-    const clear = () => {
-        for (const ent of dim.getEntitiesAtBlockLocation(blLoc)) {
-            ent.teleport(Object.assign(ent.location, {y: 400}), dim, 0, 0)
-            ent.triggerEvent('se:kill')
-        }
+    const clear = (ent: Entity) => {
+        ent.teleport(Object.assign(ent.location, {y: 400}), dim, 0, 0)
+        ent.triggerEvent('se:kill')
     }
 
     // loaded
