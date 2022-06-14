@@ -90,5 +90,6 @@ new cc('bridge', {
                 return log(`Deleted plugin with ID '${tArgs[1]}'.`)
             }
         }
-    }
+    },
+    isDefault: true
 })

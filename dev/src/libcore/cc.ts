@@ -257,13 +257,13 @@ export default class cc {
      */
     readonly toJSONSave = (): ccSaveJSONData => {
         const {id, isDefault} = this
-        return isDefault == true ? {
+        return isDefault == false ? {
             id,
-            extends: false,
+            extends: isDefault,
             data: this.toJSON()
         } : {
             id,
-            extends: true,
+            extends: isDefault,
             data: isDefault ? this.toJSON() : {
                 minPermLvl: this.minPermLvl,
                 reqTags: this.reqTags,

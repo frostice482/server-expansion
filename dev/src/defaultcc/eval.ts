@@ -46,7 +46,8 @@ const ccmd = new cc('eval', {
                 ` `
             ])
         }
-    }
+    },
+    isDefault: true
 })
 
 const execEval = (evd: mc.BeforeChatEvent, cmd: string) => {

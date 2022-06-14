@@ -25,5 +25,6 @@ new cc('prefix', {
         } catch (e) {
             throw new cc.error(e.message, e.name)
         }
-    }
+    },
+    isDefault: true
 })

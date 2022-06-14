@@ -77,5 +77,6 @@ new cc('permission', {
                 return log(`Successfully deleted permission level from tag '${id}'.`)
             }
         }
-    }
+    },
+    isDefault: true
 })

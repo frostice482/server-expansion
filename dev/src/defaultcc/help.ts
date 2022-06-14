@@ -57,5 +57,6 @@ new cc('help', {
             cmd.description?.generate() ?? `(No description provided for command '${cmd.id}')`,
             ` `,
         ])
-    }
+    },
+    isDefault: true
 })

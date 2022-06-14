@@ -107,5 +107,6 @@ new cc('chatgroup', {
                 return log(`Deleted chat group with ID '${tArgs[1]}'.`)
             }
         }
-    }
+    },
+    isDefault: true
 })

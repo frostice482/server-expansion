@@ -157,7 +157,8 @@ new cc('onjoin', {
         storage.instance.default.ev.load.unsubscribe(fnStorageLoad)
         plr.ev.playerRegister.subscribe(fnPlrReg)
         server.ev.playerLoad.subscribe(fnPlrLoad)
-    }
+    },
+    isDefault: true
 })
 
 const format = (v: string) => v.replace(/\u00a7(.)/g, (m, k) => `§7[S${k}]§r`).replace(/#name/g, `§d$&§r`)

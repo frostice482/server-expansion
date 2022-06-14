@@ -122,7 +122,8 @@ new cc('adminchat', {
     onDelete: () => {
         chat.ev.chat.unsubscribe(onChatFn)
         role.ev.format.unsubscribe(onFormatFn)
-    }
+    },
+    isDefault: true
 })
 
 type onChatFn = Parameters<typeof chat.ev.chat.subscribe>[0]

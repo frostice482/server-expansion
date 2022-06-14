@@ -19,5 +19,6 @@ new cc('uptime', {
     triggers: /^(server-?)?uptime$/i,
     onTrigger: ({ log }) => {
         return log(`Server uptime: §a${ convertToReadableTime( Date.now() - startTime ) }`)
-    }
+    },
+    isDefault: true
 })

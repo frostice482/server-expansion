@@ -210,5 +210,6 @@ new cc('role', {
                 }
             }; break
         }
-    }
+    },
+    isDefault: true
 })

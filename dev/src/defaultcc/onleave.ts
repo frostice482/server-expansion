@@ -130,7 +130,8 @@ new cc('onleave', {
         storage.instance.default.ev.save.unsubscribe(fnStorageSave)
         storage.instance.default.ev.load.unsubscribe(fnStorageLoad)
         world.events.playerLeave.unsubscribe(fnPlrLeave)
-    }
+    },
+    isDefault: true
 })
 
 const format = (v: string) => v.replace(/\u00a7(.)/g, (m, k) => `§7[S${k}]§r`).replace(/#name/g, `§d$&§r`)
