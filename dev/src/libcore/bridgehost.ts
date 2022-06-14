@@ -43,7 +43,7 @@ class Plugin {
      */
     static readonly delete = (id: string) => {
         const d = pluginList.get(id)
-        if (!d || d.isLoaded) return false
+        if (!d || d.isExecuted) return false
 
         pluginList.delete(id)
         delete pluginIndex[id]
@@ -56,7 +56,7 @@ class Plugin {
         if (key !== auth) throw new TypeError('Class is not constructable')
 
         const tPli = pluginList.get(data.id)
-        if (tPli?.isLoaded) throw new ReferenceError(`Plugin with ID '${data.id}' already exists and has already been loaded. Consider unloading it first before overwriting it with a newer one.`)
+        if (tPli?.isExecuted) throw new ReferenceError(`Plugin with ID '${data.id}' already exists and has already been loaded. Consider unloading it first before overwriting it with a newer one.`)
         if (tPli?.versionCode > data.versionCode) return tPli
 
         this.#pluginData = data
@@ -70,7 +70,7 @@ class Plugin {
 
         this.#localStorage = new Plugin.localStorage(auth, this)
 
-        if (data.loadOnRegister) server.waitFor(40).then(() => { // wait for 2 seconds then execute
+        if (data.executeOnRegister) server.waitFor(40).then(() => { // wait for 2 seconds then execute
             if (pluginList.get(data.id) == this) this.#iexec() // test if plugin is still this one and not a newer version of this (what?), then execute
         })
     }
@@ -97,9 +97,9 @@ class Plugin {
     /** Converts plugin data to JSON. */
     readonly toJSON = () => this.#pluginData
 
-    #isLoaded = false
+    #isExecuted = false
     /** Test if plugin is loaded or not. */
-    get isLoaded() { return this.#isLoaded }
+    get isExecuted() { return this.#isExecuted }
 
     #execMain: string
     #exportCache: any
@@ -110,19 +110,19 @@ class Plugin {
     #localStorage: typeof Plugin.localStorage.prototype
 
     #iexec = async ( gRefs: importGlobalRefs = { refs: empty({}), refStack: [] } ) => {
-        if (this.#isLoaded) return this.#exportCache
+        if (this.#isExecuted) return this.#exportCache
         if (this.id in gRefs.refs) throw new ReferenceError(`Module circular import detected (importing ${this.id}) \n${getImportStack(gRefs).join('\n')}`)
 
         const pliRefs = gRefs.refs[this.id] = { execOrder: [], refStack: [] }
         gRefs.refStack.push(this.id)
 
-        this.#isLoaded = true
+        this.#isExecuted = true
         try {
             const o = await this.#im[this.#execMain]( new Plugin.inst( auth, this, gRefs, this.#execMain ) )
             this.#exportCache ??= o
             for (const fn of pliRefs.execOrder) fn()
         } catch(e) {
-            this.#isLoaded = false
+            this.#isExecuted = false
 
             gRefs.refStack.pop()
             delete gRefs.refs[this.id]
@@ -221,7 +221,7 @@ class Plugin {
             const { execOrder } = this.#pRefs
             if (!execOrder.length) {
                 this.#pli.#exportCache = data
-                this.#pli.#isLoaded = true
+                this.#pli.#isExecuted = true
                 res()
             }
             execOrder.unshift(res)
@@ -367,7 +367,7 @@ type importJSONData = {
 
     versionCode: number;
     type: "module" | "executable";
-    loadOnRegister: boolean;
+    executeOnRegister: boolean;
     saveOnRegister: boolean;
 
     execMain: string;
@@ -384,8 +384,8 @@ const importValidator = new TypedObject()
     .define('description', TString)
     .define('author', TStringArr)
     .define('type', new TypedValue(['module', 'executable']))
-    .define('loadOnRegister', TBool)
     .define('saveOnRegister', TBool)
+    .define('executeOnRegister', TBool)
     .define('execMain', TString)
     .define('versionCode', new TypedValue('number'))
     .define('internalModules', new TypedObject().allowUnusedProperties(true).setIndexType(TString))

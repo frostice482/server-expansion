@@ -33,8 +33,8 @@ export default class SEBridgeConnector {
     versionCode = 0
     /** Determines the plugin type. */
     type: 'module' | 'executable' = 'executable'
-    /** Loads the plugin on register. */
-    loadOnRegister = false
+    /** Executes the plugin on register. */
+    executeOnRegister = false
     /** Saves the plugin on register. */
     saveOnRegister = false
 
@@ -77,14 +77,14 @@ export default class SEBridgeConnector {
             await 0
             await 0
 
-            const { id, name, description, author, type, loadOnRegister, execMain, versionCode, saveOnRegister } = this
+            const { id, name, description, author, type, executeOnRegister, execMain, versionCode, saveOnRegister } = this
             pliEnt.nameTag = JSON.stringify({
                 id,
                 name,
                 description,
                 author,
                 type,
-                loadOnRegister,
+                executeOnRegister,
                 execMain,
                 versionCode,
                 saveOnRegister,
