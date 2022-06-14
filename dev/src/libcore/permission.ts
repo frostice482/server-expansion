@@ -1,3 +1,4 @@
+import { Player, world } from "mojang-minecraft";
 import { empty } from "./misc.js";
 
 export default class permission {
@@ -36,6 +37,16 @@ export default class permission {
      * @param tags Tags.
      */
     static readonly getLevel = (tags: string[]) => tags.reduce((lev, tag) => ( tag in list && list[tag] > lev ) ? list[tag] : lev, 0)
+
+    /**
+     * Get admins who have permission level equal to or higher than a player. Excludes the player from list.
+     * @param plr Player.
+     */
+    static readonly getAdmins = function*(plr: Player) {
+        const pLvl = permission.getLevel(plr.getTags())
+        for (const admin of world.getPlayers())
+            if ( admin != plr && permission.getLevel(admin.getTags()) >= pLvl ) yield admin
+    }
 
     protected constructor() { throw new TypeError('Class is not constructable') }
 }

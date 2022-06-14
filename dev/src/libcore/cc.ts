@@ -2,6 +2,7 @@ import { BeforeChatEvent, BlockAreaSize, Entity, EntityQueryOptions, EntityQuery
 import { dim } from "./mc.js"
 import { deepAssign, empty } from "./misc.js"
 import permission from "./permission.js"
+import { convertToString, sendMsgToPlayers } from "./sendChat.js"
 import TypedValues, { typedValuesAll, typedValuesJSON } from "./typedvalues.js"
 
 export default class cc {
@@ -74,14 +75,17 @@ export default class cc {
 
             const cmd = this.getCommandFromTrigger(command)
             if (!cmd) throw new Error(`Command not found: '${command}'`)
+            const executerPermLvl = permission.getLevel(executer.getTags())
             if (
-                cmd.minPermLvl && permission.getLevel(executer.getTags()) < cmd.minPermLvl
+                cmd.minPermLvl && executerPermLvl < cmd.minPermLvl
                 || !this.testReqTags(cmd.reqTags, executer)
             ) throw new Error(`You have no permission to use this command: ${cmd.description?.name ?? `'${cmd}'`}`)
             if (cmd.isDisabled) throw new Error(`Command is disabled: ${cmd.description?.name ?? `'${cmd}'`}`)
 
             const argFull = message.substring(command.length + 1),
                 typedArgs = cmd.typedArgs?.parse(args) ?? args
+            
+            const admins = cmd.minPermLvl >= 0 ? [...permission.getAdmins(executer)] : []
 
             const vars: ccVars = empty({
                 command: cmd,
@@ -90,7 +94,12 @@ export default class cc {
                 args,
                 argFull,
                 typedArgs,
-                beforeChatEvd: evd
+                beforeChatEvd: evd,
+                log: (msg) => {
+                    const convertedMsg = convertToString(msg)
+                    executer.sendMsg(convertedMsg)
+                    if (cmd.minPermLvl >= 0) sendMsgToPlayers( admins, `§8${executer.nickname}§r§8: ${convertedMsg.replace(/(?<= ) +|\s(?<! )|\u00a7./g, '').substring(0, 100)}` )
+                }
             })
 
             cmd.onTrigger(vars)
@@ -413,6 +422,8 @@ export type ccVars = {
     readonly executer: Player
     /** Before chat event data. */
     readonly beforeChatEvd: BeforeChatEvent
+    /** Logs a message to executer and admins. */
+    readonly log: (msg: any) => void
 }
 
 class ccError extends Error {
