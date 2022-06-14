@@ -7,6 +7,19 @@ new cc('bridge', {
         description: 'Manages plugins',
         aliases: ['bridge', 'plugin'],
         usage: [
+            [
+                ['bridge', 'list'],
+                'Shows plugin list.'
+            ], [
+                ['bridge', 'info', { type: [['value', 'any']], name: 'id' }, { type: [['value', 'boolean']], name: 'showAdvanced', required: false }],
+                'Shows plugin info.'
+            ], [
+                ['bridge', 'execute', { type: [['value', 'any']], name: 'id' }],
+                'Executes a plugin.'
+            ], [
+                ['bridge', 'delete', { type: [['value', 'any']], name: 'id' }],
+                'Deletes a plugin.'
+            ]
         ]
     }),
     minPermLvl: 80,
@@ -53,8 +66,29 @@ new cc('bridge', {
                     ` `
                 ])
             }
-            case 'execute': {}; break
-            case 'delete': {}; break
+            case 'execute': {
+                const pli = SEBridgeHost.plugin.get(tArgs[1])
+                if (!pli) throw new cc.error(`Plugin with ID '${tArgs[1]}' not found`, 'ReferenceError')
+                if (pli.isExecuted) throw new cc.error(`Plugin has already been executed`)
+                if (pli.type == 'module') throw new cc.error(`Plugin cannot be executed by user`)
+
+                const t1 = Date.now()
+                log(`Executing ${pli.name} (${pli.id})`)
+
+                pli.execute().then(
+                    () => log(`Successfully executed ${pli.name} (${pli.id}). Time taken: ${Date.now() - t1}ms`),
+                    (err) => log(`§cFailed to execute ${pli.name} (${pli.id}): ${ err instanceof Error ? `${err}\n${err.stack}` : err }`)
+                )
+                return
+            }
+            case 'delete': {
+                const pli = SEBridgeHost.plugin.get(tArgs[1])
+                if (!pli) throw new cc.error(`Plugin with ID '${tArgs[1]}' not found`, 'ReferenceError')
+                if (pli.isExecuted) throw new cc.error(`Plugin has already been executed and cannot be unloaded.`)
+
+                SEBridgeHost.plugin.delete(tArgs[1])
+                return log(`Deleted plugin with ID '${tArgs[1]}'.`)
+            }
         }
     }
 })
