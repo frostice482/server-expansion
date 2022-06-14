@@ -1,4 +1,4 @@
-import { BlockLocation, Dimension, DynamicPropertiesDefinition, Location, MinecraftDimensionTypes, world } from "mojang-minecraft"
+import { BlockLocation, Dimension, DynamicPropertiesDefinition, EntityQueryOptions, EntityTypes, Location, MinecraftDimensionTypes, world } from "mojang-minecraft"
 import { dim } from "./mc.js"
 import server from "./server.js"
 
@@ -54,6 +54,10 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
         reg.defineNumber('ALDR:dimId')
         propertyRegistry.registerWorldDynamicProperties(reg)
 
+        const loaderReg = new DynamicPropertiesDefinition
+        loaderReg.defineBoolean('kill')
+        propertyRegistry.registerEntityTypeDynamicProperties(loaderReg, EntityTypes.get('se:area_loader'))
+
         // loading
         if (!world.getDynamicProperty('ALDR:isLoaded')) {
             let tmpLoc: Location, tmpSet = false
@@ -89,4 +93,22 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
     } catch(e) {
         console.warn(`areaLoader > (internal: loading): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`)
     }
+})
+
+world.events.entityCreate.subscribe(({entity}) => {
+    if (entity.id !== 'se:area_loader') return
+
+    const opts = new EntityQueryOptions
+    opts.type = 'se:area_loader'
+    if ([...dim.o.getEntities(opts)].length == 1) return
+
+    entity.setDynamicProperty('kill', true)
+    entity.triggerEvent('se:kill')
+})
+
+world.events.beforeDataDrivenEntityTriggerEvent.subscribe(evd => {
+    const {entity} = evd
+    if (entity.id !== 'se:area_loader' || evd.id !== 'se:kill') return
+
+    if (!entity.getDynamicProperty('kill')) evd.cancel = true
 })
