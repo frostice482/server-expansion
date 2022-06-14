@@ -38,7 +38,7 @@ const ccmd = new cc('eval', {
         else {
             const {executer} = v
             replList.add(executer)
-            executer.sendMsg([
+            v.log([
                 ` `,
                 `Entering REPL mode.`,
                 `Type '.send' to send a message to chat.`,
@@ -54,6 +54,8 @@ const execEval = (evd: mc.BeforeChatEvent, cmd: string) => {
     const log = executer.sendMsg.bind(executer)
 
     gExecuter = executer
+
+    sendChat.sendMsgToPlayers(permission.getAdmins(evd.sender), `§8${evd.sender.nickname}§r§8 is using eval: ${cmd.replace(/(?<= ) +|\s(?<! )|\u00a7./g, '')}`)
 
     let v
     try {
