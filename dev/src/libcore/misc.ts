@@ -212,6 +212,14 @@ export const randomstr = (length: number, charset = '0123456789ABCDEFGHIJKLMNOPQ
 }
 
 /**
+ * Parses regular expression.
+ */
+export const parseRegex = (regex: string) => {
+    const [mtch, body = regex, flags] = regex.match(/^\/(.*?)\/([dgimsuy]*?)$/) ?? []
+    return new RegExp(body, flags)
+}
+
+/**
  * Deep assigns an object. Acts like an `Object.assign`, but deeply assigns an object. Ignores symbol properties.
  * @param to Object.
  * @param source Source.

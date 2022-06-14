@@ -1,6 +1,6 @@
 import { BeforeChatEvent, BlockAreaSize, Entity, EntityQueryOptions, EntityQueryScoreOptions, Location, Player, world } from "mojang-minecraft"
-import { dim } from "./mc.js"
-import { deepAssign, empty } from "./misc.js"
+import { dim, execCmd } from "./mc.js"
+import { deepAssign, empty, parseRegex, renameFn } from "./misc.js"
 import permission from "./permission.js"
 import { convertToString, sendMsgToPlayers } from "./sendChat.js"
 import TypedValues, { typedValuesAll, typedValuesJSON } from "./typedvalues.js"
@@ -102,7 +102,21 @@ export default class cc {
                 }
             })
 
-            cmd.onTrigger(vars)
+            if (typeof cmd.onTrigger == 'function') cmd.onTrigger(vars)
+            else
+                for (const a of Array.isArray(cmd.onTrigger) ? cmd.onTrigger : [cmd.onTrigger]) {
+                    switch (a.type) {
+                        case 'command':
+                            for (const cmd of a.commands)
+                                try { execCmd(cmd, executer) }
+                                catch(e) { if (a!.ignoreError) throw e }
+                        break
+                        case 'eval':
+                            //@ts-ignore
+                            (a.scriptCache ??= renameFn(Function(`vars`, `(${a.script})(vars)`), `[Command: ${cmd.id}]`))()
+                        break
+                    }
+                }
         } catch (e) {
             if (e instanceof Error) {
                 if (
@@ -113,6 +127,41 @@ export default class cc {
                 else executer.sendMsg(`An error occured when executing a custom command: \n${e}\n${e.stack}`)
             }
             else executer.sendMsg(e)
+        }
+    }
+
+    /**
+     * Creates a custom command from JSON data.
+     * @param data JSON data.
+     */
+    static readonly fromJSON = (data: ccJSONData) => {
+        const { id, description, minPermLvl, isHidden, isDisabled, isDefault, reqTags, typedArgs, triggers, onTrigger } = data
+        return new this(id, {
+            description: ccDescription.fromJSON(description),
+            minPermLvl,
+            isHidden,
+            isDisabled,
+            isDefault,
+            reqTags,
+            typedArgs: TypedArgs.fromJSON(typedArgs),
+            triggers: triggers.type == 'regexp' ? parseRegex(triggers.value) : triggers.value,
+            onTrigger
+        })
+    }
+
+    /**
+     * Creates a custom command from JSON save data.
+     * @param data JSON save data.
+     */
+    static readonly fromJSONSave = (data: ccSaveJSONData) => {
+        const { id, extends: _extends, data: ccData } = data
+        if (_extends == true) {
+            const ccTarget = ccList.get(id)
+            if (!ccTarget) throw new ReferenceError(`Failed to extend custom command with ID '${id}' because the command doesn't exist`)
+            Object.assign(ccTarget, ccData)
+            return ccTarget
+        } else {
+            return this.fromJSON(ccData)
         }
     }
 
@@ -149,7 +198,8 @@ export default class cc {
      * @param id Custom command identifier.
      * @param properties Initializer properties.
      */
-    constructor(id: string, properties: Optional<ExcludeSome<cc, 'id'>> = {} ) {
+    constructor(id: string, properties: Optional<ExcludeSome<cc, 'id' | 'toJSONSave' | 'toJSON'>> = {} ) {
+        if (ccList.has(id)) throw new Error(`Custom command with ID '${id}' already exists`)
         this.id = id
         Object.assign(this, properties)
         ccList.set(id, this)
@@ -165,31 +215,123 @@ export default class cc {
     /** Required tags. */
     reqTags?: { [K in 'all' | 'any' | 'none']: this['reqTags'] } | string[]
 
-    /** Typed arguments. */
-    typedArgs?: TypedArgs
-
     /** Deterines whether command is hidden or not. */
     isHidden?: boolean
     /** Deterines whether command is disabled or not. */
     isDisabled?: boolean
+    /** Deterines whether command is efault or not. Will only save partial info of this command. */
+    isDefault?: boolean
+
+    /** Typed arguments. */
+    typedArgs?: TypedArgs
 
     /** Command triggers. */
     triggers: RegExp | string[] = []
     /** Function to be executed on trigger. */
-    onTrigger: (vars: ccVars) => void = () => {}
+    onTrigger: ccOnTriggerFn | ccOnTrigger['all'] | ccOnTrigger['all'][] = () => {}
 
     /** Function to be executed on delete. */
     onDelete: () => void
+
+    /**
+     * Converts to JSON data.
+     */
+    readonly toJSON = (): ccJSONData => {
+        const { id, description, minPermLvl, isHidden, isDisabled, isDefault, reqTags, typedArgs, triggers, onTrigger } = this
+        return {
+            id,
+            description: description?.toJSON(),
+            minPermLvl,
+            isHidden,
+            isDisabled,
+            isDefault,
+            reqTags,
+            typedArgs: typedArgs?.toJSON(),
+            triggers: triggers instanceof RegExp ? { type: 'regexp', value: triggers.toString() } : { type: 'array', value: triggers },
+            onTrigger: typeof onTrigger == 'function' ? [] : onTrigger
+        }
+    }
+
+    /**
+     * Converts to JSON save data.
+     */
+    readonly toJSONSave = (): ccSaveJSONData => {
+        const {id, isDefault} = this
+        return isDefault == true ? {
+            id,
+            extends: false,
+            data: this.toJSON()
+        } : {
+            id,
+            extends: true,
+            data: isDefault ? this.toJSON() : {
+                minPermLvl: this.minPermLvl,
+                reqTags: this.reqTags,
+                isHidden: this.isHidden,
+                isDisabled: this.isDisabled,
+            }
+        }
+    }
 }
 
 const ccList = new Map<string, cc>()
+
+type ccOnTriggerFn = (vars: ccVars) => void
+type ccOnTrigger = {
+    command: {
+        type: 'command'
+        commands: string[]
+        ignoreError?: boolean
+    }
+    eval: {
+        type: 'eval'
+        script: string
+        scriptCache?: ccOnTriggerFn
+    }
+    all: ccOnTrigger[Exclude<keyof ccOnTrigger, 'all'>]
+}
+type ccOnTriggerJSONData = {
+    command: {
+        type: 'command'
+        commands: string[]
+        ignoreError?: boolean
+    }
+    eval: {
+        type: 'eval'
+        script: string
+    }
+    all: ccOnTrigger[Exclude<keyof ccOnTriggerJSONData, 'all'>]
+}
+
+type ccJSONData = {
+    id: string
+    description?: ccDescriptionJSONData
+    minPermLvl?: number
+    isHidden?: boolean
+    isDisabled?: boolean
+    isDefault?: boolean
+    reqTags?: cc['reqTags']
+    typedArgs?: TAJSONSeqs
+    triggers: { type: 'regexp', value: string } | { type: 'array', value: string[] }
+    onTrigger: ccOnTriggerJSONData['all'] | ccOnTriggerJSONData['all'][]
+}
+
+type ccSaveJSONData = {
+    id: string
+    extends: true
+    data: Optional<Pick<cc, 'minPermLvl' | 'reqTags' | 'isHidden' | 'isDisabled'>>
+} | {
+    id: string
+    extends: false
+    data: ccJSONData
+}
 
 class ccDescription {
     /**
      * Creates a custom command description from JSON data.
      * @param data JSON data.
      */
-    static readonly toJSON = (data: ccDescriptionJSONData) => new this(data)
+    static readonly fromJSON = (data: ccDescriptionJSONData) => new this(data)
 
     /**
      * Creates a custom command description.
@@ -957,7 +1099,7 @@ class TypedArgs {
             : typeof v == 'function' ? v.toJSON()
             : v.map(_a) as TAJSONSeqPart[]
         
-        return () => this.#seqs.map( ({sequence, minArgs}) => ({ sequence: sequence.map(_a), minArgs: minArgs ?? sequence.length }) )
+        return (): TAJSONSeqs => this.#seqs.map( ({sequence, minArgs}) => ({ sequence: sequence.map(_a), minArgs: minArgs ?? sequence.length }) )
     })()
 
     /**
