@@ -27,40 +27,57 @@ export default class SEBridgeConnector {
     /** Plugin description. */
     description = 'No description'
     /** Plugin author. */
-    author?: string[] = ['Unknown author']
+    author: string[] = ['Unknown author']
 
+    /** Plugin version code. Loads a higher version of this plugin if it's detected and loaded. */
+    versionCode = 0
     /** Determines the plugin type. */
     type: 'module' | 'executable' = 'executable'
     /** Loads the plugin on register. */
     loadOnRegister = false
+    /** Saves the plugin on register. */
+    saveOnRegister = false
 
     /** Plugin internal modules. */
     readonly internalModules: List<fnExec> = Object.create(null)
     /** Intenal module name to be executed on plugin load. */
     execMain = 'index'
 
-    /** Sends the plugin to host. */
-    readonly send = async () => {
+    /**
+     * Sends the plugin to host.
+     * @param maxWaitTime Maximum waiting time in ticks.
+     */
+    readonly send = (maxWaitTime = 1800) => new Promise<void>(async (res, rej) => {
         if (!SEBridgeConnector.hostIsLoaded) throw new ReferenceError(`Bridge host is not loaded.`)
+
+        let destroy = false
+        if (maxWaitTime != Infinity) waitFor(maxWaitTime).then(() => {
+            destroy = true
+            rej(new RangeError(`Timeout reached`))
+            try { pliEnt.triggerEvent('se:kill') } catch {}
+        })
+
+        let pliEnt: Entity
+
         while(true) {
             await waitFor()
 
             const [ent] = entLoader ? [entLoader] : world.getPlayers()
             if (!ent) continue
 
-            const pliEnt = ent.dimension.spawnEntity('se:bridge', Object.assign( ent.location, { y: 1023.5 } ) )
-            while (pliEnt.nameTag != 'start') await 0
-
+            pliEnt = ent.dimension.spawnEntity('se:bridge', Object.assign( ent.location, { y: 1023.5 } ) )
+            while (pliEnt.nameTag != 'start') {
+                if (destroy) return
+                await 0
+            }
             await 0
-            
             await 0
 
             pliEnt.nameTag = pliEnt.nameTag.slice(2, -2)
             await 0
-
             await 0
 
-            const { id, name, description, author, type, loadOnRegister, execMain } = this
+            const { id, name, description, author, type, loadOnRegister, execMain, versionCode, saveOnRegister } = this
             pliEnt.nameTag = JSON.stringify({
                 id,
                 name,
@@ -68,17 +85,19 @@ export default class SEBridgeConnector {
                 author,
                 type,
                 loadOnRegister,
-                execMain: execMain,
+                execMain,
+                versionCode,
+                saveOnRegister,
                 internalModules: Object.fromEntries( Object.keys(this.internalModules).map( v => [ v, String( this.internalModules[v] ) ] ) )
             })
             await 0
-
             await 0
 
-            try { ent.kill() } catch {}
+            try { ent.triggerEvent('se:kill') } catch {}
+            res()
             break
         }
-    }
+    })
 }
 
 const waitFor = (tick = 0) => new Promise(res => {

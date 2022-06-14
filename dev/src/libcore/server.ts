@@ -48,6 +48,17 @@ export default class server {
     static #nextTickRes: (v?: any) => void
     static nextTick = new Promise(res => this.#nextTickRes = res)
 
+    /**
+     * Wait for amount of ticks.
+     * @param tick Number of ticks to be waited.
+     */
+    static readonly waitFor = (tick: number) => new Promise(res => {
+        let c = 0, fn: () => void
+        world.events.tick.subscribe(fn = () => {
+            if (++c >= tick) res(world.events.tick.unsubscribe(fn))
+        })
+    })
+
     protected constructor() { throw new TypeError('Class is not constructable') }
 }
 

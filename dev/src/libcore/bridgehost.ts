@@ -45,6 +45,8 @@ class Plugin {
         const d = pluginList.get(id)
         if (!d || d.isLoaded) return false
 
+        pluginList.delete(id)
+        delete pluginIndex[id]
         storage.delete(`SEP_${d.#unique}_P`)
         storage.delete(`SEP_${d.#unique}_D`)
         return true
@@ -52,7 +54,10 @@ class Plugin {
 
     constructor(key: typeof auth, data: importJSONData) {
         if (key !== auth) throw new TypeError('Class is not constructable')
-        if (pluginList.has(data.id)) throw new ReferenceError(`Plugin with ID '${data.id}' already exists. Consider deleting it first before adding another one.`)
+
+        const tPli = pluginList.get(data.id)
+        if (tPli?.isLoaded) throw new ReferenceError(`Plugin with ID '${data.id}' already exists and has already been loaded. Consider unloading it first before overwriting it with a newer one.`)
+        if (tPli?.versionCode > data.versionCode) return tPli
 
         this.#pluginData = data
         this.#execMain = data.execMain
@@ -61,11 +66,13 @@ class Plugin {
         pluginList.set(data.id, this)
         const nc = this.#unique = pluginIndex[data.id] ??= randomstr(8)
 
-        storage.for(`SEP_${nc}_P`).value = JSON.stringify(data)
+        if (data.saveOnRegister) storage.for(`SEP_${nc}_P`).value = JSON.stringify(data)
 
         this.#localStorage = new Plugin.localStorage(auth, this)
 
-        if (data.loadOnRegister) this.#iexec()
+        if (data.loadOnRegister) server.waitFor(40).then(() => { // wait for 2 seconds then execute
+            if (pluginList.get(data.id) == this) this.#iexec() // test if plugin is still this one and not a newer version of this (what?), then execute
+        })
     }
 
     #pluginData: importJSONData
@@ -80,8 +87,12 @@ class Plugin {
     /** Plugin author. */
     get author() { return this.#pluginData.author }
 
+    /** Plugin version code. */
+    get versionCode() { return this.#pluginData.versionCode }
     /** Plugin type. */
     get type() { return this.#pluginData.type }
+    /** Plugin unique ID. */
+    get uniqueID() { return this.#unique }
 
     /** Converts plugin data to JSON. */
     readonly toJSON = () => this.#pluginData
@@ -285,6 +296,7 @@ import * as gt from 'mojang-gametest'
 import * as mcui from 'mojang-minecraft-ui'
 import SEModule from "./module.js";
 import { MapEventList } from "./evmngr.js";
+import server from "./server.js";
 
 type defaultModuleList = {
     [k: string]: any
@@ -314,11 +326,11 @@ storage.instance.default.ev.load.subscribe((data) => {
     if (!data.bridgeHost) return
     Object.assign(pluginIndex, data.bridgeHost.indexes)
 
-    for (const [id, code] of Object.entries(data.bridgeHost.indexes))
-        try {
-            if (!pluginList.has(id))
-                Plugin.fromJSON( JSON.parse( storage.for(`SEP:${code}:P`).value ) )
-        } catch {}
+    for (const [id, code] of Object.entries(data.bridgeHost.indexes)) {
+        const data = storage.for(`SEP_${code}_P`).value
+        if (!data) continue
+        try { Plugin.fromJSON( JSON.parse( data ) ) } catch {}
+    }
 })
 
 // import
@@ -353,8 +365,10 @@ type importJSONData = {
     description: string;
     author: string[];
 
+    versionCode: number;
     type: "module" | "executable";
     loadOnRegister: boolean;
+    saveOnRegister: boolean;
 
     execMain: string;
     internalModules: List<string>
@@ -371,6 +385,8 @@ const importValidator = new TypedObject()
     .define('author', TStringArr)
     .define('type', new TypedValue(['module', 'executable']))
     .define('loadOnRegister', TBool)
+    .define('saveOnRegister', TBool)
     .define('execMain', TString)
+    .define('versionCode', new TypedValue('number'))
     .define('internalModules', new TypedObject().allowUnusedProperties(true).setIndexType(TString))
 importValidator.name = 'BridgePluginJSONData'
