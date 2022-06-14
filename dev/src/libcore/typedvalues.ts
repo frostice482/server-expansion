@@ -1,9 +1,9 @@
 import { empty } from "./misc.js"
 
 type valueTypes = {
-    valueType: 'string' | 'number' | 'boolean'
+    valueType: 'string' | 'number' | 'boolean' | 'any'
     specifics: ( string | number | boolean )[]
-    objects: ( TypedObject | TypedArray )
+    objects: ( TypedValue | TypedObject | TypedArray | TypedArraySpecific )
     all: valueTypes[Exclude<keyof valueTypes, 'all'>]
 }
 type allTypes = TypedValue | TypedObject | TypedArray | TypedArraySpecific
@@ -44,9 +44,7 @@ export class TypedValue {
         for (const k of vType) d.type[k] = 1
         for (const i of vObj) {
             const objData = jsonData[i]
-            if (objData.type == 'value') continue
-            //@ts-ignore
-            d[objData.type == 'object' ? 'objects' : 'arrays'].add( referenceStack[i] ??= refId[objData.type].fromJSON(jsonData, i) )
+            d.objects.add( referenceStack[i] ??= refId[objData.type].fromJSON(jsonData, referenceStack, i) )
         };
         for (const k in vSpec)
             for (const v of vSpec[k]) d.specifics[v] = 1
@@ -69,8 +67,7 @@ export class TypedValue {
             number: List<1, number>
             boolean: List<1, 'true' | 'false'>
         }
-        objects: Set<TypedObject>
-        arrays: Set<TypedArray>
+        objects: Set<TypedObject | TypedArray | TypedArraySpecific | TypedValue>
     } = {
         type: empty(),
         specifics: {
@@ -78,8 +75,7 @@ export class TypedValue {
             number: empty(),
             boolean: empty()
         },
-        objects: new Set,
-        arrays: new Set
+        objects: new Set
     }
 
     /** Type name. */
@@ -91,12 +87,9 @@ export class TypedValue {
      */
     readonly addType = (...type: valueTypes['all'][]) => {
         for (const t of type)
-            if (typeof t == 'string')
-                this.#data.type[t] = 1
-            else if (t instanceof TypedObject || t instanceof TypedArray)
-                //@ts-ignore
-                this.#data[t instanceof TypedObject ? 'objects' : 'arrays'].add(t)
-            else for (const ts of t) this.#data.specifics[typeof ts][ts] = 1
+            if (typeof t == 'string') this.#data.type[t] = 1
+            else if (Array.isArray(t)) for (const ts of t) this.#data.specifics[typeof ts][ts] = 1
+            else this.#data.objects.add(t)
         return this
     }
 
@@ -106,12 +99,9 @@ export class TypedValue {
      */
     readonly removeType = (...type: valueTypes['all'][]) => {
         for (const t of type)
-            if (typeof t == 'string')
-                delete this.#data.type[t]
-            else if (t instanceof TypedObject || t instanceof TypedArray)
-                //@ts-ignore
-                this.#data[t instanceof TypedObject ? 'objects' : 'arrays'].delete(t)
-            else for (const ts of t) delete this.#data.specifics[typeof ts][ts]
+            if (typeof t == 'string') delete this.#data.type[t]
+            else if (Array.isArray(t)) for (const ts of t) delete this.#data.specifics[typeof ts][ts]
+            else this.#data.objects.delete(t)
         return this
     }
 
@@ -120,12 +110,10 @@ export class TypedValue {
      * @param o Value to be tested.
      */
     readonly test = (o: any) => {
+        if ('any' in this.#data.type) return true
         const vt = typeof o
-        if ( vt == 'string' || vt == 'number' || vt == 'boolean' )
-            return vt in this.#data.type || o in this.#data.specifics[vt]
-        else for (const tobj of this.#data[Array.isArray(o) ? 'arrays' : 'objects'])
-            if (tobj.test(o))
-                return true
+        if ( vt == 'string' || vt == 'number' || vt == 'boolean' ) return vt in this.#data.type || o in this.#data.specifics[vt]
+        else for (const tobj of this.#data.objects) if (tobj.test(o)) return true
         return false
     }
 
@@ -142,7 +130,6 @@ export class TypedValue {
         if (stack.includes(this)) return stack
         stack.push(this)
         for (const tobj of this.#data.objects) tobj.getReferenceList(stack)
-        for (const tarr of this.#data.arrays) tarr.getReferenceList(stack)
         return stack
     }
 
@@ -151,7 +138,7 @@ export class TypedValue {
      * @param refData Reference datas.
      */
     readonly JSONConvertion = (refData: Map<allTypes, number>): JSONData['TypedValue'] => {
-        const { type, specifics, objects, arrays } = this.#data
+        const { type, specifics, objects } = this.#data
         return {
             type: 'value',
             name: this.name,
@@ -162,7 +149,7 @@ export class TypedValue {
                     number: Object.keys(specifics.number).map(Number),
                     boolean: Object.keys(specifics.boolean) as any,
                 },
-                objects: Array.from(objects, (v) => refData.get(v)).concat(Array.from(arrays, (v) => refData.get(v)))
+                objects: Array.from(objects, (v) => refData.get(v))
             }
         }
     }
