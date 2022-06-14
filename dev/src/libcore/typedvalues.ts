@@ -240,6 +240,7 @@ export class TypedObject {
      * @param o Array to be tested.
      */
     readonly test = (o: any) => {
+        if (typeof o != 'object' || Array.isArray(o)) return false
         const keys = new Map(Object.entries(o))
         for (const [k, [t, r]] of this.#data) {
             if (!(k in o)) {
