@@ -39,7 +39,7 @@ export const viewObj = (() => {
         ]
     }
 
-    const strFormatKeys: List<0> = empty({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, a: 0, b: 0, c: 0, d: 0, e: 0, f: 0, g: 0 }),
+    const strFormatKeys: List<0> = empty({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, a: 0, b: 0, c: 0, d: 0, e: 0, f: 0, g: 0, r: 0, l: 0, o: 0 }),
         strEscDict = empty({
             '\t': 'TAB',
             '\v': 'VTAB',
@@ -242,8 +242,8 @@ export const convertToReadableTime = (time: number, isMillisecond = true) => {
         [ 'second', ~~( time % 60 ) ],
     ]
     for (const [i, [l, v]] of x.entries())
-        if (v != 0 || i == x.length - 2) {
-            x.splice(0, i + 1)
+        if (v != 0 || i == x.length - 1) {
+            x.splice(0, i)
             break
         }
     return x.map(([l, v]) => `${v} ${l}${v == 1 ? '' : 's'}`).join(' ') || '0 seconds'
