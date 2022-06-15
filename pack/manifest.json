@@ -1,17 +1,17 @@
 {
     "format_version": 2,
     "header": {
-        "name": "§9§k||§r §bServer Expansion §9§k||§r §7v1.0.0",
+        "name": "§9§k||§r §bServer Expansion §9§k||§r §7v0.0.1",
         "description": "§bAn Addon that adds server utilities which can be useful for your worlds, realms, or servers.\n§eRequires §gGametest Experimental§e enabled.",
         "uuid": "d5ede1b9-fe20-445f-b633-1bb69e0cd23e",
-        "version": [ 1, 0, 0 ],
+        "version": [ 0, 0, 1 ],
         "min_engine_version": [ 1, 18, 30 ]
     },
     "modules": [{
         "type": "script",
         "entry": "scripts/main.js",
         "uuid": "0eac2ae2-8980-4a07-99d3-f337b326b3f9",
-        "version": [ 1, 0, 0 ]
+        "version": [ 0, 0, 1 ]
     }],
     "dependencies": [{
         "uuid": "b26a4d4c-afdf-4690-88f8-931846312678",
@@ -22,5 +22,18 @@
     }, {
         "uuid": "2bd50a27-ab5f-4f40-a596-3641627c635e",
         "version": [0, 1, 0]
+    }],
+    "subpacks": [{
+        "name": "Status: §cDisabled §7(Passive)§r",
+        "folder_name": "disabled",
+        "memory_tier": 0
+    }, {
+        "name": "Status: §bSafe Mode§r\n§7- §rDisables autosave & autoload",
+        "folder_name": "safemode",
+        "memory_tier": 0
+    }, {
+        "name": "Status: §aEnabled§r",
+        "folder_name": "enabled",
+        "memory_tier": 0
     }]
 }
