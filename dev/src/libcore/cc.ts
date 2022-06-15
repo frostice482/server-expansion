@@ -3,6 +3,7 @@ import { dim, execCmd } from "./mc.js"
 import { deepAssign, empty, parseRegex, renameFn } from "./misc.js"
 import permission from "./permission.js"
 import { convertToString, sendMsgToPlayers } from "./sendChat.js"
+import storage from "./storage.js"
 import TypedValues, { typedValuesAll, typedValuesJSON } from "./typedvalues.js"
 
 export default class cc {
@@ -109,7 +110,7 @@ export default class cc {
                         case 'command':
                             for (const cmd of a.commands)
                                 try { execCmd(cmd, executer) }
-                                catch(e) { if (a!.ignoreError) throw e }
+                                catch(e) { if (a.ignoreError) throw e }
                         break
                         case 'eval':
                             //@ts-ignore
@@ -152,8 +153,9 @@ export default class cc {
     /**
      * Creates a custom command from JSON save data.
      * @param data JSON save data.
+     * @param overwrite Overwrites existing custom command.
      */
-    static readonly fromJSONSave = (data: ccSaveJSONData) => {
+    static readonly fromJSONSave = (data: ccSaveJSONData, overwrite = false) => {
         const { id, data: ccData } = data
         if (data.extends == true) {
             const ccTarget = ccList.get(id)
@@ -161,6 +163,7 @@ export default class cc {
             Object.assign(ccTarget, ccData)
             return ccTarget
         } else {
+            if (overwrite) cc.delete(data.id)
             return this.fromJSON(data.data)
         }
     }
@@ -1177,3 +1180,31 @@ type TASeqPart = string | { (v: string): any, toJSON: () => parserJSONData['all'
 type TASeqs = { sequence: ( TASeqPart | TASeqPart[] )[], minArgs?: number }[]
 type TAJSONSeqPart = string | parserJSONData['all']
 type TAJSONSeqs = { sequence: ( TAJSONSeqPart | TAJSONSeqPart[] )[], minArgs: number }[]
+
+// storage stuff
+export type ccStorageSaveData = {
+    prefix: string
+    ccs: ccSaveJSONData[]
+}
+
+storage.instance.default.ev.save.subscribe((data) => {
+    data.cc = {
+        prefix: cc.prefix,
+        ccs: Array.from(cc.getList(), v => v.toJSONSave())
+    }
+})
+
+storage.instance.default.ev.load.subscribe((data) => {
+    if (!data.cc) return
+    cc.prefix = data.cc.prefix
+
+    const newcclist = empty( Object.fromEntries( data.cc.ccs.map(v => [v.id, 0] as [string, 0]) ) )
+    for (const k of ccList.keys())
+        if (k in newcclist)
+            try { cc.delete(k) }
+            catch (e) { console.warn(`storage > events > onLoad (cc) > delete (${k}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
+
+    for (const ccs of data.cc.ccs)
+        try { cc.fromJSONSave(ccs, true) }
+        catch (e) { console.warn(`storage > events > onLoad (cc) > load (${ccs.id}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
+})
