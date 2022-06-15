@@ -78,5 +78,6 @@ new cc('permission', {
             }
         }
     },
-    isDefault: true
+    isDefault: true,
+    onDelete: () => { throw new Error(`Cannot be deleted`) }
 })

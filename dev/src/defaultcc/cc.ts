@@ -504,5 +504,6 @@ new cc('cc', {
             tArgs.splice(0, 2)
         }
     },
-    isDefault: true
+    isDefault: true,
+    onDelete: () => { throw new Error(`Cannot be deleted`) }
 })
