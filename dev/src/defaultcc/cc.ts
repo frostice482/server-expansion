@@ -70,7 +70,7 @@ const Tdesc = new TypedObject()
                         false
                     )
                     .define(
-                        'typeFormat',
+                        'format',
                         new TypedObject()
                             .define('typeOnly', T.string, false)
                             .define('withName', T.string, false)
@@ -92,7 +92,7 @@ const Tdesc = new TypedObject()
                         false
                     )
                     .define(
-                        'typeFormat',
+                        'format',
                         new TypedObject()
                             .define('usageOnly', T.string, false)
                             .define('withDescription', T.string, false)
@@ -101,7 +101,8 @@ const Tdesc = new TypedObject()
                         false
                     ),
                 false
-            )
+            ),
+        false
     )
 Tdesc.name = 'CCDescriptionJSONData'
 

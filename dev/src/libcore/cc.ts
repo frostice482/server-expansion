@@ -56,7 +56,7 @@ export default class cc {
         if (!ccList.has(id)) return false
         
         const ccData = ccList.get(id)
-        ccData.onDelete()
+        ccData.onDelete?.()
         ccList.delete(id)
 
         return true
@@ -259,7 +259,7 @@ export default class cc {
      * Converts to JSON save data.
      */
     readonly toJSONSave = (): ccSaveJSONData => {
-        const {id, isDefault} = this
+        const {id, isDefault = false} = this
         return isDefault == false ? {
             id,
             extends: isDefault,
@@ -267,7 +267,7 @@ export default class cc {
         } : {
             id,
             extends: isDefault,
-            data: isDefault ? this.toJSON() : {
+            data: {
                 minPermLvl: this.minPermLvl,
                 reqTags: this.reqTags,
                 isHidden: this.isHidden,
@@ -1200,7 +1200,7 @@ storage.instance.default.ev.load.subscribe((data) => {
 
     const newcclist = empty( Object.fromEntries( data.cc.ccs.map(v => [v.id, 0] as [string, 0]) ) )
     for (const k of ccList.keys())
-        if (k in newcclist)
+        if (!(k in newcclist))
             try { cc.delete(k) }
             catch (e) { console.warn(`storage > events > onLoad (cc) > delete (${k}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
 

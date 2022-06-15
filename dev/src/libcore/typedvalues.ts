@@ -391,7 +391,7 @@ export class TypedArraySpecific {
     readonly test = (o: any[] = []) => (
         Array.isArray(o)
         && ( this.allowOverlength ? true : o.length <= this.type.length )
-        && this.type.every((type, i) => ( this.minLength < i && !(i in o) ) || type.test(o) )
+        && this.type.every((type, i) => ( this.minLength <= i && !(i in o) ) || type.test(o[i]))
     )
 
     /**
