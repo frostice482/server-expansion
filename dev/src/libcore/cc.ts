@@ -113,7 +113,7 @@ export default class cc {
                         break
                         case 'eval':
                             //@ts-ignore
-                            (a.scriptCache ??= renameFn(Function(`vars`, `(${a.script})(vars)`), `[Command: ${cmd.id}]`))()
+                            (a.scriptCache ??= renameFn(Function(`vars`, `(${a.script})(vars)`), `[Command: ${cmd.id}]`))(vars)
                         break
                     }
                 }
@@ -154,14 +154,14 @@ export default class cc {
      * @param data JSON save data.
      */
     static readonly fromJSONSave = (data: ccSaveJSONData) => {
-        const { id, extends: _extends, data: ccData } = data
-        if (_extends == true) {
+        const { id, data: ccData } = data
+        if (data.extends == true) {
             const ccTarget = ccList.get(id)
             if (!ccTarget) throw new ReferenceError(`Failed to extend custom command with ID '${id}' because the command doesn't exist`)
             Object.assign(ccTarget, ccData)
             return ccTarget
         } else {
-            return this.fromJSON(ccData)
+            return this.fromJSON(data.data)
         }
     }
 
@@ -625,11 +625,13 @@ class parser {
         const defs = {
             true: empty({
                 on: 1,
-                enable: 1
+                enable: 1,
+                enabled: 1
             }),
             false: empty({
                 off: 1,
-                disable: 1
+                disable: 1,
+                disabled: 1
             })
         }
         return Object.assign(
@@ -642,6 +644,13 @@ class parser {
             }
         )
     })()
+
+    /**
+     * Parses regular expression
+     */
+    static readonly regex = Object.assign(parseRegex, {
+        toJSON: (): parserJSONData['regex'] => ({ type: 'regex' })
+    })
 
     /**
      * Parses string argument.
@@ -1045,6 +1054,9 @@ type parserJSONData = {
     any: {
         type: 'any'
     }
+    regex: {
+        type: 'regex'
+    }
     typedValue: {
         type: 'typedValue'
         data: typedValuesJSON['all'][]
@@ -1065,6 +1077,7 @@ class TypedArgs {
             : v.type == 'switch' ? parser.switch
             : v.type == 'number' ? parser.number
             : v.type == 'selector' ? parser.selector
+            : v.type == 'regex' ? parser.regex
             : v.type == 'typedValue' ? parser.typedValues(TypedValues.fromJSON(v.data))
             : null
 
@@ -1156,6 +1169,8 @@ class TypedArgs {
         const [e] = errMessage
         throw new ccError(e.message, e.name)
     }
+
+    get sequence() { return this.#seqs }
 }
 
 type TASeqPart = string | { (v: string): any, toJSON: () => parserJSONData['all'] }

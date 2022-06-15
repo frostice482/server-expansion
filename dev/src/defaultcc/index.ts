@@ -1,4 +1,5 @@
 import './bridge.js'
+import './cc.js'
 import './chatgroup.js'
 import './eval.js'
 import './help.js'
