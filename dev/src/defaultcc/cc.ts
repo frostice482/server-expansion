@@ -115,7 +115,7 @@ Trq.addType(
         .define('any', Trq, false)
         .define('none', Trq, false)
 )
-Trq.name = 'CCRequredTagsJSONData'
+Trq.name = 'CCRequiredTagsJSONData'
 
 // Custom command typed array sequence value JSON type.
 const Ttasv = new TypedValue(
@@ -479,7 +479,7 @@ new cc('cc', {
                                     case 'set': {
                                         desc.variables[eArg[2]] = eArg[4]
                                         log(`Descripiton: Custom command variable "${eArg[2]}" has been set to ${JSON.stringify(eArg[4])} (type ${eArg[3]}).`)
-                                        tArgs.splice(0, 2)
+                                        tArgs.splice(0, 3)
                                     }; break
                                     case 'delete': {
                                         delete desc.variables[eArg[2]]
