@@ -1,17 +1,17 @@
 {
     "format_version": 2,
     "header": {
-        "name": "§9§k||§r §bServer Expansion §9§k||§r §7v0.0.1",
+        "name": "§9§k||§r §bServer Expansion §9§k||§r §7v0.0.2",
         "description": "§bAn Addon that adds server utilities which can be useful for your worlds, realms, or servers.\n§eRequires §gGametest Experimental§e enabled.",
         "uuid": "d5ede1b9-fe20-445f-b633-1bb69e0cd23e",
-        "version": [ 0, 0, 1 ],
+        "version": [ 0, 0, 2 ],
         "min_engine_version": [ 1, 18, 30 ]
     },
     "modules": [{
         "type": "script",
         "entry": "scripts/main.js",
         "uuid": "0eac2ae2-8980-4a07-99d3-f337b326b3f9",
-        "version": [ 0, 0, 1 ]
+        "version": [ 0, 0, 2 ]
     }],
     "dependencies": [{
         "uuid": "b26a4d4c-afdf-4690-88f8-931846312678",

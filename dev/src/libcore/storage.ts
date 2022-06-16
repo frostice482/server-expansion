@@ -293,7 +293,7 @@ const instance = (() => {
 })()
 
 const instanceDefault = (() => {
-    const curVer = 1
+    const curVer = 1.0101
     const defaultInstance = new instance<{
         [k: string]: any
         saveInfo: {
@@ -312,7 +312,7 @@ const instanceDefault = (() => {
     defaultInstance.autosaveInterval = 30000
     defaultInstance.ev.save.subscribe(function baseSave (data) {
         data.saveInfo = {
-            version: 1
+            version: curVer
         }
     }, Infinity)
     defaultInstance.ev.load.subscribe(function baseLoad (data, ctrl) {
@@ -326,7 +326,16 @@ const instanceDefault = (() => {
         }
         if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
         if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
-        switch (data.saveInfo.version) {}
+        switch (data.saveInfo.version) {
+            case 1.0000: {
+                data.saveInfo.version = 1.0101
+                data.cc.ccs.push({
+                    id: 'tps',
+                    extends: true,
+                    data: {}
+                })
+            }
+        }
     }, Infinity)
 
     defaultInstance.ev.save.subscribe((data) => {
