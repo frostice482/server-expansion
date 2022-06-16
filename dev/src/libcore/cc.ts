@@ -138,13 +138,13 @@ export default class cc {
     static readonly fromJSON = (data: ccJSONData) => {
         const { id, description, minPermLvl, isHidden, isDisabled, isDefault, reqTags, typedArgs, triggers, onTrigger } = data
         return new this(id, {
-            description: ccDescription.fromJSON(description),
+            description: description ? ccDescription.fromJSON(description) : undefined,
             minPermLvl,
             isHidden,
             isDisabled,
             isDefault,
             reqTags,
-            typedArgs: TypedArgs.fromJSON(typedArgs),
+            typedArgs: typedArgs ? TypedArgs.fromJSON(typedArgs) : undefined,
             triggers: triggers.type == 'regexp' ? parseRegex(triggers.value) : triggers.value,
             onTrigger
         })
