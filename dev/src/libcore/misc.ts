@@ -238,6 +238,7 @@ export const deepAssign = <A, B>(to: any, source: any): A & B => {
  * Converts a number to readable time.
  * @param time Time.
  * @param isMillisecond Determines if time is in millisecond or not.
+ * @returns Readable time.
  */
 export const convertToReadableTime = (time: number, isMillisecond = true) => {
     if (time == Infinity) return 'eternity'
@@ -261,6 +262,7 @@ export const convertToReadableTime = (time: number, isMillisecond = true) => {
  * Renames a function.
  * @param fn Function to be renamed.
  * @param name New function name.
+ * @returns Renamed function.
  */
 export const renameFn = <fn extends Function>(fn: fn, name: string | ((fName: string) => string)) =>
     Object.defineProperty(fn, 'name', { value: typeof name == 'function' ? name(fn.name) : name })

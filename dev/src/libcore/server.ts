@@ -14,7 +14,13 @@ export default class server {
     /** Server time. */
     static time: number = null
 
+    /**
+     * Starts server components.
+     */
     static readonly start = async () => {
+        if (this.#isStarted) return
+        this.#isStarted = true
+
         world.events.tick.subscribe(() => {
             // next tick
             this.#nextTickRes()
@@ -44,13 +50,14 @@ export default class server {
             triggerEvent.playerJoin(player)
         })
     }
+    static #isStarted = false
 
     static #nextTickRes: (v?: any) => void
     static nextTick = new Promise(res => this.#nextTickRes = res)
 
     /**
      * Wait for amount of ticks.
-     * @param tick Number of ticks to be waited.
+     * @param tick Number of ticks to wait.
      */
     static readonly waitFor = (tick: number) => new Promise(res => {
         let c = 0, fn: () => void

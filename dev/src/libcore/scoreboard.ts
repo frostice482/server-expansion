@@ -1,7 +1,6 @@
-import * as mc from 'mojang-minecraft'
+import { ScoreboardIdentityType, ScoreboardObjective, world } from 'mojang-minecraft'
 import { Player } from 'mojang-minecraft'
 import { dim, execCmd } from './mc.js'
-const { world: { scoreboard: mcsb }, Scoreboard } = mc
 
 const auth = Symbol()
 
@@ -21,8 +20,8 @@ const toExecutable = JSON.stringify
 class objective {
     /**
      * Creates a new objective.
-     * @param id Objective identifier.
-     * @param displayName Objective display name.
+     * @param id Objective identifier. Must be less than or equal to 16 characters.
+     * @param displayName Objective display name. Only used when creating a new objective. Must be less than or equal to 32 characters.
      */
     static readonly create = (id: string, displayName = id) => new this(id, displayName, true)
 
@@ -34,13 +33,15 @@ class objective {
 
     /**
      * Edits an objective, otherwise creates a new one if the objective doesn't exist.
-     * @param id Objective identifier.
+     * @param id Objective identifier. Must be less than or equal to 16 characters.
+     * @param displayName Objective display name. Only used when creating a new objective. Must be less than or equal to 32 characters.
      */
     static readonly for = (id: string, displayName = id) => new this(id, displayName, !this.exist(id))
 
     /**
      * Test if an objecitve exists.
      * @param id Objective identifier.
+     * @returns Boolean - True if the objective exists.
      */
     static readonly exist = (id: string) => {
         id = toExecutable(id)
@@ -56,25 +57,21 @@ class objective {
     /**
      * Deletes an objective.
      * @param id Objective identifier.
+     * @returns Boolean - True if objective exists and successfully deleted.
      */
     static readonly delete = (id: string) => !execCmd(`scoreboard objectives remove ${toExecutable(id)}`, dim.o, true).statusCode
 
     /**
      * Gets objective list.
-     * 
-     * @deprecated This function only works in the latest preview.
-     * Remove this deprecation mark only when {@link mc.Scoreboard Scoreboard} has been added.
+     * @returns Array of objectives.
      */
-    static readonly getList = () => {
-        if (!mcsb) throw new ReferenceError(`Cannot get objective list because module 'mojang-minecraft' doesn't export 'Scoreboard' module.`)
-        return mcsb.getObjectives()
-    }
+    static readonly getList = () => world.scoreboard.getObjectives().map(v => this.edit(v.id))
 
     /**
      * Creates a new objective.
-     * @param id Objective identifier.
-     * @param displayName Objective display name. Only used when creating a new objective.
-     * @param create Creates an objective.
+     * @param id Objective identifier. Must be less than or equal to 16 characters.
+     * @param displayName Objective display name. Only used when creating a new objective. Must be less than or equal to 32 characters.
+     * @param create Determines if an objective should be created or not. If not, edits an existing one.
      */
     constructor(id: string, displayName = id, create = true) {
         if (id.length > 16) throw new RangeError(`Objective identifier length cannot go more than 16 characters`)
@@ -85,44 +82,45 @@ class objective {
 
         const exist = objective.exist(id)
         if (create) {
-            if (exist) throw new ReferenceError(`Objective with ID '${id}' already exists.`)
+            if (exist) throw new TypeError(`Objective with ID '${id}' already exists.`)
             execCmd(`scoreboard objectives add ${execid} dummy ${execDisplay}`)
         } else {
             if (!exist) throw new ReferenceError(`Objective with ID '${id}' not found.`)
         }
 
-        this.#data = mcsb ? mcsb.getObjective(id) : null
         this.id = id
         this.execId = execid
+        this.#data = world.scoreboard.getObjective(id)
+        this.dummies = new dummies(auth, this, this.#data)
+        this.players = new players(auth, this, this.#data)
     }
+
+    #data: ScoreboardObjective
 
     /** Objective identifier. */
     readonly id: string
-    /** Objective executable identifier, for command usage. */
+    /** Objective executable identifier. */
     readonly execId: string
-    /** Scoreboard objective data. */
-    readonly #data: mc.ScoreboardObjective
-    /**
-     * Gets scoreboard display name. 
-     * 
-     * @deprecated This function only works in the latest preview.
-     * Remove this deprecation mark only when {@link mc.Scoreboard Scoreboard} has been added.
-     */
-    readonly getDisplayName = () => {
-        if (!this.#data) throw new ReferenceError(`Cannot get objective list because module 'mojang-minecraft' doesn't export 'Scoreboard' module.`)
-        return this.#data.displayName
-    }
+    /** Objective display name. */
+    get displayName() { return this.#data.displayName }
 
-    /** Dummies. */
-    readonly dummies = new dummies(auth, this)
-    /** Players. */
-    readonly players = new players(auth, this)
-    /** Display. */
+    readonly dummies: dummies
+    readonly players: players
     readonly display = new display(auth, this)
 }
 
 class players {
+    constructor(key: typeof auth, obj: objective, data: ScoreboardObjective) {
+        if (key !== auth) throw new TypeError('Class is not constructable')
+        this.#obj = obj
+        this.#data = data
+    }
+
+    /** Dummies. */
+    get dummies() { return this.#obj.dummies }
+
     #obj: objective
+    #data: ScoreboardObjective
 
     /**
      * Sets player score to the objective.
@@ -141,6 +139,7 @@ class players {
     /**
      * Gets player score in the objective.
      * @param plr Player.
+     * @returns Player score.
      */
     readonly 'get' = (plr: Player) => {
         const r = execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true)
@@ -151,26 +150,43 @@ class players {
     /**
      * Test if a player score exists on the objective.
      * @param plr Player.
+     * @returns Boolean - True if player is in the score list.
      */
     readonly exist = (plr: Player) => !execCmd(`scoreboard players test @s ${this.#obj.execId} * *`, plr, true).statusCode
 
     /**
      * Deletes player score from the objective.
      * @param plr Player.
+     * @returns Boolean - True if player is in the score list and successfully deleted.
      */
     readonly delete = (plr: Player) => !execCmd(`scoreboard players reset @s ${this.#obj.execId}`, plr, true).statusCode
 
-    /** Dummies. */
-    get dummies() { return this.#obj.dummies }
-
-    constructor(key: typeof auth, obj: objective) {
-        if (key !== auth) throw new TypeError('Class is not constructable')
-        this.#obj = obj
-    }
+    /**
+     * Gets player scores.
+     */
+    readonly getScores = (() => {
+        const t = this
+        return function* () {
+            for (const { participant, score } of t.#data.getScores())
+                if (participant.type == ScoreboardIdentityType.player)
+                    try { yield [participant.getEntity(), score, participant.displayName] as [player: Player, score: number, displayName: string] }
+                    catch { yield [null, score, null] as [player: null, score: number, displayName: null] }
+        }
+    })()
 }
 
 class dummies {
+    constructor(key: typeof auth, obj: objective, data: ScoreboardObjective) {
+        if (key !== auth) throw new TypeError('Class is not constructable')
+        this.#obj = obj
+        this.#data = data
+    }
+
+    /** Players. */
+    get players() { return this.#obj.players }
+
     #obj: objective
+    #data: ScoreboardObjective
 
     /**
      * Sets dummy score to the objective.
@@ -189,6 +205,7 @@ class dummies {
     /**
      * Gets dummy score in the objective.
      * @param name Dummy name.
+     * @returns Dummy score.
      */
     readonly 'get' = (name: string) => {
         const r = execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true)
@@ -199,38 +216,46 @@ class dummies {
     /**
      * Test if a dummy score exists on the objective.
      * @param name Dummy name.
+     * @returns Boolean - True if dummy is in the score list.
      */
     readonly exist = (name: string) => !execCmd(`scoreboard players test ${toExecutable(name)} ${this.#obj.execId} * *`, dim.o, true).statusCode
 
     /**
      * Deletes dummy score from the objective.
      * @param name Dummy name.
+     * @returns Boolean - True if dummy is in the score list and successfully deleted.
      */
     readonly delete = (name: string) => !execCmd(`scoreboard players reset ${toExecutable(name)} ${this.#obj.execId}`, dim.o, true).statusCode
 
-    /** Players. */
-    get players() { return this.#obj.players }
-
-    constructor(key: typeof auth, obj: objective) {
-        if (key !== auth) throw new TypeError('Class is not constructable')
-        this.#obj = obj
-    }
+    /**
+     * Gets dummy scores.
+     */
+    readonly getScores = (() => {
+        const t = this
+        return function* () {
+            for (const { participant, score } of t.#data.getScores())
+                if (participant.type == ScoreboardIdentityType.fakePlayer)
+                    yield [participant.displayName, score] as [displayName: string, score: number]
+        }
+    })()
 }
 
 class display {
 
     /**
      * Sets scoreboard display to the display slot.
-     * @param displaySlot Display slot where scoreboard will be displayed at.
-     * @param obj Scoreboard.
+     * @param displaySlot Display slot where the scoreboard will be displayed at.
+     * @param scoreboard Scoreboard.
+     * @returns Boolean - True if display successfully set.
      */
-    static readonly setDisplay = (displaySlot: displaySlot, obj: objective | string) => void execCmd(`scoreboard objectives setdisplay ${displaySlot} ${obj instanceof objective ? obj.execId : toExecutable(obj)}`, dim.o, true)
+    static readonly setDisplay = (displaySlot: displaySlot, scoreboard: objective | string) => !execCmd(`scoreboard objectives setdisplay ${displaySlot} ${scoreboard instanceof objective ? scoreboard.execId : toExecutable(scoreboard)}`, dim.o, true).statusCode
 
     /**
      * Clears scoreboard display from the display slot.
-     * @param displaySlot Display slot which will be cleared.
+     * @param displaySlot Display slot that will be cleared.
+     * @returns Boolean - True if display successfully cleared.
      */
-    static readonly clearDisplay = (displaySlot: displaySlot) => void execCmd(`scoreboard objectives setdisplay ${displaySlot}`, dim.o, true)
+    static readonly clearDisplay = (displaySlot: displaySlot) => !execCmd(`scoreboard objectives setdisplay ${displaySlot}`, dim.o, true).statusCode
 
     constructor(key: typeof auth, obj: objective) {
         if (key !== auth) throw new TypeError('Class is not constructable')
@@ -242,8 +267,9 @@ class display {
     /**
      * Sets scoreboard display to the display slot.
      * @param displaySlot Display slot where scoreboard will be displayed at.
+     * @returns Boolean - True if display successfully set.
      */
-    readonly setDisplay = (displaySlot: displaySlot) => void execCmd(`scoreboard objectives setdisplay ${displaySlot} ${this.#obj.execId}`, dim.o, true)
+    readonly setDisplay = (displaySlot: displaySlot) => !execCmd(`scoreboard objectives setdisplay ${displaySlot} ${this.#obj.execId}`, dim.o, true).statusCode
 
     readonly clearDisplay = display.clearDisplay
 }

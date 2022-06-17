@@ -1,14 +1,5 @@
 import { empty } from "./misc.js"
 
-type valueTypes = {
-    valueType: 'string' | 'number' | 'boolean' | 'any'
-    specifics: ( string | number | boolean )[]
-    objects: ( TypedValue | TypedObject | TypedArray | TypedArraySpecific )
-    all: valueTypes[Exclude<keyof valueTypes, 'all'>]
-}
-type allTypes = TypedValue | TypedObject | TypedArray | TypedArraySpecific
-export { allTypes as typedValuesAll }
-
 export default class TypedValues {
     static get value() { return TypedValue }
     static get object() { return TypedObject }
@@ -16,7 +7,7 @@ export default class TypedValues {
     static get arraySpecific() { return TypedArraySpecific }
 
     /**
-     * Creates a typed value, typed object, or typed array from JSON data.
+     * Creates a type definition from JSON data.
      * @param jsonData JSON data.
      */
     static readonly fromJSON = (jsonData: JSONData['all'][]) => refId[jsonData[0].type].fromJSON(jsonData)
@@ -26,30 +17,26 @@ export default class TypedValues {
 
 export class TypedValue {
     /**
-     * Creates a typed value from JSON data.
-     * @param jsonData JSON data.
-     * @param index Index to be parsed.
-     * @param referenceStack Reference stack.
+     * Creates a specific typed array from JSON data.
+     * @param jsonData JSON data. If `index` is not specified, the typed value in 0th index must be a typed array (`array`).
+     * @param index Index to be parsed from JSON data. nth index in JSON Data must be a typed array (`array`).
+     * @param referenceList Reference list, consisting of index of typed values.
      */
-    static readonly fromJSON = (jsonData: JSONData['all'][], referenceStack: List<allTypes, number> = empty(), index = 0) => {
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: List<allTypes, number> = empty(), index = 0) => {
         const data = jsonData[index]
         if (data?.type != 'value') throw new TypeError(`Type mismatched: expecting 'value', got '${data.type}'`)
 
-        const n = new this()
-        referenceStack[index] = n
-        n.name = data.name
+        const type = new this()
+        referenceList[index] = type
+        type.name = data.name
 
-        const d = n.#data
-        const { data: { type: vType, objects: vObj = [], specifics: vSpec = {} } } = data
-        for (const k of vType) d.type[k] = 1
-        for (const i of vObj) {
-            const objData = jsonData[i]
-            d.objects.add( referenceStack[i] ??= refId[objData.type].fromJSON(jsonData, referenceStack, i) )
-        };
-        for (const k in vSpec)
-            for (const v of vSpec[k]) d.specifics[v] = 1
+        const d = type.#data
+        const { data: { type: valueTypes, objects: valueObjects = [], specifics: valueSpecifics = {} } } = data
+        for (const key of valueTypes) d.type[key] = 1
+        for (const i of valueObjects) d.objects.add( objRef(jsonData, referenceList, i) )
+        for (const key in valueSpecifics) for (const v of valueSpecifics[key]) d.specifics[v] = 1
         
-        return n
+        return type
     }
 
     /**
@@ -107,13 +94,13 @@ export class TypedValue {
 
     /**
      * Tests if a value matches the type.
-     * @param o Value to be tested.
+     * @param value Value to be tested.
      */
-    readonly test = (o: any) => {
+    readonly test = (value: any) => {
         if ('any' in this.#data.type) return true
-        const vt = typeof o
-        if ( vt == 'string' || vt == 'number' || vt == 'boolean' ) return vt in this.#data.type || o in this.#data.specifics[vt]
-        else for (const tobj of this.#data.objects) if (tobj.test(o)) return true
+        const valueType = typeof value
+        if ( valueType == 'string' || valueType == 'number' || valueType == 'boolean' ) return valueType in this.#data.type || value in this.#data.specifics[valueType]
+        else for (const type of this.#data.objects) if (type.test(value)) return true
         return false
     }
 
@@ -124,20 +111,22 @@ export class TypedValue {
 
     /**
      * Gets reference list.
-     * @param stack Reference stack.
+     * @param refList Existing reference list consisting of typed values.
+     * @returns Reference list.
      */
-    readonly getReferenceList = (stack: allTypes[] = []): allTypes[] => {
-        if (stack.includes(this)) return stack
-        stack.push(this)
-        for (const tobj of this.#data.objects) tobj.getReferenceList(stack)
-        return stack
+    readonly getReferenceList = (refList: allTypes[] = []): allTypes[] => {
+        if (refList.includes(this)) return refList
+        refList.push(this)
+        for (const type of this.#data.objects) type.getReferenceList(refList)
+        return refList
     }
 
     /**
-     * Converts to JSON.
-     * @param refData Reference datas.
+     * Converts to JSON data.
+     * @param refList Reference list, consisting of typed values which value is a typed value's index.
+     * @returns JSON data.
      */
-    readonly JSONConvertion = (refData: Map<allTypes, number>): JSONData['TypedValue'] => {
+    readonly JSONConvertion = (refList: Map<allTypes, number>): JSONData['TypedValue'] => {
         const { type, specifics, objects } = this.#data
         return {
             type: 'value',
@@ -149,7 +138,7 @@ export class TypedValue {
                     number: Object.keys(specifics.number).map(Number),
                     boolean: Object.keys(specifics.boolean) as any,
                 },
-                objects: Array.from(objects, (v) => refData.get(v))
+                objects: Array.from(objects, (type) => refList.get(type))
             }
         }
     }
@@ -157,27 +146,28 @@ export class TypedValue {
 
 export class TypedObject {
     /**
-     * Creates a typed object from JSON data.
-     * @param jsonData JSON data.
-     * @param index Index to be parsed.
-     * @param referenceStack Reference stack.
+     * Creates a specific typed array from JSON data.
+     * @param jsonData JSON data. If `index` is not specified, the typed value in 0th index must be a typed array (`array`).
+     * @param index Index to be parsed from JSON data. nth index in JSON Data must be a typed array (`array`).
+     * @param referenceList Reference list, consisting of index of typed values.
      */
-    static readonly fromJSON = (jsonData: JSONData['all'][], referenceStack: List<allTypes, number> = empty(), index = 0) => {
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: List<allTypes, number> = empty(), index = 0) => {
         const data = jsonData[index]
         if (data?.type != 'object') throw new TypeError(`Type mismatched: expecting 'object', got '${data.type}'`)
 
-        const n = new this()
-        referenceStack[index] = n
-        n.name = data.name
-        n.#data = new Map( data.data.objData.map( ([k, [i, r] ]) => [ k, [ referenceStack[i] ??= refId[jsonData[i].type].fromJSON(jsonData, referenceStack, i), r ] ] as [string, [allTypes, boolean]] ) )
-        n.#allowUnusedProperties = data.data.allowUnusedProperties
-        n.#indexType = referenceStack[data.data.indexType] ??= refId[jsonData[data.data.indexType].type].fromJSON(jsonData, referenceStack, data.data.indexType)
+        const type = new this()
+        referenceList[index] = type
 
-        return n
+        type.name = data.name
+        type.#data = new Map( data.data.objData.map( ([key, [i, required] ]) => [ key, [ objRef(jsonData, referenceList, i), required ] ] ) )
+        type.#allowUnusedProperties = data.data.allowUnusedProperties
+        type.#indexType = objRef(jsonData, referenceList, data.data.indexType)
+
+        return type
     }
 
     /**
-     * Creates a typed array.
+     * Creates a typed object.
      */
     constructor() {}
 
@@ -201,10 +191,10 @@ export class TypedObject {
 
     /**
      * Sets index type.
-     * @param v Type.
+     * @param type Type.
      */
-     readonly setIndexType = (v: allTypes) => {
-        this.#indexType = v
+     readonly setIndexType = (type: allTypes) => {
+        this.#indexType = type
         return this
     }
 
@@ -223,19 +213,19 @@ export class TypedObject {
     readonly 'delete' = (key: string) => ( this.#data.delete(key), this )
 
     /**
-     * Tests if an array matches the type.
-     * @param o Array to be tested.
+     * Tests if an object matches the type defined.
+     * @param obj Object to be tested.
      */
-    readonly test = (o: any) => {
-        if (typeof o != 'object' || Array.isArray(o)) return false
-        const keys = new Map(Object.entries(o))
-        for (const [k, [t, r]] of this.#data) {
-            if (!(k in o)) {
-                if (r) return false
+    readonly test = (obj: any) => {
+        if (typeof obj != 'object' || Array.isArray(obj)) return false
+        const keys = new Map(Object.entries(obj))
+        for (const [key, [type, required]] of this.#data) {
+            if (!(key in obj)) {
+                if (required) return false
                 else continue
             }
-            if (!t.test(o[k])) return false
-            keys.delete(k)
+            if (!type.test(obj[key])) return false
+            keys.delete(key)
         }
         if (keys.size) {
             if (!this.#allowUnusedProperties) return false
@@ -253,48 +243,51 @@ export class TypedObject {
     
     /**
      * Gets reference list.
-     * @param stack Reference stack.
+     * @param refList Existing reference list consisting of typed values.
+     * @returns Reference list.
      */
-    readonly getReferenceList = (stack: allTypes[] = []): allTypes[] => {
-        if (stack.includes(this)) return stack
-        stack.push(this)
-        for (const [t] of this.#data.values()) t.getReferenceList(stack)
-        this.#indexType?.getReferenceList(stack)
-        return stack
+    readonly getReferenceList = (refList: allTypes[] = []): allTypes[] => {
+        if (refList.includes(this)) return refList
+        refList.push(this)
+        for (const [type] of this.#data.values()) type.getReferenceList(refList)
+        this.#indexType?.getReferenceList(refList)
+        return refList
     }
     
     /**
-     * Converts to JSON.
-     * @param refData Reference datas.
+     * Converts to JSON data.
+     * @param refList Reference list, consisting of typed values which value is a typed value's index.
+     * @returns JSON data.
      */
-    readonly JSONConvertion = (refData: Map<allTypes, number>): JSONData['TypedObject'] => ({
+    readonly JSONConvertion = (refList: Map<allTypes, number>): JSONData['TypedObject'] => ({
         type: 'object',
         name: this.name,
         data: {
             allowUnusedProperties: this.#allowUnusedProperties,
-            indexType: refData.get(this.#indexType),
-            objData: Array.from(this.#data, ([ k, [o, r] ]) => [ k, [ refData.get(o), r ] ] )
+            indexType: refList.get(this.#indexType),
+            objData: Array.from(this.#data, ([ key, [type, required] ]) => [ key, [ refList.get(type), required ] ] )
         }
     })
 }
 
 export class TypedArray {
     /**
-     * Creates a typed array from JSON data.
-     * @param jsonData JSON data.
-     * @param index Index to be parsed.
-     * @param referenceStack Reference stack.
+     * Creates a specific typed array from JSON data.
+     * @param jsonData JSON data. If `index` is not specified, the typed value in 0th index must be a typed array (`array`).
+     * @param index Index to be parsed from JSON data. nth index in JSON Data must be a typed array (`array`).
+     * @param referenceList Reference list, consisting of index of typed values.
      */
-    static readonly fromJSON = (jsonData: JSONData['all'][], referenceStack: List<allTypes, number> = empty(), index = 0) => {
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: List<allTypes, number> = empty(), index = 0) => {
         const data = jsonData[index]
         if (data?.type != 'array') throw new TypeError(`Type mismatched: expecting 'array', got '${data.type}'`)
 
-        const n = new this()
-        referenceStack[index] = n
-        n.name = data.name
-        n.type = referenceStack[data.data] ??= refId[jsonData[data.data].type].fromJSON(jsonData, referenceStack, data.data)
+        const type = new this()
+        referenceList[index] = type
 
-        return n
+        type.name = data.name
+        type.type = objRef(jsonData, referenceList, data.data)
+
+        return type
     }
 
     /**
@@ -312,60 +305,64 @@ export class TypedArray {
     name = ''
 
     /**
-     * Tests if an array matches the type.
-     * @param o Array to be tested.
+     * Tests if an array matches the type defined.
+     * @param arr Array to be tested.
      */
-    readonly test = (o: any[] = []) => Array.isArray(o) && o.every( this.type.test ?? (() => false) )
+    readonly test = (arr?: any[]) => Array.isArray(arr) && arr.every( this.type.test ?? (() => false) )
 
     /**
-     * Converts to JSON format.
+     * Converts to JSON data.
+     * @returns JSON data.
      */
     readonly toJSON = () => toJSON(this)
 
     /**
      * Gets reference list.
-     * @param stack Reference stack.
+     * @param refList Existing reference list consisting of typed values.
+     * @returns Reference list.
      */
-    readonly getReferenceList = (stack: allTypes[] = []): allTypes[] => {
-        if (stack.includes(this)) return stack
-        stack.push(this)
-        return this.type.getReferenceList(stack)
+    readonly getReferenceList = (refList: allTypes[] = []): allTypes[] => {
+        if (refList.includes(this)) return refList
+        refList.push(this)
+        return this.type.getReferenceList(refList)
     }
 
     /**
-     * Converts to JSON.
-     * @param refData Reference datas.
+     * Converts to JSON data.
+     * @param refList Reference list, consisting of typed values which value is a typed value's index.
+     * @returns JSON data.
      */
-    readonly JSONConvertion = (refData: Map<allTypes, number>): JSONData['TypedArray'] => ({
+    readonly JSONConvertion = (refList: Map<allTypes, number>): JSONData['TypedArray'] => ({
         type: 'array',
         name: this.name,
-        data: refData.get(this.type)
+        data: refList.get(this.type)
     })
 }
 
 export class TypedArraySpecific {
     /**
      * Creates a specific typed array from JSON data.
-     * @param jsonData JSON data.
-     * @param index Index to be parsed.
-     * @param referenceStack Reference stack.
+     * @param jsonData JSON data. If `index` is not specified, the typed value in 0th index must be a sepcific typed array (`arraySpecific`).
+     * @param index Index to be parsed from JSON data. nth index in JSON Data must be a sepcific typed array (`arraySpecific`).
+     * @param referenceList Reference list, consisting of index of typed values.
      */
-    static readonly fromJSON = (jsonData: JSONData['all'][], referenceStack: List<allTypes, number> = empty(), index = 0) => {
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: List<allTypes, number> = empty(), index = 0) => {
         const data = jsonData[index]
         if (data?.type != 'arraySpecific') throw new TypeError(`Type mismatched: expecting 'arraySpecific', got '${data.type}'`)
 
-        const n = new this()
-        referenceStack[index] = n
-        n.name = data.name
-        n.minLength = data.minLength
-        n.allowOverlength = data.allowOverlength
-        n.type = data.data.map(v => referenceStack[v] ??= refId[jsonData[v].type].fromJSON(jsonData, referenceStack, v))
+        const type = new this()
+        referenceList[index] = type
 
-        return n
+        type.name = data.name
+        type.minLength = data.minLength
+        type.allowOverlength = data.allowOverlength
+        type.type = data.data.map(i => objRef(jsonData, referenceList, i))
+
+        return type
     }
 
     /**
-     * Creates a specific typed array.
+     * Creates a specific array type.
      * @param type Value types.
      * @param minLength Minimum array length.
      */
@@ -376,53 +373,67 @@ export class TypedArraySpecific {
 
     /** Type data. */
     type: allTypes[]
-    /** Minimum length. */
+    /** Minimum length of array. */
     minLength: number
-    /** Allows array length goes beyond array type length. */
+    /** Determines whether array size can oversize the array size in the type. */
     allowOverlength = false
 
     /** Type name. */
     name = ''
 
     /**
-     * Tests if an array matches the type.
-     * @param o Array to be tested.
+     * Tests if an array matches the type defined.
+     * @param arr Array to be tested.
      */
-    readonly test = (o: any[] = []) => (
-        Array.isArray(o)
-        && ( this.allowOverlength ? true : o.length <= this.type.length )
-        && this.type.every((type, i) => ( this.minLength <= i && !(i in o) ) || type.test(o[i]))
+    readonly test = (arr?: any[]) => (
+        Array.isArray(arr)
+        && ( this.allowOverlength ? true : arr.length <= this.type.length )
+        && this.type.every((type, i) => ( this.minLength <= i && !(i in arr) ) || type.test(arr[i]))
     )
 
     /**
-     * Converts to JSON format.
+     * Converts to JSON data.
+     * @returns JSON data.
      */
     readonly toJSON = () => toJSON(this)
 
     /**
      * Gets reference list.
-     * @param stack Reference stack.
+     * @param refList Existing reference list consisting of typed values.
+     * @returns Reference list.
      */
-    readonly getReferenceList = (stack: allTypes[] = []): allTypes[] => {
-        if (stack.includes(this)) return stack
-        stack.push(this)
-        this.type.map(type => type.getReferenceList(stack))
-        return stack
+    readonly getReferenceList = (refList: allTypes[] = []): allTypes[] => {
+        if (refList.includes(this)) return refList
+        refList.push(this)
+        for (const type of this.type) type.getReferenceList(refList)
+        return refList
     }
 
     /**
-     * Converts to JSON.
-     * @param refData Reference datas.
+     * Converts to JSON data.
+     * @param refList Reference list, consisting of typed values which value is a typed value's index.
+     * @returns JSON data.
      */
-    readonly JSONConvertion = (refData: Map<allTypes, number>): JSONData['TypedArraySpecific'] => ({
+    readonly JSONConvertion = (refList: Map<allTypes, number>): JSONData['TypedArraySpecific'] => ({
         type: 'arraySpecific',
         name: this.name,
         minLength: this.minLength,
         allowOverlength: this.allowOverlength,
-        data: this.type.map(v => refData.get(v))
+        data: this.type.map(type => refList.get(type))
     })
 }
 
+// Type definition
+type valueTypes = {
+    valueType: 'string' | 'number' | 'boolean' | 'any'
+    specifics: ( string | number | boolean )[]
+    objects: ( TypedValue | TypedObject | TypedArray | TypedArraySpecific )
+    all: valueTypes[Exclude<keyof valueTypes, 'all'>]
+}
+type allTypes = TypedValue | TypedObject | TypedArray | TypedArraySpecific
+export { allTypes as typedValuesAll }
+
+// JSON stuff
 const refId = {
     value: TypedValue,
     object: TypedObject,
@@ -435,6 +446,9 @@ const toJSON = (type: allTypes) => {
         refsMap = new Map(refs.map( (v, i) => [v, i]) )
     return refs.map(v => v.JSONConvertion(refsMap)) as JSONData['all'][]
 }
+
+const objRef = (jsonData: JSONData['all'][], referenceList: List<allTypes, number>, index: number) =>
+    referenceList[index] ??= refId[jsonData[index].type].fromJSON(jsonData, referenceList, index)
 
 type JSONData = {
     TypedValue: {

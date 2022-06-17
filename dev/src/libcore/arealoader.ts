@@ -95,6 +95,7 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
     }
 })
 
+// kills extra entity
 world.events.entityCreate.subscribe(({entity}) => {
     if (entity.id !== 'se:area_loader') return
 
@@ -106,9 +107,9 @@ world.events.entityCreate.subscribe(({entity}) => {
     entity.triggerEvent('se:kill')
 })
 
+// prevents the event `se:kill` being unwantedly triggered
 world.events.beforeDataDrivenEntityTriggerEvent.subscribe(evd => {
     const {entity} = evd
     if (entity.id !== 'se:area_loader' || evd.id !== 'se:kill') return
-
     if (!entity.getDynamicProperty('kill')) evd.cancel = true
 })

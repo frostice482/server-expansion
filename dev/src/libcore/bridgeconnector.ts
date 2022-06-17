@@ -111,5 +111,5 @@ let entLoader: Entity;
     const opts = new EntityQueryOptions
     opts.type = 'se:area_loader'
 
-    while(!( [entLoader] = ow.getEntities(opts) )) await waitFor()
+    while(!( [entLoader] = ow.getEntities(opts), entLoader )) await waitFor()
 })()

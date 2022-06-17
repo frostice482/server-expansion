@@ -24,6 +24,22 @@ export const dim = (() => {
 
 type dimKeys = keyof typeof dim
 
+/**
+ * Executes Minecraft command.
+ * @param command Minecraft command.
+ * @param source Source where the command will be executed at.
+ * @param ignoreError Determines whether error thrown should be ignored or not.
+ */
+export const execCmd = (command: string, source: dimKeys | Entity | Dimension = 'overworld', ignoreError: boolean = false): CommandResponse => {
+    try {
+        return ( typeof source == 'string' ? dim[source] : source ).runCommand(command)
+    } catch(e) {
+        if (e instanceof Error) throw e
+        const r: CommandResponse = JSON.parse(e)
+        if (ignoreError) return r
+        throw new CommandError(auth, r.statusCode, r.statusMessage, command)
+    }
+}
 
 type CommandResponse = {
     [k: string]: any
@@ -43,22 +59,5 @@ class CommandError extends Error {
         this.message = `${message}\nCode: ${code}  -  Command: ${command}`
         this.stack = this.stack.replace(/.*\n/, '')
         Object.assign(this, { code, command })
-    }
-}
-
-/**
- * Executes Minecraft command.
- * @param command Minecraft command.
- * @param source Source where the command will be executed at.
- * @param ignoreError Ignores error.
- */
-export const execCmd = (command: string, source: dimKeys | Entity | Dimension = 'overworld', ignoreError: boolean = false): CommandResponse => {
-    try {
-        return ( typeof source == 'string' ? dim[source] : source ).runCommand(command)
-    } catch(e) {
-        if (e instanceof Error) throw e
-        const r: CommandResponse = JSON.parse(e)
-        if (ignoreError) return r
-        throw new CommandError(auth, r.statusCode, r.statusMessage, command)
     }
 }

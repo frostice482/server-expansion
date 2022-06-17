@@ -29,6 +29,7 @@ class Plugin {
     /**
      * Test if a plugin exists.
      * @param id Plugin identifier.
+     * @returns Boolean - True if plugin exists.
      */
     static readonly exist = (id: string) => pluginList.has(id)
 
@@ -40,6 +41,7 @@ class Plugin {
     /**
      * Deletes a plugin. Plugin most not in loaded state so it can be deleted.
      * @param id Plugin identifier.
+     * @returns Boolean - True if plugin exists, isn't loaded, and successfully deleted.
      */
     static readonly delete = (id: string) => {
         const d = pluginList.get(id)
@@ -91,8 +93,8 @@ class Plugin {
     get versionCode() { return this.#pluginData.versionCode }
     /** Plugin type. */
     get type() { return this.#pluginData.type }
-    /** Plugin unique ID. */
-    get uniqueID() { return this.#unique }
+    /** Plugin unique storage ID. */
+    get uniqueStorageID() { return this.#unique }
 
     /** Converts plugin data to JSON. */
     readonly toJSON = () => this.#pluginData
@@ -118,8 +120,8 @@ class Plugin {
 
         this.#isExecuted = true
         try {
-            const o = await this.#im[this.#execMain]( new Plugin.inst( auth, this, gRefs, this.#execMain ) )
-            this.#exportCache ??= o
+            const imExports = await this.#im[this.#execMain]( new Plugin.inst( auth, this, gRefs, this.#execMain ) )
+            this.#exportCache ??= imExports
             for (const fn of pliRefs.execOrder) fn()
         } catch(e) {
             this.#isExecuted = false

@@ -20,8 +20,9 @@ export default class eventManager <T extends MappedEventList> {
 
     /** Triggers an event. */
     readonly triggerEvent: {
-        [K in keyof T]: (eventData: Parameters<T[K]>[0], ctrl?: triggerEventControl) => eventControlDataBind
+        [K in keyof T]: (eventData: Parameters<T[K]>[0], ctrl?: controlEvents) => eventControlDataBind
     } = empty()
+
     /** Event manager data. */
     readonly data: {
         [K in keyof T]: {
@@ -55,33 +56,23 @@ export default class eventManager <T extends MappedEventList> {
                     localData.list = new Map([...localData.list].sort( (a, b) => b[1] - a[1]) )
                 }
                 
-                const dataBind: eventControlDataBind = { break: false }
-                const ctrl = new eventControl(dataBind)
+                const controlDataBind: eventControlDataBind = { break: false }
+                const control = new eventControl(controlDataBind)
                 for (const [fn] of localData.list)
-                    try { fn(evd, ctrl) }
+                    try { fn(evd, control) }
                     catch(e) {
-                        const d = { break: false, log: true, reason: e }
+                        const d: triggerOnErrorEvent = { break: false, log: true, reason: e }
                         ectrl.onError?.(d)
 
                         if (d.log) console.warn(`${name} > events > ${k} (${fn.name || '<anonymous>'}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`)
                         if (d.break) break
                     }
-                    finally { if (dataBind.break) break }
+                    finally { if (controlDataBind.break) break }
                 
-                return dataBind
+                return controlDataBind
             }
         }
     }
-}
-
-type triggerEventControl = {
-    onBreak?: (evd: { cancel: boolean, readonly reason?: any }) => void
-    onError?: (evd: { break: boolean, log: boolean, readonly reason: any }) => void
-}
-
-type eventControlDataBind = {
-    break: boolean
-    breakReason?: any
 }
 
 class eventControl {
@@ -91,7 +82,7 @@ class eventControl {
      */
     break: (reason?: any) => void
 
-    constructor(dataBind: eventControlDataBind, ctrl: EventControlControl = {}) {
+    constructor(dataBind: eventControlDataBind, ctrl: controlEvents = {}) {
         this.break = (r) => {
             const d = { cancel: false, reason: dataBind.breakReason }
             ctrl.onBreak?.(d)
@@ -104,10 +95,29 @@ class eventControl {
     }
 }
 
-type EventControlControl = {
-    onBreak?: (evd: { cancel: boolean, readonly reason?: any }) => void
+// type definition
+type eventControlDataBind = {
+    break: boolean
+    breakReason?: any
 }
 
-type EventList = List<(eventData: any) => void>
+type controlEvents = {
+    onBreak?: (evd: controlOnBreakEvent) => void
+    onError?: (evd: triggerOnErrorEvent) => void
+}
+
+type controlOnBreakEvent = {
+    cancel: boolean,
+    readonly reason?: any
+}
+
+type triggerOnErrorEvent = {
+    break: boolean,
+    log: boolean,
+    readonly reason: any
+}
+
+// type definitions
+type EventList = List<(eventData: any) => void, string>
 export type MapEventList <T extends EventList> = { [K in keyof T]: (eventData: Parameters<T[K]>[0], control: eventControl) => void }
 type MappedEventList = List<(eventData: any, control: eventControl) => void>

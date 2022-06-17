@@ -23,6 +23,7 @@ export default class role {
     static readonly format = (plr: Player, formatType: 'message' | 'nametag' = 'message', message?: string) => {
         let format = config[ formatType == 'message' ? 'messageFormat' : 'nametagFormat' ]
 
+        // event
         const vars: formatVariables = empty({
             name: plr.nickname,
             message,
@@ -45,6 +46,7 @@ export default class role {
         }
         triggerEvent.format(evd)
 
+        // change format according to the event
         format = evd.format
 
         const rx = /((?<!\\)#(?<v>[\w\-]+)(\{(?<c>.*?)\})?)/g
@@ -79,28 +81,28 @@ let config = {
         if (v) for (const plr of world.getPlayers()) changeNametag(plr, true)
         else for (const plr of world.getPlayers()) plr.nameTag = plr.nickname
     },
-    /** Nametag update interval. */
+    /** Nametag update interval in milliseconds. Must be between 10 seconds and 2 minutes, */
     get nametagUpdateInterval() { return nametagInterval.interval },
     set nametagUpdateInterval(v) { nametagInterval.interval = Math.max( Math.min( v, 120000 ), 10000 ) },
-    /** Nametag format. */
+
+    /**
+     * Nametag format.
+     * 
+     * Escape with `#(var)`.
+     * 
+     * Escape with `#(var){(...arg)}` to call a function (arg splitted with `|`), e.g. `#score{obj}`.
+     */
     nametagFormat: '#role #name',
-    /** Message format. */
+    /**
+     * Message format.
+     * 
+     * Escape with `#(var)`.
+     * 
+     * Escape with `#(var){(...arg)}` to call a function (arg splitted with `|`), e.g. `#score{obj}`.
+     */
     messageFormat: '#role #name: #message',
     /** Role group style separator. */
     roleGroupStyleSeparator: ' '
-}
-
-// role groups & role styles
-let groupList: Map<string, roleGroup> = new Map
-
-type groupStyleData = [ tag: string, style: string ]
-
-type groupJSONData = {
-    readonly id: string
-    pos: number
-    display: 'always' | 'auto' | 'never'
-    defaultStyle: string
-    styles: groupStyleData[]
 }
 
 class roleGroupStyle {
@@ -179,17 +181,20 @@ class roleGroup {
     /**
      * Checks if a role group exists.
      * @param id Role group identifier.
+     * @returns Boolean - True if role group exists.
      */
     static readonly exist = (id: string) => groupList.has(id)
 
     /**
      * Gets role group list.
+     * @returns Iterator of groups.
      */
     static readonly getList = () => groupList.values()
 
     /**
      * Deletes a role group.
      * @param id Role group identifier.
+     * @returns Boolean - True if role group exists and successfully deleted.
      */
     static readonly delete = (id: string) => groupList.delete(id)
 
@@ -228,7 +233,7 @@ class roleGroup {
      * Creates a role group.
      * @param id Identifier.
      * @param pos Position. See {@link roleGroup.prototype.pos here} for more info.
-     * @param display Display. See {@link roleGroup.prototype.display here} for more info.
+     * @param display Role group display type. See {@link roleGroup.prototype.display here} for more info.
      * @param defaultStyle Default style. See {@link roleGroup.prototype.defaultStyle here} for more info.
      */
     constructor(id: string, pos?: number, display?: roleGroup['display'], defaultStyle?: string) {
@@ -250,7 +255,7 @@ class roleGroup {
     pos: number
 
     /**
-     * Role group display.
+     * Role group display type.
      * 
      * `always` - Always display the role group.
      * Will use the role group's default style if no group style found.
@@ -270,7 +275,10 @@ class roleGroup {
     /** Role group styles. */
     readonly styles = new roleGroupStyle(auth, this)
 
-    /** Converts group to JSON data. */
+    /**
+     * Converts group to JSON data.
+     * @returns JSON data.
+     */
     readonly toJSON = (): groupJSONData => {
         const {id, pos, display, defaultStyle} = this
         return { id, pos, display, defaultStyle, styles: [...this.styles] }
@@ -279,6 +287,7 @@ class roleGroup {
     /**
      * Gets group style from tags / player.
      * @param target Tags / player.
+     * @returns Group style.
      */
     readonly getStyle = (target: string[] | Player) => {
         if (this.display == 'never') return
@@ -288,6 +297,19 @@ class roleGroup {
 
         if (this.display == 'always') return this.defaultStyle
     }
+}
+
+// role groups & role styles
+let groupList: Map<string, roleGroup> = new Map
+
+type groupStyleData = [ tag: string, style: string ]
+
+type groupJSONData = {
+    readonly id: string
+    pos: number
+    display: 'always' | 'auto' | 'never'
+    defaultStyle: string
+    styles: groupStyleData[]
 }
 
 // event stuff
@@ -303,7 +325,7 @@ const changeNametag = (plr: Player, ignore = false) => {
 }
 server.ev.playerJoin.subscribe(plr => changeNametag(plr))
 chat.ev.nicknameChange.subscribe(({plr}) => changeNametag(plr))
-const nametagInterval = new server.interval(() => { for (const plr of world.getPlayers()) changeNametag(plr) }, 30000)
+const nametagInterval = new server.interval(() => { for (const plr of world.getPlayers()) changeNametag(plr) }, 15000)
 
 // format stuff
 type formatVariables = {
