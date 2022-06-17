@@ -21,7 +21,8 @@ export default class role {
      * @param message Player message.
      */
     static readonly format = (plr: Player, formatType: 'message' | 'nametag' = 'message', message?: string) => {
-        let format = config[ formatType == 'message' ? 'messageFormat' : 'nametagFormat' ]
+        const [formatO, formatCacheO] = formatType == 'message' ? [_messageFormat, _messageFormatCache] : [_nametagFormat, _nametagFormatCache]
+        let format = formatO
 
         // event
         const vars: formatVariables = empty({
@@ -49,19 +50,11 @@ export default class role {
         // change format according to the event
         format = evd.format
 
-        const rx = /((?<!\\)#(?<v>[\w\-]+)(\{(?<c>.*?)\})?)/g
-        let execres: RegExpExecArray, replaceList: [replace: string, to: string][] = []
-        while ( ( execres = rx.exec(format) ) !== null) {
-            const { v, c } = execres.groups,
-                m = execres[0],
-                o = c ? vars[v](...c.split('|')) : ( vars[v] ?? '' )
-
-            replaceList.push([m, o])
-        }
-
-        let o = format
-        for (let [r, t] of replaceList) o = o.replace(r, t)
-        return o.trim()
+        if ( format == formatO ) return formatCacheO.map(v => typeof v == 'string' ? v : v.call ? vars[v.propKey](...v.callArgs) : vars[v.propKey]).join('')
+        return format.replace(
+            /(?<!\\)#(?<propKey>[\w\-]+)(\{(?<call>.*?)\})?/g,
+            (match, propKey, _a, call = '') => call ? vars[propKey](...call.split('|')) : vars[propKey]
+        )
     }
 
     /** Configuration. */
@@ -71,7 +64,36 @@ export default class role {
 }
 
 // config
+const cacheFormat = (format: string) => {
+    const regex = /(?<!\\)#(?<propKey>[\w\-]+)(\{(?<call>.*?)\})?/g,
+        out: cachedFormatData = []
+    let match: RegExpExecArray
+
+    while (match = regex.exec(format)) {
+        const { propKey, call = '' } = match.groups
+
+        out.push(format.substring(0, match.index))
+        out.push({
+            propKey: propKey,
+            call: Boolean(call),
+            callArgs: call.split('|')
+        })
+
+        format = format.substring(regex.lastIndex)
+        regex.lastIndex = 0
+    }
+    out.push(format)
+
+    return out
+}
+type cachedFormatData = ( string | { propKey: string, callArgs?: string[], call: boolean } )[]
+
 let _applyRoleToNametag = true
+let _nametagFormat = '#role #name'
+let _nametagFormatCache = cacheFormat(_nametagFormat)
+let _messageFormat = '#role #name: #message'
+let _messageFormatCache = cacheFormat(_messageFormat)
+
 let config = {
     /** Apply role to nametag. */
     get applyRoleToNametag() {return _applyRoleToNametag},
@@ -92,7 +114,8 @@ let config = {
      * 
      * Escape with `#(var){(...arg)}` to call a function (arg splitted with `|`), e.g. `#score{obj}`.
      */
-    nametagFormat: '#role #name',
+    get nametagFormat() { return _nametagFormat },
+    set nametagFormat(v) { _nametagFormat = v; _nametagFormatCache = cacheFormat(v) },
     /**
      * Message format.
      * 
@@ -100,7 +123,8 @@ let config = {
      * 
      * Escape with `#(var){(...arg)}` to call a function (arg splitted with `|`), e.g. `#score{obj}`.
      */
-    messageFormat: '#role #name: #message',
+    get messageFormat() { return _messageFormat },
+    set messageFormat(v) { _messageFormat = v; _messageFormatCache = cacheFormat(v) },
     /** Role group style separator. */
     roleGroupStyleSeparator: ' '
 }
