@@ -14,8 +14,6 @@ import { sendMsg } from "../libcore/sendChat.js";
 import storage from "../libcore/storage.js";
 import server from "../libcore/server.js";
 import TypedValues from "../libcore/typedvalues.js";
-import SEBridgeConnector from "../libcore/bridgeconnector.js";
-import SEBridgeHost from "../libcore/bridgehost.js";
 
 import * as mc from 'mojang-minecraft'
 import * as mcui from 'mojang-minecraft-ui'
@@ -108,8 +106,6 @@ const o = new Proxy({
     server,
     storage,
     TypedValues,
-    SEBridgeHost,
-    SEBridgeConnector,
     get executer() { return gExecuter },
     mc,
     mcui,

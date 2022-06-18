@@ -134,7 +134,6 @@ export default storage
 import type { saveData as permissionSaveData } from "./permission.js"
 import type { saveData as chatSaveData } from "./chat.js"
 import type { saveData as roleSaveData } from "./role.js"
-import type { BridgeHostSaveData } from "./bridgehost.js"
 import type { ccStorageSaveData } from "./cc.js"
 
 const instance = (() => {
@@ -295,7 +294,6 @@ const instanceDefault = (() => {
         permission: permissionSaveData
         chat: chatSaveData
         role: roleSaveData
-        bridgeHost: BridgeHostSaveData
         cc: ccStorageSaveData
     }>('SE_default')
 
