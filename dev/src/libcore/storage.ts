@@ -23,19 +23,21 @@ const storage = (() => {
     
         /**
          * Executes a save data.
-         * @param id Identifier.
+         * @param id Save data identifier.
+         * @returns Boolean - True if save data successfully deleted.
          */
         static readonly for = (id: string) => {
-            if (!this.isLoaded) throw new Error(`Storage is not loaded`)
+            if (!this.isLoaded) throw new TypeError(`Storage is not loaded`)
             return new saveDataInfo(id)
         }
     
         /**
          * Deletes a save data.
-         * @param id Identifier.
+         * @param id Save data identifier.
+         * @returns Boolean - True if save data successfully deleted.
          */
         static readonly delete = (id: string) => {
-            if (!this.isLoaded) throw new Error(`Storage is not loaded`)
+            if (!this.isLoaded) throw new TypeError(`Storage is not loaded`)
             return !execCmd(`structure delete ${ JSON.stringify(id) }`, dim, true).statusCode
         }
     
@@ -79,7 +81,7 @@ const storage = (() => {
                 }
                 execCmd(`structure save ${this.execId} ${x} ${y} ${z} ${x} ${y} ${z} true disk false`, dim, true) // save
                 for (const ent of dim.getEntitiesAtBlockLocation(blLoc))
-                    if (ent.id != 'se:storage_data') clear(ent)
+                    if (ent.id == 'se:storage_data') clear(ent)
             }
         }
     }
@@ -137,44 +139,61 @@ import type { ccStorageSaveData } from "./cc.js"
 
 const instance = (() => {
     class storageInstance <T = {}> {
-        /** Gets default instance. */
+        /** Default instance. */
         static get default() { return instanceDefault }
 
         /**
          * Creates a storage instance.
-         * @param id Identifier.
+         * @param id Storage identifier.
          */
         constructor(id: string) {
             this.#id = id
             this.#execId = JSON.stringify(this.id)
 
             let saveInfo: ReturnType<typeof storage.for>
-            storage.onLoad(() => saveInfo = storage.for(id))
 
             this.save = () => {
-                if (!saveInfo) return new instantEventReturnFalse
+                if (!saveInfo) return { status: false }
                 const t0 = Date.now()
 
-                const evd: any = {}
-                const d = triggerEvent.save(evd)
+                const saveData: any = {}
+                const d = triggerEvent.save(saveData)
                 
-                const str = saveInfo.value = JSON.stringify(evd)
-                if (!d.break) triggerEvent.postSave(new instancePostEventEvd<T>(evd, str, Date.now() - t0))
+                const stringed = saveInfo.value = JSON.stringify(saveData)
+                if (!d.break) triggerEvent.postSave({
+                    data: saveData,
+                    stringed: stringed,
+                    time: Date.now() - t0
+                })
 
-                return new instantEventReturnTrue(evd, str, Date.now() - t0)
+                return {
+                    status: true,
+                    data: saveData,
+                    stringed: stringed,
+                    time: Date.now() - t0
+                }
             }
             this.load = () => {
-                if (!saveInfo) return new instantEventReturnFalse
+                if (!saveInfo) return { status: false }
                 const t0 = Date.now()
 
-                const str = saveInfo.value
+                const stringed = saveInfo.value
 
-                const evd: any = JSON.parse(saveInfo.value)
-                const d = triggerEvent.load(evd)
+                const saveData: any = JSON.parse(saveInfo.value)
+                const d = triggerEvent.load(saveData)
 
-                if (!d.break) triggerEvent.postLoad(new instancePostEventEvd<T>(evd, str, Date.now() - t0))
+                if (!d.break) triggerEvent.postLoad({
+                    data: saveData,
+                    stringed: stringed,
+                    time: Date.now() - t0
+                })
                 
-                return new instantEventReturnTrue(evd, str, Date.now() - t0)
+                return {
+                    status: true,
+                    data: saveData,
+                    stringed: stringed,
+                    time: Date.now() - t0
+                }
             }
             this.delete = () => {
                 if (!saveInfo.value) return false
@@ -186,6 +205,7 @@ const instance = (() => {
             this.ev = this.events = events
 
             storage.onLoad(async () => {
+                saveInfo = storage.for(id)
                 if (!this.autoload || !saveInfo.value) return
                 await server.nextTick // ensures all have loaded, then execute autoload
                 this.load()
@@ -193,7 +213,7 @@ const instance = (() => {
         }
 
         #id: string
-        /** Identifier. */
+        /** Storage identifier. */
         get id() { return this.#id }
         set id(v) {
             this.#id = v
@@ -204,20 +224,22 @@ const instance = (() => {
         /** Executable identifier. */
         get execId() { return this.#execId }
 
-        /** Events. */
         readonly ev: eventManager<instanceEvents<T>>['events']
         readonly events: eventManager<instanceEvents<T>>['events']
 
         /**
          * Saves current data.
+         * @returns Save data.
          */
         readonly save: () => instantEventReturn<T>
         /**
          * Loads saved data.
+         * @returns Save data.
          */
         readonly load: () => instantEventReturn<T>
         /**
          * Deletes saved data.
+         * @returns Boolean - True if save data successfully deleted.
          */
         readonly delete: () => boolean
 
@@ -228,7 +250,7 @@ const instance = (() => {
         autoload = true
 
         #autosaveInterval = new server.interval(() => this.save(), 40000)
-        /** Autosave interval. Must be between 15 seconds to 2 minutes. Set to 0 to disable. */
+        /** Autosave interval in milliseconds. Must be greater than 5 seconds. 0 for disable. */
         get autosaveInterval() { return this.#autosaveInterval?.interval ?? 0 }
         set autosaveInterval(v) {
             if (v <= 0 && this.#autosaveInterval) {
@@ -236,7 +258,7 @@ const instance = (() => {
                 this.#autosaveInterval = undefined
             }
             this.#autosaveInterval ??= new server.interval(this.save, 40000)
-            this.#autosaveInterval.interval = Math.max(Math.min(v, 120000), 15000)
+            this.#autosaveInterval.interval = Math.max(v, 5000)
         }
     }
 
@@ -248,46 +270,14 @@ const instance = (() => {
         postLoad: (evd: instancePostEventEvd<T> ) => void
     }>
     
-    class instancePostEventEvd <T> {
-        constructor(data: T, stringed: string, time: number) {
-            this.data = data
-            this.stringed = stringed
-            this.time = time
-        }
-
-        /** Save data. */
+    type instancePostEventEvd <T> = {
         readonly data: T
-        /** Stringed data. */
         readonly stringed: string
-        /** Time taken. */
         readonly time: number
     }
 
     // return
-    type instantEventReturn <T> = instantEventReturnFalse | instantEventReturnTrue<T>
-    class instantEventReturnFalse {
-        constructor() {}
-
-        /** Event is not executed. */
-        readonly status = false
-    }
-    class instantEventReturnTrue <T> {
-        constructor(data: T, stringed: string, time: number) {
-            this.data = data
-            this.stringed = stringed
-            this.time = time
-        }
-
-        /** Event is executed. */
-        readonly status = false
-
-        /** Save data. */
-        readonly data: T
-        /** Stringed data. */
-        readonly stringed: string
-        /** Time taken. */
-        readonly time: number
-    }
+    type instantEventReturn <T> = { readonly status: true } & instancePostEventEvd<T> | { readonly status: false }
 
     return storageInstance
 })()
@@ -326,14 +316,18 @@ const instanceDefault = (() => {
         }
         if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
         if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
-        switch (data.saveInfo.version) {
-            case 1.0000: {
-                data.saveInfo.version = 1.0101
-                data.cc.ccs.push({
-                    id: 'tps',
-                    extends: true,
-                    data: {}
-                })
+        while (data.saveInfo.version != curVer) {
+            switch (data.saveInfo.version) {
+                case 1.0000: {
+                    data.saveInfo.version = 1.0101
+                    data.cc.ccs.push({
+                        id: 'tps',
+                        extends: true,
+                        data: {}
+                    })
+                }; break
+                default:
+                    br(TypeError, `Unknown version v${data.saveInfo.version}.`)
             }
         }
     }, Infinity)

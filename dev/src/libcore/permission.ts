@@ -12,29 +12,34 @@ export default class permission {
     /**
      * Test if a tag has permission level assigned to it.
      * @param tag Tag.
+     * @returns Boolean - True if tag has permission level assigned to it.
      */
     static readonly isAssigned = (tag: string) => tag in list
 
     /**
      * Deassigns permission level from a tag.
-     * @param tag Tag which permission level will be removed.
+     * @param tag Tag which permission level will be removed from.
+     * @returns Boolean - True if tag has permission level assigned to it and deleted successfully.
      */
     static readonly deassign = (tag: string) => { const v = tag in list; return delete list[tag], v }
 
     /**
      * Gets role group list.
+     * @returns Array entries of tag and its permission level assigned to it.
      */
     static readonly getList = () => Object.entries(list)
 
-    /**.
-     * ets permission level assigned to the tag.
+    /**
+     * Gets permission level assigned to the tag.
      * @param tag Tag.
+     * @returns Permision level assigned to the tag.
      */
     static readonly 'get' = (tag: string) => list[tag]
 
     /**
      * Gets permission level from tags.
      * @param tags Tags.
+     * @returns Highest permission level.
      */
     static readonly getLevel = (tags: string[]) => tags.reduce((lev, tag) => ( tag in list && list[tag] > lev ) ? list[tag] : lev, 0)
 

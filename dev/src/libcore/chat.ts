@@ -75,24 +75,28 @@ class chatGroup {
 
     /**
      * Gets chat group list.
+     * @returns iterator of chat groups.
      */
      static readonly getList = () => groupList.values()
 
     /**
      * Checks if a chat group exists.
      * @param id chat group identifier.
+     * @returns Boolean - True if the chat group exists.
      */
     static readonly exist = (id: string) => groupList.has(id)
 
     /**
      * Deletes a chat group.
      * @param id chat group identifier.
+     * @returns Boolean - True if the chat group exists and successfully deleted.
      */
     static readonly delete = (id: string) => groupList.delete(id)
 
     /**
      * Gets group from player.
      * @param plr Player.
+     * @returns Group which filter matches the player.
      */
     static readonly getGroup = (plr: Player) => {
         for (const group of [...groupList.values()].sort((a, b) => b.priority - a.priority))
@@ -102,6 +106,7 @@ class chatGroup {
     /**
      * Gets group targets.
      * @param group Group.
+     * @returns Array of players.
      */
     static readonly getGroupTargets = (group: chatGroup) => {
         if (!group) return []
@@ -114,6 +119,7 @@ class chatGroup {
     /**
      * Gets group targets with iterator.
      * @param group Group.
+     * @returns Iterator of players.
      */
     static readonly IteratorGetGroupTargets = function* (group: chatGroup) {
         if (!group) return
@@ -172,7 +178,7 @@ class chatGroup {
     }
 
     constructor(id: string, priority?: number, tagFilter?: chatGroupTagFilter) {
-        if (groupList.has(id)) throw new ReferenceError(`Chat group with ID '${id}' already exists`)
+        if (groupList.has(id)) throw new TypeError(`Chat group with ID '${id}' already exists`)
         this.id = id
         this.priority = priority ?? 1
         this.tagFilter = tagFilter ?? {}
@@ -190,14 +196,26 @@ class chatGroup {
     /** Default cancel message. Only used if `cancelLevel` is set to `2`. */
     defaultCancelMessage: string = null
 
-    /** Gets group targets. */
+    /**
+     * Gets group targets.
+     * @returns Array of players.
+     */
     readonly getTargets = () => chatGroup.getGroupTargets(this)
-    /** Gets group targets in iterator. */
+    /**
+     * Gets group targets in iterator.
+     * @returns Iterator of players.
+     */
     readonly IteratorGetTargets = () => chatGroup.IteratorGetGroupTargets(this)
-    /** Tests group filter against the player. */
+    /**
+     * Tests group filter against the player.
+     * @returns Boolean - True if group filter matches with the player.
+     */
     readonly testFilter = (plr: Player) => chatGroup.testGroupFilter(this, plr)
 
-    /** Converts to JSON data. */
+    /**
+     * Converts to JSON data.
+     * @returns JSON Data.
+     */
     readonly toJSON = (): chatGroupJSONData => {
         const { id, priority, tagFilter, defaultCancelLevel, defaultCancelMessage } = this
         return { id, priority, tagFilter, defaultCancelLevel, defaultCancelMessage }

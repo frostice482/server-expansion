@@ -50,22 +50,28 @@ export default class SEBridgeConnector {
     readonly send = (maxWaitTime = 1800) => new Promise<void>(async (res, rej) => {
         if (!SEBridgeConnector.hostIsLoaded) throw new ReferenceError(`Bridge host is not loaded.`)
 
-        let destroy = false
-        if (maxWaitTime != Infinity) waitFor(maxWaitTime).then(() => {
-            destroy = true
-            rej(new RangeError(`Timeout reached`))
-            try { pliEnt.triggerEvent('se:kill') } catch {}
-        })
-
         let pliEnt: Entity
 
         while(true) {
             await waitFor()
 
+            // look for entity where it can spawn at
             const [ent] = entLoader ? [entLoader] : world.getPlayers()
             if (!ent) continue
 
-            pliEnt = ent.dimension.spawnEntity('se:bridge', Object.assign( ent.location, { y: 1023.5 } ) )
+            // summon entity
+            try { pliEnt = ent.dimension.spawnEntity('se:bridge', Object.assign( ent.location, { y: 1023.5 } ) ) }
+            catch { continue }
+
+            // start timer
+            let destroy = false
+            if (maxWaitTime != Infinity) waitFor(maxWaitTime).then(() => {
+                destroy = true
+                rej(new RangeError(`Timeout reached`))
+                try { pliEnt.triggerEvent('se:kill') } catch {}
+            })
+
+            // waiting for response from host
             while (pliEnt.nameTag != 'start') {
                 if (destroy) return
                 await 0
@@ -73,10 +79,12 @@ export default class SEBridgeConnector {
             await 0
             await 0
 
+            // auth
             pliEnt.nameTag = pliEnt.nameTag.slice(2, -2)
             await 0
             await 0
 
+            // send data
             const { id, name, description, author, type, executeOnRegister, execMain, versionCode, saveOnRegister } = this
             pliEnt.nameTag = JSON.stringify({
                 id,
@@ -111,5 +119,5 @@ let entLoader: Entity;
     const opts = new EntityQueryOptions
     opts.type = 'se:area_loader'
 
-    while(!( [entLoader] = ow.getEntities(opts) )) await waitFor()
+    while(!( [entLoader] = ow.getEntities(opts), entLoader )) await waitFor()
 })()

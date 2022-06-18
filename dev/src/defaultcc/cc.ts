@@ -246,7 +246,7 @@ new cc('cc', {
         let ccd: cc
         switch (tArgs[0]) {
             case 'create': {
-                if (cc.exist(tArgs[1])) throw new cc.error(`Custom command with ID '${tArgs[1]}' already exists.`)
+                if (cc.exist(tArgs[1])) throw new cc.error(`Custom command with ID '${tArgs[1]}' already exists.`, 'TypeError')
                 ccd = new cc(tArgs[1], {
                     description: new cc.description,
                     typedArgs: new cc.typedArgs,
@@ -313,13 +313,13 @@ new cc('cc', {
                     log(`Custom command is now ${ccd.isHidden ? 'hidden' : 'visible'}.`)
                 }; break
                 case '-set_trigger': {
-                    if (ccd.isDefault) throw new Error(`Cannot edit default command`)
+                    if (ccd.isDefault) throw new cc.error(`Cannot edit default command`, 'TypeError')
                     ccd.triggers = eArg[2]
                     log(`Custom command trigger has been set to ${eArg[2] instanceof RegExp ? `§c${eArg[2]}§r` : eArg[2].map(v => `§a${v}§r`).join(', ')}.`)
                     tArgs.splice(0, 1)
                 }; break
                 case '-on_trigger:': {
-                    if (ccd.isDefault) throw new Error(`Cannot edit default command`)
+                    if (ccd.isDefault) throw new cc.error(`Cannot edit default command`, 'TypeError')
                     tArgs.splice(0, 1)
                     let ot = ccd.onTrigger
                     on_trigger:
@@ -332,7 +332,7 @@ new cc('cc', {
                             }; break
                             case '-add_json': {
                                 if (!Array.isArray(ot)) throw new cc.error(`On trigger: Not an array`, 'TypeError')
-                                if (eArg[1].type == 'eval' && permission.getLevel(executer.getTags()) < 100) throw new Error(`On trigger 'eval' type can only be used by someone who has permission level equal to or higher than 100`)
+                                if (eArg[1].type == 'eval' && permission.getLevel(executer.getTags()) < 100) throw new cc.error(`On trigger 'eval' type can only be used by someone who has permission level equal to or higher than 100`, 'TypeError')
                                 ot.push(eArg[1])
                                 log(`On trigger: Added on trigger data (type: ${eArg[1].type}).`)
                             }; break
@@ -358,7 +358,7 @@ new cc('cc', {
                     continue
                 }
                 case '-typed_args:': {
-                    if (ccd.isDefault) throw new Error(`Cannot edit default command`)
+                    if (ccd.isDefault) throw new cc.error(`Cannot edit default command`, 'TypeError')
                     tArgs.splice(0, 1)
                     let ta = ccd.typedArgs ??= new cc.typedArgs
                     typed_args:
@@ -395,7 +395,7 @@ new cc('cc', {
                     continue
                 }
                 case '-description:': {
-                    if (ccd.isDefault) throw new Error(`Cannot edit default command`)
+                    if (ccd.isDefault) throw new cc.error(`Cannot edit default command`, 'TypeError')
                     tArgs.splice(0, 1)
 
                     let desc = ccd.description ??= new cc.description

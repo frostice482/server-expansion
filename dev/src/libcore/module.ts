@@ -26,7 +26,8 @@ const SEModule = seMisc.empty({
     sendChat,
     server,
     storage,
-    TypedValues
+    TypedValues,
+    misc: seMisc
 })
 
 export default SEModule

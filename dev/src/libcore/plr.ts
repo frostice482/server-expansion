@@ -12,7 +12,7 @@ export default class plr {
     protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
-// property, uid, player register stuff
+// Player UID
 world.events.worldInitialize.subscribe(({propertyRegistry}) => {
     const regPlr = new DynamicPropertiesDefinition
     regPlr.defineNumber('PLR:uid')
@@ -25,6 +25,7 @@ world.events.worldInitialize.subscribe(({propertyRegistry}) => {
     world.setDynamicProperty('PLR:uidc', world.getDynamicProperty('PLR:uidc') ?? 1)
 })
 
+// Extending player properties
 Object.defineProperties(Player.prototype, {
     level: {
         get: function getLevel() {
@@ -53,16 +54,6 @@ Object.defineProperties(SimulatedPlayer.prototype, {
         }
     }
 })
-
-server.ev.playerJoin.subscribe((plr) => {
-    if (plr.getDynamicProperty('PLR:uid') == undefined) {
-        const nuid = world.getDynamicProperty('PLR:uidc') as number
-        plr.setDynamicProperty('PLR:uid', nuid)
-        world.setDynamicProperty('PLR:uidc', nuid + 1)
-
-        triggerEvent.playerRegister(plr)
-    }
-}, 80)
 
 // instance
 Object.defineProperty(Player, Symbol.hasInstance, { value: (v) => Object.getPrototypeOf(v).constructor == SimulatedPlayer })
@@ -114,3 +105,13 @@ Object.defineProperties(SimulatedPlayer.prototype, {
         }
     }
 })
+
+server.ev.playerJoin.subscribe((plr) => {
+    if (plr.getDynamicProperty('PLR:uid') == undefined) {
+        const nuid = world.getDynamicProperty('PLR:uidc') as number
+        plr.setDynamicProperty('PLR:uid', nuid)
+        world.setDynamicProperty('PLR:uidc', nuid + 1)
+
+        triggerEvent.playerRegister(plr)
+    }
+}, 80)

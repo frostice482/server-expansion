@@ -21,8 +21,10 @@ export default class role {
      * @param message Player message.
      */
     static readonly format = (plr: Player, formatType: 'message' | 'nametag' = 'message', message?: string) => {
-        let format = config[ formatType == 'message' ? 'messageFormat' : 'nametagFormat' ]
+        const [formatO, formatCacheO] = formatType == 'message' ? [_messageFormat, _messageFormatCache] : [_nametagFormat, _nametagFormatCache]
+        let format = formatO
 
+        // event
         const vars: formatVariables = empty({
             name: plr.nickname,
             message,
@@ -45,21 +47,14 @@ export default class role {
         }
         triggerEvent.format(evd)
 
+        // change format according to the event
         format = evd.format
 
-        const rx = /((?<!\\)#(?<v>[\w\-]+)(\{(?<c>.*?)\})?)/g
-        let execres: RegExpExecArray, replaceList: [replace: string, to: string][] = []
-        while ( ( execres = rx.exec(format) ) !== null) {
-            const { v, c } = execres.groups,
-                m = execres[0],
-                o = c ? vars[v](...c.split('|')) : ( vars[v] ?? '' )
-
-            replaceList.push([m, o])
-        }
-
-        let o = format
-        for (let [r, t] of replaceList) o = o.replace(r, t)
-        return o.trim()
+        if ( format == formatO ) return formatCacheO.map(v => typeof v == 'string' ? v : v.call ? vars[v.propKey](...v.callArgs) : vars[v.propKey]).join('')
+        return format.replace(
+            /(?<!\\)#(?<propKey>[\w\-]+)(\{(?<call>.*?)\})?/g,
+            (match, propKey, _a, call = '') => call ? vars[propKey](...call.split('|')) : vars[propKey]
+        )
     }
 
     /** Configuration. */
@@ -69,7 +64,36 @@ export default class role {
 }
 
 // config
+const cacheFormat = (format: string) => {
+    const regex = /(?<!\\)#(?<propKey>[\w\-]+)(\{(?<call>.*?)\})?/g,
+        out: cachedFormatData = []
+    let match: RegExpExecArray
+
+    while (match = regex.exec(format)) {
+        const { propKey, call = '' } = match.groups
+
+        out.push(format.substring(0, match.index))
+        out.push({
+            propKey: propKey,
+            call: Boolean(call),
+            callArgs: call.split('|')
+        })
+
+        format = format.substring(regex.lastIndex)
+        regex.lastIndex = 0
+    }
+    out.push(format)
+
+    return out
+}
+type cachedFormatData = ( string | { propKey: string, callArgs?: string[], call: boolean } )[]
+
 let _applyRoleToNametag = true
+let _nametagFormat = '#role #name'
+let _nametagFormatCache = cacheFormat(_nametagFormat)
+let _messageFormat = '#role #name: #message'
+let _messageFormatCache = cacheFormat(_messageFormat)
+
 let config = {
     /** Apply role to nametag. */
     get applyRoleToNametag() {return _applyRoleToNametag},
@@ -79,28 +103,30 @@ let config = {
         if (v) for (const plr of world.getPlayers()) changeNametag(plr, true)
         else for (const plr of world.getPlayers()) plr.nameTag = plr.nickname
     },
-    /** Nametag update interval. */
+    /** Nametag update interval in milliseconds. Must be between 10 seconds and 2 minutes, */
     get nametagUpdateInterval() { return nametagInterval.interval },
     set nametagUpdateInterval(v) { nametagInterval.interval = Math.max( Math.min( v, 120000 ), 10000 ) },
-    /** Nametag format. */
-    nametagFormat: '#role #name',
-    /** Message format. */
-    messageFormat: '#role #name: #message',
+
+    /**
+     * Nametag format.
+     * 
+     * Escape with `#(var)`.
+     * 
+     * Escape with `#(var){(...arg)}` to call a function (arg splitted with `|`), e.g. `#score{obj}`.
+     */
+    get nametagFormat() { return _nametagFormat },
+    set nametagFormat(v) { _nametagFormat = v; _nametagFormatCache = cacheFormat(v) },
+    /**
+     * Message format.
+     * 
+     * Escape with `#(var)`.
+     * 
+     * Escape with `#(var){(...arg)}` to call a function (arg splitted with `|`), e.g. `#score{obj}`.
+     */
+    get messageFormat() { return _messageFormat },
+    set messageFormat(v) { _messageFormat = v; _messageFormatCache = cacheFormat(v) },
     /** Role group style separator. */
     roleGroupStyleSeparator: ' '
-}
-
-// role groups & role styles
-let groupList: Map<string, roleGroup> = new Map
-
-type groupStyleData = [ tag: string, style: string ]
-
-type groupJSONData = {
-    readonly id: string
-    pos: number
-    display: 'always' | 'auto' | 'never'
-    defaultStyle: string
-    styles: groupStyleData[]
 }
 
 class roleGroupStyle {
@@ -179,17 +205,20 @@ class roleGroup {
     /**
      * Checks if a role group exists.
      * @param id Role group identifier.
+     * @returns Boolean - True if role group exists.
      */
     static readonly exist = (id: string) => groupList.has(id)
 
     /**
      * Gets role group list.
+     * @returns Iterator of groups.
      */
     static readonly getList = () => groupList.values()
 
     /**
      * Deletes a role group.
      * @param id Role group identifier.
+     * @returns Boolean - True if role group exists and successfully deleted.
      */
     static readonly delete = (id: string) => groupList.delete(id)
 
@@ -228,11 +257,11 @@ class roleGroup {
      * Creates a role group.
      * @param id Identifier.
      * @param pos Position. See {@link roleGroup.prototype.pos here} for more info.
-     * @param display Display. See {@link roleGroup.prototype.display here} for more info.
+     * @param display Role group display type. See {@link roleGroup.prototype.display here} for more info.
      * @param defaultStyle Default style. See {@link roleGroup.prototype.defaultStyle here} for more info.
      */
     constructor(id: string, pos?: number, display?: roleGroup['display'], defaultStyle?: string) {
-        if (groupList.has(id)) throw new ReferenceError(`Role group with ID '${id}' already exists`)
+        if (groupList.has(id)) throw new TypeError(`Role group with ID '${id}' already exists`)
         this.id = id
         this.pos = pos ?? 1
         this.display = display ?? 'auto'
@@ -250,7 +279,7 @@ class roleGroup {
     pos: number
 
     /**
-     * Role group display.
+     * Role group display type.
      * 
      * `always` - Always display the role group.
      * Will use the role group's default style if no group style found.
@@ -270,7 +299,10 @@ class roleGroup {
     /** Role group styles. */
     readonly styles = new roleGroupStyle(auth, this)
 
-    /** Converts group to JSON data. */
+    /**
+     * Converts group to JSON data.
+     * @returns JSON data.
+     */
     readonly toJSON = (): groupJSONData => {
         const {id, pos, display, defaultStyle} = this
         return { id, pos, display, defaultStyle, styles: [...this.styles] }
@@ -279,6 +311,7 @@ class roleGroup {
     /**
      * Gets group style from tags / player.
      * @param target Tags / player.
+     * @returns Group style.
      */
     readonly getStyle = (target: string[] | Player) => {
         if (this.display == 'never') return
@@ -288,6 +321,19 @@ class roleGroup {
 
         if (this.display == 'always') return this.defaultStyle
     }
+}
+
+// role groups & role styles
+let groupList: Map<string, roleGroup> = new Map
+
+type groupStyleData = [ tag: string, style: string ]
+
+type groupJSONData = {
+    readonly id: string
+    pos: number
+    display: 'always' | 'auto' | 'never'
+    defaultStyle: string
+    styles: groupStyleData[]
 }
 
 // event stuff
@@ -303,7 +349,7 @@ const changeNametag = (plr: Player, ignore = false) => {
 }
 server.ev.playerJoin.subscribe(plr => changeNametag(plr))
 chat.ev.nicknameChange.subscribe(({plr}) => changeNametag(plr))
-const nametagInterval = new server.interval(() => { for (const plr of world.getPlayers()) changeNametag(plr) }, 30000)
+const nametagInterval = new server.interval(() => { for (const plr of world.getPlayers()) changeNametag(plr) }, 15000)
 
 // format stuff
 type formatVariables = {

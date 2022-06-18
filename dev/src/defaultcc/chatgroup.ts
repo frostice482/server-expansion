@@ -49,7 +49,7 @@ new cc('chatgroup', {
                 const id = tArgs[1],
                     priority = tArgs[2],
                     tagFilter = tArgs[3]
-                if (chat.group.exist(id)) throw new cc.error(`Chat group with ID '${id}' already exists.`, 'ReferenceError')
+                if (chat.group.exist(id)) throw new cc.error(`Chat group with ID '${id}' already exists.`, 'TypeError')
                 
                 new chat.group(id, priority, tagFilter)
                 return log(`Created chat group with ID '${id}'.`)

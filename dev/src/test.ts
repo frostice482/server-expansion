@@ -1,6 +1,5 @@
-import { BlockLocation, world } from "mojang-minecraft"
+import { BlockLocation } from "mojang-minecraft"
 import * as gt from 'mojang-gametest'
-import server from "./libcore/server.js"
 
 gt.register("SE", "spawnFakePlayer", (test) => {
     test.print('A simulated player has been spawned. It will exist for up to 120 seconds.')
