@@ -204,7 +204,7 @@ const instance = (() => {
             this.ev = this.events = events
 
             storage.onLoad(async () => {
-                saveInfo = storage.for(id)
+                this.#saveInfo = saveInfo = storage.for(id)
                 if (!this.autoload || !saveInfo.value) return
                 await server.nextTick // ensures all have loaded, then execute autoload
                 this.load()
@@ -222,6 +222,10 @@ const instance = (() => {
         #execId: string
         /** Executable identifier. */
         get execId() { return this.#execId }
+
+        #saveInfo: ReturnType<typeof storage.for>
+        /** Save info. */
+        get saveInfo() { return this.#saveInfo }
 
         readonly ev: eventManager<instanceEvents<T>>['events']
         readonly events: eventManager<instanceEvents<T>>['events']
@@ -282,7 +286,7 @@ const instance = (() => {
 })()
 
 const instanceDefault = (() => {
-    const curVer = 1.0101
+    const curVer = 1.02
     const defaultInstance = new instance<{
         [k: string]: any
         saveInfo: {
@@ -316,14 +320,6 @@ const instanceDefault = (() => {
         if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
         while (data.saveInfo.version != curVer) {
             switch (data.saveInfo.version) {
-                case 1.0000: {
-                    data.saveInfo.version = 1.0101
-                    data.cc.ccs.push({
-                        id: 'tps',
-                        extends: true,
-                        data: {}
-                    })
-                }; break
                 default:
                     br(TypeError, `Unknown version v${data.saveInfo.version}.`)
             }
@@ -342,10 +338,10 @@ const instanceDefault = (() => {
 
     world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
         const reg = new DynamicPropertiesDefinition
-        reg.defineString('STR:defId', 12)
+        reg.defineString('STR:defId', 24)
         propertyRegistry.registerWorldDynamicProperties(reg)
 
-        const newId = randomstr(12)
+        const newId = `STR_${randomstr(12)}`
         defaultInstance.id = world.getDynamicProperty('STR:defId') as string ?? ( world.setDynamicProperty('STR:defId', newId), newId )
     })
 
