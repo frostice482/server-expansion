@@ -237,37 +237,45 @@ class Plugin {
     static localStorage = class bridgeInstanceLocalStorage {
         constructor(key: typeof auth, pli: Plugin) {
             if (key !== auth) throw new TypeError('Class is not constructable')
-
-            this.#storage = storage.for(`SEP_${pli.#unique}_D`)
-            Object.assign(this.#data, empty(JSON.parse(this.#storage.value ?? '{}')))
-
             this.#pli = pli
+
+            const storageData = storage.for(`SEP_${pli.#unique}_D`)
+            const data = empty(JSON.parse(storageData.value ?? '{}'))
+
+            this.data = new Proxy(data, {
+                defineProperty: (t, p, d) => {
+                    if (typeof p == 'symbol') throw new TypeError(`Property key cannot be a symbol`)
+    
+                    t[p] = d.value
+                    update()
+                    return true
+                },
+                deleteProperty: (t, p) => {
+                    if (typeof p == 'symbol') throw new TypeError(`Property key cannot be a symbol`)
+                    delete t[p]
+                    update()
+                    return true
+                }
+            })
+
+            let isUpdating = false
+            const update = () => {
+                if (isUpdating) return
+                isUpdating = true
+                new server.timeout(() => {
+                    storageData.value = JSON.stringify(data)
+                    isUpdating = false
+                }, 15000)
+            }
         }
 
         #pli: Plugin
-        #storage: ReturnType<typeof storage.for>
-        #data: List<any> = empty()
-        #update = () => this.#storage.value = JSON.stringify(this.#data)
 
         /** Unique save identifier. */
         get id() { return this.#pli.#unique }
 
         /** Save data. */
-        readonly data = new Proxy(this.#data, {
-            defineProperty: (t, p, d) => {
-                if (typeof p == 'symbol') throw new TypeError(`Property key cannot be a symbol`)
-
-                t[p] = d.value
-                this.#update()
-                return true
-            },
-            deleteProperty: (t, p) => {
-                if (typeof p == 'symbol') throw new TypeError(`Property key cannot be a symbol`)
-                delete t[p]
-                this.#update()
-                return true
-            }
-        })
+        readonly data: List<any>
     }
 }
 
