@@ -15,7 +15,7 @@ class Plugin {
      * @param data JSON data.
      */
     static readonly fromJSON = (data: importJSONData) => {
-        if (!importValidator.test(data)) throw Error(`Plugin data does not match type ${importValidator.name}`)
+        if (!importValidator.test(data)) throw TypeError(`Plugin data does not match type ${importValidator.name}`)
         data.internalModules = empty(data.internalModules)
         return new Plugin(auth, data)
     }
@@ -58,7 +58,7 @@ class Plugin {
         if (key !== auth) throw new TypeError('Class is not constructable')
 
         const tPli = pluginList.get(data.id)
-        if (tPli?.isExecuted) throw new ReferenceError(`Plugin with ID '${data.id}' already exists and has already been loaded. Consider unloading it first before overwriting it with a newer one.`)
+        if (tPli?.isExecuted) throw new TypeError(`Plugin with ID '${data.id}' already exists and has already been loaded. Consider unloading it first before overwriting it with a newer one.`)
         if (tPli?.versionCode > data.versionCode) return tPli
 
         this.#pluginData = data

@@ -178,7 +178,7 @@ class chatGroup {
     }
 
     constructor(id: string, priority?: number, tagFilter?: chatGroupTagFilter) {
-        if (groupList.has(id)) throw new ReferenceError(`Chat group with ID '${id}' already exists`)
+        if (groupList.has(id)) throw new TypeError(`Chat group with ID '${id}' already exists`)
         this.id = id
         this.priority = priority ?? 1
         this.tagFilter = tagFilter ?? {}

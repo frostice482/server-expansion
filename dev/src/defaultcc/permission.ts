@@ -47,8 +47,8 @@ new cc('permission', {
                 const id1 = tArgs[1],
                     id2 = tArgs[2]
 
-                if (!permission.isAssigned(id1)) throw new cc.error(`Permission level is not assigned to tag '${id1}'.`)
-                if (permission.isAssigned(id2)) throw new cc.error(`Permission level has already been assigned to tag '${id2}'.`)
+                if (!permission.isAssigned(id1)) throw new cc.error(`Permission level is not assigned to tag '${id1}'.`, 'ReferenceError')
+                if (permission.isAssigned(id2)) throw new cc.error(`Permission level has already been assigned to tag '${id2}'.`, 'TypeError')
 
                 const tagLevel = permission.get(id1)
                 if (tagLevel > executerLvl) throw new cc.error(`Cannot rename tag which has permission level higher than you have\n(renaming '${id1}' (${tagLevel}) to '${id2}' (${tagLevel}), maximum: ${executerLvl})`, `RangeError`)
@@ -68,7 +68,7 @@ new cc('permission', {
             case 'delete': {
                 const id = tArgs[1]
 
-                if (!permission.isAssigned(id)) throw new cc.error(`Permission level is not assigned to tag '${id}'.`)
+                if (!permission.isAssigned(id)) throw new cc.error(`Permission level is not assigned to tag '${id}'.`, 'ReferenceError')
 
                 const tagLevel = permission.get(id)
                 if (tagLevel >= executerLvl) throw new cc.error(`Cannot assign permission level to a tag equal  or higher than you have\n(deleting '${id}' (${tagLevel}), maximum: ${executerLvl})`, `RangeError`)
@@ -79,5 +79,5 @@ new cc('permission', {
         }
     },
     isDefault: true,
-    onDelete: () => { throw new Error(`Cannot be deleted`) }
+    onDelete: () => { throw new TypeError(`Cannot be deleted`) }
 })

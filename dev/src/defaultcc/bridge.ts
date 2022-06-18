@@ -69,8 +69,8 @@ new cc('bridge', {
             case 'execute': {
                 const pli = SEBridgeHost.plugin.get(tArgs[1])
                 if (!pli) throw new cc.error(`Plugin with ID '${tArgs[1]}' not found`, 'ReferenceError')
-                if (pli.isExecuted) throw new cc.error(`Plugin has already been executed`)
-                if (pli.type == 'module') throw new cc.error(`Plugin cannot be executed by user`)
+                if (pli.isExecuted) throw new cc.error(`Plugin has already been executed`, 'TypeError')
+                if (pli.type == 'module') throw new cc.error(`Plugin cannot be executed by user`, 'TypeError')
 
                 const t1 = Date.now()
                 log(`Executing ${pli.name} (${pli.id})`)
@@ -84,7 +84,7 @@ new cc('bridge', {
             case 'delete': {
                 const pli = SEBridgeHost.plugin.get(tArgs[1])
                 if (!pli) throw new cc.error(`Plugin with ID '${tArgs[1]}' not found`, 'ReferenceError')
-                if (pli.isExecuted) throw new cc.error(`Plugin has already been executed and cannot be unloaded.`)
+                if (pli.isExecuted) throw new cc.error(`Plugin has already been executed and cannot be unloaded.`, 'TypeError')
 
                 SEBridgeHost.plugin.delete(tArgs[1])
                 return log(`Deleted plugin with ID '${tArgs[1]}'.`)

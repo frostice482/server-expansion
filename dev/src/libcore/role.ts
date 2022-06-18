@@ -261,7 +261,7 @@ class roleGroup {
      * @param defaultStyle Default style. See {@link roleGroup.prototype.defaultStyle here} for more info.
      */
     constructor(id: string, pos?: number, display?: roleGroup['display'], defaultStyle?: string) {
-        if (groupList.has(id)) throw new ReferenceError(`Role group with ID '${id}' already exists`)
+        if (groupList.has(id)) throw new TypeError(`Role group with ID '${id}' already exists`)
         this.id = id
         this.pos = pos ?? 1
         this.display = display ?? 'auto'

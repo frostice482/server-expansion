@@ -27,7 +27,7 @@ const storage = (() => {
          * @returns Boolean - True if save data successfully deleted.
          */
         static readonly for = (id: string) => {
-            if (!this.isLoaded) throw new Error(`Storage is not loaded`)
+            if (!this.isLoaded) throw new TypeError(`Storage is not loaded`)
             return new saveDataInfo(id)
         }
     
@@ -37,7 +37,7 @@ const storage = (() => {
          * @returns Boolean - True if save data successfully deleted.
          */
         static readonly delete = (id: string) => {
-            if (!this.isLoaded) throw new Error(`Storage is not loaded`)
+            if (!this.isLoaded) throw new TypeError(`Storage is not loaded`)
             return !execCmd(`structure delete ${ JSON.stringify(id) }`, dim, true).statusCode
         }
     

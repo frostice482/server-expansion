@@ -75,13 +75,13 @@ export default class cc {
                 command = args.shift()
 
             const cmd = this.getCommandFromTrigger(command)
-            if (!cmd) throw new Error(`Command not found: '${command}'`)
+            if (!cmd) throw new cc.error(`Command not found: '${command}'`, 'ReferenceError')
             const executerPermLvl = permission.getLevel(executer.getTags())
             if (
                 cmd.minPermLvl && executerPermLvl < cmd.minPermLvl
                 || !this.testReqTags(cmd.reqTags, executer)
-            ) throw new Error(`You have no permission to use this command: ${cmd.description?.name ?? `'${cmd}'`}`)
-            if (cmd.isDisabled) throw new Error(`Command is disabled: ${cmd.description?.name ?? `'${cmd}'`}`)
+            ) throw new cc.error(`You have no permission to use this command: ${cmd.description?.name ?? `'${cmd}'`}`, 'TypeError')
+            if (cmd.isDisabled) throw new cc.error(`Command is disabled: ${cmd.description?.name ?? `'${cmd}'`}`, 'TypeError')
 
             const argFull = message.substring(command.length + 1),
                 typedArgs = cmd.typedArgs?.parse(args) ?? args
@@ -202,7 +202,7 @@ export default class cc {
      * @param properties Initializer properties.
      */
     constructor(id: string, properties: Optional<ExcludeSome<cc, 'id' | 'toJSONSave' | 'toJSON'>> = {} ) {
-        if (ccList.has(id)) throw new Error(`Custom command with ID '${id}' already exists`)
+        if (ccList.has(id)) throw new TypeError(`Custom command with ID '${id}' already exists`)
         this.id = id
         Object.assign(this, properties)
         ccList.set(id, this)
