@@ -59,7 +59,7 @@ new cc('bridge', {
                     `Executable on register: §a${pliExt.executeOnRegister ? 'Yes' : 'No'}§r`,
                     ...(tArgs[2] ? [
                     ` `,
-                    `§7Storage unique ID: §2${pli.uniqueID}`,
+                    `§7Storage unique ID: §2${pli.uniqueStorageID}`,
                     `§7Internal modules: ${Object.keys(pliExt.internalModules).join(', ')}`,
                     `§7Execute module entry: ${pliExt.execMain}`,
                     ] : []),
