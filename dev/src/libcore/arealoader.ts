@@ -1,4 +1,4 @@
-import { BlockLocation, Dimension, DynamicPropertiesDefinition, EntityQueryOptions, EntityTypes, Location, MinecraftDimensionTypes, world } from "mojang-minecraft"
+import { BlockLocation, Dimension, DynamicPropertiesDefinition, Entity, EntityQueryOptions, EntityTypes, Location, MinecraftDimensionTypes, world } from "mojang-minecraft"
 import { dim } from "./mc.js"
 import server from "./server.js"
 
@@ -7,6 +7,8 @@ export default class areaLoader {
     static get isLoaded() { return isLoaded }
     /** Dimension. */
     static get dim() { return sDim }
+    /** Entity loader. */
+    static get ent() { return ent }
     /** Center load location. */
     static get centerLoadLocation() { return blLoc }
     /**
@@ -43,7 +45,8 @@ const dimIndex = {
     1: dim.n,
     2: dim.e,
 }
-let sDim: Dimension
+let sDim: Dimension,
+    ent: Entity
 
 // property registry
 world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
@@ -72,7 +75,7 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
                     }
         
                     const pDim = plr.dimension
-                    const ent = pDim.spawnEntity('se:area_loader', loaderLoc)
+                    ent = pDim.spawnEntity('se:area_loader', loaderLoc)
         
                     world.setDynamicProperty('ALDR:isLoaded', true)
                     world.setDynamicProperty('ALDR:dimId', dimIndex[pDim.id])
@@ -87,7 +90,7 @@ world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
             }
         } else {
             sDim = dimIndex[world.getDynamicProperty('ALDR:dimId') as number]
-            while(! sDim.getEntitiesAtBlockLocation(blLoc).some(v => v.id == 'se:area_loader') ) await server.nextTick
+            while(!( [ent] = sDim.getEntitiesAtBlockLocation(blLoc), ent )) await server.nextTick
             load()
         }
     } catch(e) {

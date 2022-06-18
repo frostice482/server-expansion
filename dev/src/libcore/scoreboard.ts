@@ -103,6 +103,8 @@ class objective {
     readonly execId: string
     /** Objective display name. */
     get displayName() { return this.#data.displayName }
+    /** Scoreboard objective data. */
+    get data() { return this.#data }
 
     readonly dummies: dummies
     readonly players: players
@@ -115,9 +117,6 @@ class players {
         this.#obj = obj
         this.#data = data
     }
-
-    /** Dummies. */
-    get dummies() { return this.#obj.dummies }
 
     #obj: objective
     #data: ScoreboardObjective
@@ -181,9 +180,6 @@ class dummies {
         this.#obj = obj
         this.#data = data
     }
-
-    /** Players. */
-    get players() { return this.#obj.players }
 
     #obj: objective
     #data: ScoreboardObjective
