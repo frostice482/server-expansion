@@ -316,14 +316,18 @@ const instanceDefault = (() => {
         }
         if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
         if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
-        switch (data.saveInfo.version) {
-            case 1.0000: {
-                data.saveInfo.version = 1.0101
-                data.cc.ccs.push({
-                    id: 'tps',
-                    extends: true,
-                    data: {}
-                })
+        while (data.saveInfo.version != curVer) {
+            switch (data.saveInfo.version) {
+                case 1.0000: {
+                    data.saveInfo.version = 1.0101
+                    data.cc.ccs.push({
+                        id: 'tps',
+                        extends: true,
+                        data: {}
+                    })
+                }; break
+                default:
+                    br(TypeError, `Unknown version v${data.saveInfo.version}.`)
             }
         }
     }, Infinity)
