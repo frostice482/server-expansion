@@ -216,63 +216,71 @@ const instance = (() => {
 
 const instanceDefault = (() => {
     const curVer = 1.02
-    const defaultInstance = new instance<{
-        [k: string]: any
-        saveInfo: {
-            version: number
-        }
-        storage: {
-            autosaveInterval: number
-        }
-        permission: permissionSaveData
-        chat: chatSaveData
-        role: roleSaveData
-        cc: ccStorageSaveData
-    }>('SE_default')
-
-    defaultInstance.autosaveInterval = 30000
-    defaultInstance.ev.save.subscribe(function baseSave (data) {
-        data.saveInfo = {
-            version: curVer
-        }
-    }, Infinity)
-    defaultInstance.ev.load.subscribe(function baseLoad (data, ctrl) {
-        const br = (type = Error, reason?: string, disableAutosave = true) => {
-            ctrl.break()
-            if (disableAutosave) {
-                defaultInstance.autosaveInterval = 0
-                reason += ` Autosave has been disabled.`
+    return new (
+        class storageInstanceDefault extends instance<{
+            [k: string]: any
+            saveInfo: {
+                version: number
             }
-            throw new type(reason)
-        }
-        if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
-        if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
-        while (data.saveInfo.version != curVer) {
-            switch (data.saveInfo.version) {
-                default:
-                    br(TypeError, `Unknown version v${data.saveInfo.version}.`)
+            storage: {
+                autosaveInterval: number
             }
+            permission: permissionSaveData
+            chat: chatSaveData
+            role: roleSaveData
+            cc: ccStorageSaveData
+        }> {
+            constructor(id: string) {
+                super(id)
+
+                this.autosaveInterval = 30000
+                this.ev.save.subscribe(function baseSave (data) {
+                    data.saveInfo = {
+                        version: curVer
+                    }
+                }, Infinity)
+                this.ev.load.subscribe(function baseLoad (data, ctrl) {
+                    const br = (type = Error, reason?: string, disableAutosave = true) => {
+                        ctrl.break()
+                        if (disableAutosave) {
+                            this.autosaveInterval = 0
+                            reason += ` Autosave has been disabled.`
+                        }
+                        throw new type(reason)
+                    }
+                    if (!data?.saveInfo) br(ReferenceError, 'Save data information unavaiable.')
+                    if (data.saveInfo.version > curVer) br(RangeError, `Unsupported save version v${curVer}.`)
+                    while (data.saveInfo.version != curVer) {
+                        switch (data.saveInfo.version) {
+                            default:
+                                br(TypeError, `Unknown version v${data.saveInfo.version}.`)
+                        }
+                    }
+                }, Infinity)
+            
+                this.ev.save.subscribe((data) => {
+                    data.storage = {
+                        autosaveInterval: this.autosaveInterval
+                    }
+                })
+                this.ev.load.subscribe((data) => {
+                    if (!data.storage) return
+                    this.autosaveInterval = data.storage.autosaveInterval
+                })
+            
+                world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
+                    const reg = new DynamicPropertiesDefinition
+                    reg.defineString('STR:id', 16)
+                    propertyRegistry.registerWorldDynamicProperties(reg)
+            
+                    const newId = `STR:${randomstr(12)}`
+                    this.#uniqueID = this.id = world.getDynamicProperty('STR:id') as string ?? ( world.setDynamicProperty('STR:id', newId), newId )
+                })
+            }
+
+            #uniqueID: string
+            /** Unique save ID. */
+            get uniqueID() { return this.#uniqueID }
         }
-    }, Infinity)
-
-    defaultInstance.ev.save.subscribe((data) => {
-        data.storage = {
-            autosaveInterval: defaultInstance.autosaveInterval
-        }
-    })
-    defaultInstance.ev.load.subscribe((data) => {
-        if (!data.storage) return
-        defaultInstance.autosaveInterval = data.storage.autosaveInterval
-    })
-
-    world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
-        const reg = new DynamicPropertiesDefinition
-        reg.defineString('STR:id', 16)
-        propertyRegistry.registerWorldDynamicProperties(reg)
-
-        const newId = `STR:${randomstr(12)}`
-        defaultInstance.id = world.getDynamicProperty('STR:id') as string ?? ( world.setDynamicProperty('STR:id', newId), newId )
-    })
-
-    return defaultInstance
+    )('SE_default')
 })()
