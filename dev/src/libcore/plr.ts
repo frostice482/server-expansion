@@ -99,4 +99,9 @@ Object.defineProperties(SimulatedPlayer.prototype, {
     }
 })
 
-server.ev.playerLoad.subscribe((plr) => uidsb.players.add(plr, 0), 80)
+server.ev.playerLoad.subscribe((plr) => {
+    if (!uidsb.players.exist(plr)) {
+        uidsb.players.set(plr, 0)
+        triggerEvent.playerRegister(plr)
+    }
+}, 80)
