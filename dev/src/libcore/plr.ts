@@ -1,9 +1,11 @@
 import { SimulatedPlayer } from "mojang-gametest";
-import { DynamicPropertiesDefinition, Entity, EntityTypes, Player, world } from "mojang-minecraft";
+import { Entity, Player, world } from "mojang-minecraft";
 import eventManager, { MapEventList } from "./evmngr.js";
 import { execCmd } from "./mc.js";
+import scoreboard from "./scoreboard.js";
 import { sendMsgToPlayer } from "./sendChat.js";
 import server from "./server.js";
+import storage from "./storage.js";
 
 export default class plr {
     static get ev() { return events }
@@ -13,16 +15,10 @@ export default class plr {
 }
 
 // Player UID
-world.events.worldInitialize.subscribe(({propertyRegistry}) => {
-    const regPlr = new DynamicPropertiesDefinition
-    regPlr.defineNumber('PLR:uid')
-    propertyRegistry.registerEntityTypeDynamicProperties(regPlr, EntityTypes.get('player'))
-    
-    const regWorld = new DynamicPropertiesDefinition
-    regWorld.defineNumber('PLR:uidc')
-    propertyRegistry.registerWorldDynamicProperties(regWorld)
-
-    world.setDynamicProperty('PLR:uidc', world.getDynamicProperty('PLR:uidc') ?? 1)
+let uidsb: typeof scoreboard.objective.prototype
+server.ev.postInitialize.subscribe(() => {
+    uidsb = scoreboard.objective.for(`UID:${storage.instance.default.uniqueID}`)
+    uidsb.dummies.add('__current__', 0)
 })
 
 // Extending player properties
@@ -38,7 +34,7 @@ Object.defineProperties(Player.prototype, {
     },
     uid: {
         get: function getUID() {
-            return this.getDynamicProperty('PLR:uid')
+            return uidsb ? uidsb.players.get(this) : -1
         }
     },
     sendMsg: {
@@ -107,10 +103,9 @@ Object.defineProperties(SimulatedPlayer.prototype, {
 })
 
 server.ev.playerJoin.subscribe((plr) => {
-    if (plr.getDynamicProperty('PLR:uid') == undefined) {
-        const nuid = world.getDynamicProperty('PLR:uidc') as number
-        plr.setDynamicProperty('PLR:uid', nuid)
-        world.setDynamicProperty('PLR:uidc', nuid + 1)
+    if (!uidsb.players.exist(plr)) {
+        uidsb.players.set(plr, uidsb.dummies.get('__current__'))
+        uidsb.dummies.add('__current__', 1)
 
         triggerEvent.playerRegister(plr)
     }
