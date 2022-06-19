@@ -16,10 +16,7 @@ export default class plr {
 
 // Player UID
 let uidsb: typeof scoreboard.objective.prototype
-server.ev.postInitialize.subscribe(() => {
-    uidsb = scoreboard.objective.for(`UID:${storage.instance.default.uniqueID}`)
-    uidsb.dummies.add('__current__', 0)
-})
+server.ev.postInitialize.subscribe(() => uidsb = scoreboard.objective.for(`UID:${storage.instance.default.uniqueID}`))
 
 // Extending player properties
 Object.defineProperties(Player.prototype, {
@@ -34,7 +31,7 @@ Object.defineProperties(Player.prototype, {
     },
     uid: {
         get: function getUID() {
-            return uidsb ? uidsb.players.get(this) : -1
+            return this.scoreboard?.id ?? -1
         }
     },
     sendMsg: {
@@ -102,11 +99,4 @@ Object.defineProperties(SimulatedPlayer.prototype, {
     }
 })
 
-server.ev.playerLoad.subscribe((plr) => {
-    if (!uidsb.players.exist(plr)) {
-        uidsb.players.set(plr, uidsb.dummies.get('__current__'))
-        uidsb.dummies.add('__current__', 1)
-
-        triggerEvent.playerRegister(plr)
-    }
-}, 80)
+server.ev.playerLoad.subscribe((plr) => uidsb.players.add(plr, 0), 80)
