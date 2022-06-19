@@ -1,45 +1,25 @@
-import { BlockLocation, Dimension, DynamicPropertiesDefinition, Entity, EntityTypes, Location, world } from "mojang-minecraft"
+import { DynamicPropertiesDefinition, world } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
-import { execCmd } from "./mc.js"
 import server from "./server.js"
-import areaLoader from "./arealoader.js"
-import { randomstr } from "./misc.js"
+import { empty, randomstr } from "./misc.js"
 
 const storage = (() => {
     class storage {
-        /** Test if storage is loaded. */
-        static get isLoaded() { return loadLevel == 2 }
         /** Storage instance. */
         static get instance() { return instance }
 
         /**
-         * Executes a function on load.
-         * @param fn Function to be executed.
-         */
-        static readonly onLoad = (fn: () => void) => {
-            if (this.isLoaded) fn()
-            else loadQueues.push(fn)
-        }
-    
-        /**
          * Executes a save data.
          * @param id Save data identifier.
-         * @returns Boolean - True if save data successfully deleted.
          */
-        static readonly for = (id: string) => {
-            if (!this.isLoaded) throw new TypeError(`Storage is not loaded`)
-            return new saveDataInfo(id)
-        }
+        static readonly for = (id: string) => new saveDataInfo(id)
     
         /**
          * Deletes a save data.
          * @param id Save data identifier.
          * @returns Boolean - True if save data successfully deleted.
          */
-        static readonly delete = (id: string) => {
-            if (!this.isLoaded) throw new TypeError(`Storage is not loaded`)
-            return !execCmd(`structure delete ${ JSON.stringify(id) }`, dim, true).statusCode
-        }
+        static readonly delete = (id: string) => scoreboard.objective.delete(id)
     
         protected constructor() { throw new TypeError('Class is not constructable') }
     }
@@ -47,84 +27,41 @@ const storage = (() => {
     class saveDataInfo {
         constructor(id: string) {
             this.id = id
-            this.execId = JSON.stringify(this.id)
 
-            try {
-                execCmd(`structure load ${this.execId} ${x} ${y} ${z} 0_degrees none true false`, dim) // load
-                const l: string[] = []
-                for (const data of dim.getEntitiesAtBlockLocation(blLoc)) {
-                    if (data.id != 'se:storage_data') continue
-                    l[data.getDynamicProperty('order') as number] = data.nameTag
-                    clear(data)
-                }
-                this.#value = l.join('')
-            } catch {}
+            if (!scoreboard.objective.exist(id)) return
+            const sb = scoreboard.objective.edit(id).dummies
+            if (!sb.exist(`[SES::${id}]`)) return
+
+            // grab data
+            const list: List<string, number> = empty()
+            let len = 0
+            for (const [data, order] of sb.getScores()) {
+                list[order] = data
+                len = len > order ? len : order
+            }
+            // combine data
+            let value = ''
+            for (let i = 0; i <= len; i++) value = value.concat(list[i])
+            this.#value = value
         }
     
         /** Save data identifier. */
-        readonly id: string
-        /** Save data executable identifier. */
-        readonly execId: string
-    
+        id: string
+
         #value: string
         get value() { return this.#value }
         set value(v) {
             if (this.#value == v) return
             this.#value = v
-            if (v === undefined) {
-                execCmd(`structure delete ${this.execId}`, dim, true) // delete
-            } else {
-                for (let i = 0, m = v.length / 32767; i < m; i++) {
-                    const ent = dim.spawnEntity('se:storage_data', entLoc)
-                    ent.setDynamicProperty('order', i)
-                    ent.nameTag = v.substr(i * 32767, 32767)
-                }
-                execCmd(`structure save ${this.execId} ${x} ${y} ${z} ${x} ${y} ${z} true disk false`, dim, true) // save
-                for (const ent of dim.getEntitiesAtBlockLocation(blLoc))
-                    if (ent.id == 'se:storage_data') clear(ent)
-            }
+
+            scoreboard.objective.delete(this.id)
+            if (v == undefined) return
+
+            const sb = scoreboard.objective.create(this.id).dummies
+            sb.set(`[SES::${this.id}]`, -1)
+            for (let i = 0; i < v.length / 32767; i++) sb.set(v.substr(i * 32767, 32767), i)
         }
     }
-
-    const clear = (ent: Entity) => {
-        ent.teleport(Object.assign(ent.location, {y: 400}), dim, 0, 0)
-        ent.triggerEvent('se:kill')
-    }
-
-    // loaded
-    let loadLevel = 0
-    const loadQueues: ( () => void )[] = []
-    const load = () => {
-        if (++loadLevel != 2) return
-
-        const {x: xl, y: yl, z: zl} = areaLoader.centerLoadLocation;
-        [x, y, z] = [xl, 0, zl]
-        entLoc = new Location(x + 0.5, y + 0.5, z + 0.5)
-        blLoc = new BlockLocation(x, y, z)
-        dim = areaLoader.dim
-
-        for (const fn of loadQueues)
-            try { fn() }
-            catch(e) { console.warn(`storage > onLoad (${fn.name || '<anonymous>'}): ${ e instanceof Error ? `${e}\n${e.stack}` : e }`) }
-    }
-    areaLoader.onLoad(load)
-    
-    // locations & dimensions
-    let x: number, y: number, z: number,
-        entLoc: Location,
-        blLoc: BlockLocation,
-        dim: Dimension
-
-    // dynamic properties
-    world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
-        const dataEnt = EntityTypes.get('se:storage_data'),
-            dataDefs = new DynamicPropertiesDefinition()
-        dataDefs.defineNumber('order')
-        propertyRegistry.registerEntityTypeDynamicProperties(dataDefs, dataEnt)
-        await 0
-        
-        load()
-    })
 
     return storage
 })()
@@ -135,6 +72,7 @@ import type { saveData as permissionSaveData } from "./permission.js"
 import type { saveData as chatSaveData } from "./chat.js"
 import type { saveData as roleSaveData } from "./role.js"
 import type { ccStorageSaveData } from "./cc.js"
+import scoreboard from "./scoreboard.js"
 
 const instance = (() => {
     class storageInstance <T = {}> {
@@ -149,10 +87,9 @@ const instance = (() => {
             this.#id = id
             this.#execId = JSON.stringify(this.id)
 
-            let saveInfo: ReturnType<typeof storage.for>
+            let saveInfo = this.#saveInfo = storage.for(id)
 
             this.save = () => {
-                if (!saveInfo) return { status: false }
                 const t0 = Date.now()
 
                 const saveData: any = {}
@@ -166,14 +103,12 @@ const instance = (() => {
                 })
 
                 return {
-                    status: true,
                     data: saveData,
                     stringed: stringed,
                     time: Date.now() - t0
                 }
             }
             this.load = () => {
-                if (!saveInfo) return { status: false }
                 const t0 = Date.now()
 
                 const stringed = saveInfo.value
@@ -188,7 +123,6 @@ const instance = (() => {
                 })
                 
                 return {
-                    status: true,
                     data: saveData,
                     stringed: stringed,
                     time: Date.now() - t0
@@ -203,11 +137,8 @@ const instance = (() => {
             const { events, triggerEvent } = new eventManager<instanceEvents<T>>(['save', 'load', 'postSave', 'postLoad'], `storage (${id})`)
             this.ev = this.events = events
 
-            storage.onLoad(async () => {
-                this.#saveInfo = saveInfo = storage.for(id)
-                if (!this.autoload || !saveInfo.value) return
-                await server.nextTick // ensures all have loaded, then execute autoload
-                this.load()
+            server.nextTick.then(() => {
+                if (this.autoload && saveInfo.value) this.load()
             })
         }
 
@@ -216,6 +147,7 @@ const instance = (() => {
         get id() { return this.#id }
         set id(v) {
             this.#id = v
+            this.#saveInfo.id = v
             this.#execId = JSON.stringify(v)
         }
 
@@ -234,12 +166,12 @@ const instance = (() => {
          * Saves current data.
          * @returns Save data.
          */
-        readonly save: () => instantEventReturn<T>
+        readonly save: () => instancePostEventEvd<T>
         /**
          * Loads saved data.
          * @returns Save data.
          */
-        readonly load: () => instantEventReturn<T>
+        readonly load: () => instancePostEventEvd<T>
         /**
          * Deletes saved data.
          * @returns Boolean - True if save data successfully deleted.
@@ -278,9 +210,6 @@ const instance = (() => {
         readonly stringed: string
         readonly time: number
     }
-
-    // return
-    type instantEventReturn <T> = { readonly status: true } & instancePostEventEvd<T> | { readonly status: false }
 
     return storageInstance
 })()
@@ -338,11 +267,11 @@ const instanceDefault = (() => {
 
     world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
         const reg = new DynamicPropertiesDefinition
-        reg.defineString('STR:defId', 24)
+        reg.defineString('STR:id', 16)
         propertyRegistry.registerWorldDynamicProperties(reg)
 
-        const newId = `STR_${randomstr(12)}`
-        defaultInstance.id = world.getDynamicProperty('STR:defId') as string ?? ( world.setDynamicProperty('STR:defId', newId), newId )
+        const newId = `STR:${randomstr(12)}`
+        defaultInstance.id = world.getDynamicProperty('STR:id') as string ?? ( world.setDynamicProperty('STR:id', newId), newId )
     })
 
     return defaultInstance
