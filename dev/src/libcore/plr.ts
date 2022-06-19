@@ -49,8 +49,8 @@ Object.defineProperties(SimulatedPlayer.prototype, {
 })
 
 // instance
-Object.defineProperty(Player, Symbol.hasInstance, { value: (v) => Object.getPrototypeOf(v).constructor == SimulatedPlayer })
-Object.defineProperty(Entity, Symbol.hasInstance, { value: (v) => [ SimulatedPlayer, Player ].includes(Object.getPrototypeOf(v).constructor) })
+Object.defineProperty(Player, Symbol.hasInstance, { value: (v) => [ Player, SimulatedPlayer ].includes(Object.getPrototypeOf(v).constructor) })
+Object.defineProperty(Entity, Symbol.hasInstance, { value: (v) => [ Entity, Player, SimulatedPlayer ].includes(Object.getPrototypeOf(v).constructor) })
 
 // event stuff
 type EventList = MapEventList<{
