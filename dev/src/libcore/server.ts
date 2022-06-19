@@ -1,4 +1,4 @@
-import { BeforeChatEvent, Player, world } from "mojang-minecraft"
+import { BeforeChatEvent, Player, world, WorldInitializeEvent } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
 
 export default class server {
@@ -48,6 +48,26 @@ export default class server {
         world.events.playerJoin.subscribe(({player}) => {
             eventQueues.playerJoin.add(player)
             triggerEvent.playerJoin(player)
+        })
+
+        world.events.worldInitialize.subscribe((evd) => {
+            triggerEvent.initialize(evd)
+            triggerEvent.postInitialize()
+
+            // immediately executes the function if something subscribes to `postInitialize` event after the event is executed
+            eventManagerData.postInitialize.list = new Map
+            const { subscribe: pisb, unsubscribe: piusb } = events.postInitialize
+            events.postInitialize.subscribe = (fn, p) => {
+                pisb(fn)
+                triggerEvent.postInitialize()
+                piusb(fn)
+            }
+            
+            // executes player join & player load event after initialization
+            for (const plr of world.getPlayers()) {
+                triggerEvent.playerJoin(plr)
+                triggerEvent.playerLoad(plr)
+            }
         })
     }
     static #isStarted = false
@@ -363,9 +383,11 @@ type EventList = MapEventList<{
     beforeChat: (evd: BeforeChatEvent) => void
     playerJoin: (plr: Player) => void
     playerLoad: (plr: Player) => void
+    initialize: (evd: WorldInitializeEvent) => void
+    postInitialize: (evd: void) => void
 }>
 
-const { events, triggerEvent } = new eventManager<EventList>(['playerLoad', 'playerJoin', 'beforeChat'], 'server')
+const { events, triggerEvent, data: eventManagerData } = new eventManager<EventList>(['playerLoad', 'playerJoin', 'beforeChat', 'initialize', 'postInitialize'], 'server')
 
 const eventQueues = {
     playerJoin: new Set<Player>()

@@ -268,7 +268,7 @@ const instanceDefault = (() => {
                     this.autosaveInterval = data.storage.autosaveInterval
                 })
             
-                world.events.worldInitialize.subscribe(async ({propertyRegistry}) => {
+                server.ev.initialize.subscribe(async ({propertyRegistry}) => {
                     const reg = new DynamicPropertiesDefinition
                     reg.defineString('STR:id', 16)
                     propertyRegistry.registerWorldDynamicProperties(reg)
