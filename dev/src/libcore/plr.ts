@@ -102,7 +102,7 @@ Object.defineProperties(SimulatedPlayer.prototype, {
     }
 })
 
-server.ev.playerJoin.subscribe((plr) => {
+server.ev.playerLoad.subscribe((plr) => {
     if (!uidsb.players.exist(plr)) {
         uidsb.players.set(plr, uidsb.dummies.get('__current__'))
         uidsb.dummies.add('__current__', 1)
