@@ -268,13 +268,14 @@ const instanceDefault = (() => {
                     this.autosaveInterval = data.storage.autosaveInterval
                 })
             
-                server.ev.initialize.subscribe(async ({propertyRegistry}) => {
+                server.ev.initialize.subscribe(({propertyRegistry}) => {
                     const reg = new DynamicPropertiesDefinition
-                    reg.defineString('STR:id', 16)
+                    reg.defineString('STR:id', 10)
                     propertyRegistry.registerWorldDynamicProperties(reg)
             
-                    const newId = `STR:${randomstr(12)}`
-                    this.#uniqueID = this.id = world.getDynamicProperty('STR:id') as string ?? ( world.setDynamicProperty('STR:id', newId), newId )
+                    const newId = randomstr(10)
+                    this.id = `STR:${ world.getDynamicProperty('STR:id') ?? ( world.setDynamicProperty('STR:id', newId), newId ) }`
+                    this.#uniqueID = world.getDynamicProperty('STR:id') as string
                 })
             }
 
