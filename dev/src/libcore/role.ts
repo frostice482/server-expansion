@@ -50,11 +50,11 @@ export default class role {
         // change format according to the event
         format = evd.format
 
-        if ( format == formatO ) return formatCacheO.map(v => typeof v == 'string' ? v : v.call ? vars[v.propKey](...v.callArgs) : vars[v.propKey]).join('')
+        if ( format == formatO ) return formatCacheO.map(v => typeof v == 'string' ? v : v.call ? vars[v.propKey](...v.callArgs) : vars[v.propKey]).join('').trim()
         return format.replace(
             /(?<!\\)#(?<propKey>[\w\-]+)(\{(?<call>.*?)\})?/g,
             (match, propKey, _a, call = '') => call ? vars[propKey](...call.split('|')) : vars[propKey]
-        )
+        ).trim()
     }
 
     /** Configuration. */
