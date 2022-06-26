@@ -7,6 +7,21 @@ import storage from "../libcore/storage.js"
 import { TypedArray, TypedValue } from "../libcore/typedvalues.js"
 
 new cc('tps', {
+    description: new cc.description({
+        name: 'TPS',
+        description: 'Shows server TPS',
+        aliases: ['tps', 'server-tps'],
+        variables: {
+            get prefix() { return cc.prefix }
+        },
+        format: ([
+            '#<name> §8- #<aliases>',
+            '#<description>',
+            ' ',
+            'See §a#<v.prefix>tps cmd help§r for command usage.',
+        ]).join('\n§r'),
+
+    }),
     triggers: /^(server-?)?tps$/,
     onTrigger: ({log, args, executer}) => {
         if (!args[0]) return log([
@@ -99,6 +114,9 @@ new cc('tps', {
                         if (!(2 in tArgs)) return log(`TPS command interval: §a${interval.interval}ms`)
                         return log(`TPS command interval has been set to §a${interval.interval = tArgs[2]}ms`)
                     }
+                    case 'help': {
+                        return log(cmddesc.generate())
+                    }
                 }
             }
         }
@@ -110,6 +128,52 @@ new cc('tps', {
         world.events.tick.unsubscribe(refresh)
         interval.close()
     }
+})
+
+const cmddesc = new cc.description({
+    usage: [
+        [
+            [ 'tps', 'cmd', 'set', { type: [['value', 'string[]']], name: 'cmds' } ],
+            'Sets TPS commands.'
+        ], [
+            [ 'tps', 'cmd', 'add_top', { type: [['value', 'any']], name: 'cmd' } ],
+            'Adds TPS command on the top position.'
+        ], [
+            [ 'tps', 'cmd', 'add_bottom', { type: [['value', 'any']], name: 'cmd' } ],
+            'Adds TPS command on the bottom position.'
+        ], [
+            [ 'tps', 'cmd', 'add', { type: [['value', 'number']], name: 'pos' }, { type: [['value', 'any']], name: 'cmd' } ],
+            'Adds TPS command on the specified position.'
+        ], [
+            [ 'tps', 'cmd', 'remove_top', { type: [['value', 'any']], name: 'cmd' } ],
+            'Removes TPS command on the top position.'
+        ], [
+            [ 'tps', 'cmd', 'remove_bottom', { type: [['value', 'any']], name: 'cmd' } ],
+            'Removes TPS command on the bottom position.'
+        ], [
+            [ 'tps', 'cmd', 'remove', { type: [['value', 'number']], name: 'pos' }, { type: [['value', 'any']], name: 'cmd' } ],
+            'Removes TPS command on the specified position.'
+        ], [
+            [ 'tps', 'cmd', 'list' ],
+            'Shows TPS command list.'
+        ], [
+            [ 'tps', 'cmd', 'clear' ],
+            'Clears TPS commands.'
+        ], [
+            [ 'tps', 'cmd', 'interval' ],
+            'Shows current TPS command interval.'
+        ], [
+            [ 'tps', 'cmd', 'interval', { type: [['value', 'number']], name: 'interval' } ],
+            'Sets TPS command interval in milliseconds.'
+        ], [
+            [ 'tps', 'cmd', 'help' ],
+            'this'
+        ]
+    ],
+    format: ([
+        '§d==[ Usages ]==§r',
+        '#<usages>'
+    ]).join('\n§r')
 })
 
 const cmdta = new cc.typedArgs([
