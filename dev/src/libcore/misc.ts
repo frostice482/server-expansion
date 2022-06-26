@@ -2,7 +2,7 @@
  * Creates a new empty object.
  * @param obj Initial object.
  */
-export const empty = <T extends {}> (obj: T = null): T => Object.defineProperties(Object.create(null), Object.getOwnPropertyDescriptors(obj ?? {}))
+export const empty = <T extends {}> (obj: T = null): T => Object.setPrototypeOf(obj ?? {}, null)
 
 export const viewObj = (() => {
     const AsyncFunction = (async()=>{}).constructor,
@@ -64,7 +64,7 @@ export const viewObj = (() => {
             extendsClass = prototypeOf instanceof Function
         return notClass
             ? `§e[${asyncText}${generatorText}Function: ${fName} (${fLoc})]§r`
-            : `§b[Class: ${fName}${ extendsClass ? ` (extends: ${ fnHead(o, oc).replace(/\u00a7./g, '') })` : '' } (${fLoc})]§r`
+            : `§b[Class: ${fName}${ extendsClass ? ` (extends: ${ fnHead(prototypeOf, prototypeOf.constructor).replace(/\u00a7./g, '') })` : '' } (${fLoc})]§r`
     }
     
     const getKeys = (o: any, op = Object.getPrototypeOf(o), getPrototypeKeys = true, excludeKeys: string[] = []) => {
@@ -96,8 +96,8 @@ export const viewObj = (() => {
             cTab = tab.repeat(tabLevel),
             nTab = tab.repeat(tabLevel + 1),
             nTabLvl = tabLevel + 1,
-            execNext = (k: string | number | symbol, obj = o[k]) => {
-                try { return exec(obj, nStack, tab, nTabLvl, tabSeparator) }
+            execNext = (k: string | number | symbol, obj?: any) => {
+                try { return exec(obj ?? (k ? o[k] : obj), nStack, tab, nTabLvl, tabSeparator) }
                 catch (e) { return `§c[Error]§r` }
             }
         
@@ -116,7 +116,7 @@ export const viewObj = (() => {
                 return `§c${o}§r`
 
             case Symbol:
-                return `§b${o}§r`
+                return `§b${String(o)}§r`
 
             case Function:
             case AsyncFunction:

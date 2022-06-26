@@ -166,9 +166,10 @@ const Tcc = new TypedObject()
             new TypedObject()
                 .define('type', new TypedValue(['array']))
                 .define('value', T2.stringArr),
-        )
+        ),
+        false
     )
-    .define('onTrigger', Tot2)
+    .define('onTrigger', Tot2, false)
 Tcc.name = 'CCJSONData'
 
 // horrible typed arrays
@@ -225,13 +226,145 @@ const ccta = {
     ])
 }
 
+// horrible syntax definition
+const syndef = {
+    edit: new cc.description({
+        usage: [
+            [
+                ['-description:', '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-typed_args:', '§r...[§dedit:typedargs§r]§r'],
+            ], [
+                ['-on_trigger:', '§r...[§dedit:ontrigger§r]§r'],
+            ], [
+                ['-set_trigger', { type: [['keyword', 'regex']], name: 'type' }, { type: [['value', 'RegExp']], name: 'trigger' }, '§r...[§dedit§r]§r'],
+            ], [
+                ['-set_trigger', { type: [['keyword', 'array']], name: 'type' }, { type: [['value', 'string[]']], name: 'trigger' }, '§r...[§dedit§r]§r'],
+            ], [
+                ['-set_visibility', { type: [['value', 'boolean'], ['keyword', 'visible'], ['keyword', 'hidden'], ['keyword', 'show'], ['keyword', 'hide']], name: 'visibility' }, '§r...[§dedit§r]§r'],
+            ], [
+                ['-set_toggle', { type: [['value', 'boolean'], ['value', 'switch']], name: 'toggle' }, '§r...[§dedit§r]§r'],
+            ], [
+                ['-set_min_admin_level', { type: [['value', 'number']], name: 'minAdminLevel' }, '§r...[§dedit§r]§r'],
+            ], [
+                ['-set_required_tags', { type: [['value', 'CC.requiredTags']], name: 'data' }, '§r...[§dedit§r]§r'],
+            ], [
+                ['-assign_json', { type: [['value', 'CC']], name: 'data' }, '§r...[§dedit§r]§r'],
+            ]
+        ],
+        format: '#<usages>'
+    }),
+    'edit:ontrigger': new cc.description({
+        usage: [
+            [
+                ['-set_json', { type: [['value', 'CC.onTrigger'], ['value', 'CC.onTrigger[]']], name: 'data' }, '§r...[§dedit:ontrigger§r]§r'],
+            ], [
+                ['-add_json', { type: [['value', 'CC.onTrigger']], name: 'data' }, '§r...[§dedit:ontrigger§r]§r'],
+            ], [
+                ['-remove_at', { type: [['value', 'number']], name: 'position' }, '§r...[§dedit:ontrigger§r]§r'],
+            ], [
+                ['-clear', '§r...[§dedit:ontrigger§r]§r'],
+            ], [
+                ['-exit', '§r...[§dedit§r]§r'],
+            ]
+        ],
+        format: '#<usages>'
+    }),
+    'edit:typedargs': new cc.description({
+        usage: [
+            [
+                ['-set_json', { type: [['value', 'CC.typedArgs[]']], name: 'data' }, '§r...[§dedit:typedargs§r]§r'],
+            ], [
+                ['-add_json', { type: [['value', 'CC.typedArgs']], name: 'data' }, { type: [['value', 'number'], ['keyword', 'auto']], name: 'minArgs' }, '§r...[§dedit:typedargs§r]§r'],
+            ], [
+                ['-remove_at', { type: [['value', 'number']], name: 'position' }, '§r...[§dedit:typedargs§r]§r'],
+            ], [
+                ['-clear', '§r...[§dedit:typedargs§r]§r'],
+            ], [
+                ['-exit', '§r...[§dedit§r]§r'],
+            ]
+        ],
+        format: '#<usages>'
+    }),
+    'edit:description': new cc.description({
+        usage: [
+            [
+                ['-set_name', { type: [['value', 'any']], name: 'name' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-set_description', { type: [['value', 'any']], name: 'description' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-aliases', 'set_json', { type: [['value', 'string[]']], name: 'aliases' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-aliases', 'add', { type: [['value', 'any']], name: 'alias' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-aliases', 'remove', { type: [['value', 'any']], name: 'alias' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-aliases', 'remove_at', { type: [['value', 'number']], name: 'position' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-aliases', 'clear', '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-usages', 'set_json', { type: [['value', 'CC.description.usage[]']], name: 'data' }, '§r...[§dedit:description§r]§r']
+            ], [
+                ['-usages', 'add_json', { type: [['value', 'CC.description.usage']], name: 'data' }, '§r...[§dedit:description§r]§r']
+            ], [
+                ['-usages', 'remove_at', { type: [['value', 'number']], name: 'position' }, '§r...[§dedit:description§r]§r']
+            ], [
+                ['-aliases', 'clear', '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'string']], name: 'type' }, { type: [['keyword', 'any']], name: 'value' }, '§r...[§dedit:description§r]§r']
+            ], [
+                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'number']], name: 'type' }, { type: [['keyword', 'number']], name: 'value' }, '§r...[§dedit:description§r]§r']
+            ], [
+                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'boolean']], name: 'type' }, { type: [['keyword', 'boolean']], name: 'value' }, '§r...[§dedit:description§r]§r']
+            ], [
+                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'json']], name: 'type' }, { type: [['keyword', 'JSON']], name: 'value' }, '§r...[§dedit:description§r]§r']
+            ], [
+                ['-variables', 'delete', { type: [['value', 'any']], name: 'id' }, '§r...[§dedit:description§r]§r']
+            ], [
+                ['-variables', 'clear', '§r...[§dedit:description§r]§r']
+            ], [
+                ['-set_json', { type: [['value', 'CC.description']], name: 'data' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-assign_json', { type: [['value', 'CC.description']], name: 'data' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-set_format', { type: [['value', 'any']], name: 'format' }, '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-clear_cache', '§r...[§dedit:description§r]§r'],
+            ], [
+                ['-exit', '§r...[§dedit§r]§r'],
+            ]
+        ],
+        format: '#<usages>'
+    }),
+}
+
 // horricble custom command creation
 new cc('cc', {
     description: new cc.description({
         name: 'Custom Command',
         description: 'Manages custom command',
         aliases: ['custom-command', 'cc'],
-        usage: []
+        usage: [
+            [
+                ['cc', 'create', { type: [['value', 'any']], name: 'id' }, '§r...[§dedit§r]§r'],
+                'Creates a custom command.'
+            ], [
+                ['cc', 'edit', { type: [['value', 'any']], name: 'id' }, '§r...[§dedit§r]§r'],
+                'Edits a custom command.'
+            ], [
+                ['cc', 'list'],
+                'Shows custom command list.'
+            ], [
+                ['cc', 'view', { type: [['value', 'any']], name: 'id' }],
+                'Shows custom command data.'
+            ], [
+                ['cc', 'delete', { type: [['value', 'any']], name: 'id' }],
+                'Deletes a custom command.'
+            ], [
+                ['cc', 'usage', { type: [['keyword', 'edit'], ['keyword', 'edit:ontrigger'], ['keyword', 'edit:typedargs'], ['keyword', 'edit:description']], name: 'syntax' }],
+                'Shows syntax usage.'
+            ]
+        ]
     }),
     minPermLvl: 80,
     typedArgs: new cc.typedArgs([
@@ -240,6 +373,7 @@ new cc('cc', {
         { sequence: [ 'list' ] },
         { sequence: [ 'view', cc.parser.any ] },
         { sequence: [ 'delete', cc.parser.any ] },
+        { sequence: [ 'usage', ['edit', 'edit:typedargs', 'edit:description', 'edit:ontrigger'] ] },
     ]),
     triggers: /^(c(ustom-?)?c(md|ommand)?)$/i,
     onTrigger: ({log, typedArgs: tArgs, executer}) => {
@@ -280,6 +414,14 @@ new cc('cc', {
             case 'delete': {
                 if (!cc.delete(tArgs[1])) throw new cc.error(`Custom command with ID '${tArgs[1]}' not found.`, 'ReferenceError')
                 return log(`Deleted custom command with ID '${tArgs[1]}'.`)
+            }
+            case 'usage': {
+                return log([
+                    ` `,
+                    `Usage for '${tArgs[1]}':`,
+                    syndef[tArgs[1]].generate(),
+                    ` `
+                ])
             }
         }
         log(`Editing custom command: '${ccd.id}'`)

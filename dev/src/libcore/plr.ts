@@ -1,9 +1,11 @@
 import { SimulatedPlayer } from "mojang-gametest";
-import { DynamicPropertiesDefinition, Entity, EntityTypes, Player, world } from "mojang-minecraft";
+import { Entity, Player, world } from "mojang-minecraft";
 import eventManager, { MapEventList } from "./evmngr.js";
 import { execCmd } from "./mc.js";
+import scoreboard from "./scoreboard.js";
 import { sendMsgToPlayer } from "./sendChat.js";
 import server from "./server.js";
+import storage from "./storage.js";
 
 export default class plr {
     static get ev() { return events }
@@ -13,17 +15,8 @@ export default class plr {
 }
 
 // Player UID
-world.events.worldInitialize.subscribe(({propertyRegistry}) => {
-    const regPlr = new DynamicPropertiesDefinition
-    regPlr.defineNumber('PLR:uid')
-    propertyRegistry.registerEntityTypeDynamicProperties(regPlr, EntityTypes.get('player'))
-    
-    const regWorld = new DynamicPropertiesDefinition
-    regWorld.defineNumber('PLR:uidc')
-    propertyRegistry.registerWorldDynamicProperties(regWorld)
-
-    world.setDynamicProperty('PLR:uidc', world.getDynamicProperty('PLR:uidc') ?? 1)
-})
+let uidsb: typeof scoreboard.objective.prototype
+server.ev.postInitialize.subscribe(() => uidsb = scoreboard.objective.for(`UID:${storage.instance.default.uniqueID}`))
 
 // Extending player properties
 Object.defineProperties(Player.prototype, {
@@ -38,7 +31,7 @@ Object.defineProperties(Player.prototype, {
     },
     uid: {
         get: function getUID() {
-            return this.getDynamicProperty('PLR:uid')
+            return this.scoreboard?.id ?? -1
         }
     },
     sendMsg: {
@@ -56,8 +49,8 @@ Object.defineProperties(SimulatedPlayer.prototype, {
 })
 
 // instance
-Object.defineProperty(Player, Symbol.hasInstance, { value: (v) => Object.getPrototypeOf(v).constructor == SimulatedPlayer })
-Object.defineProperty(Entity, Symbol.hasInstance, { value: (v) => [ SimulatedPlayer, Player ].includes(Object.getPrototypeOf(v).constructor) })
+Object.defineProperty(Player, Symbol.hasInstance, { value: (v) => [ Player, SimulatedPlayer ].includes(Object.getPrototypeOf(v ?? {}).constructor) })
+Object.defineProperty(Entity, Symbol.hasInstance, { value: (v) => [ Entity, Player, SimulatedPlayer ].includes(Object.getPrototypeOf(v ?? {}).constructor) })
 
 // event stuff
 type EventList = MapEventList<{
@@ -106,12 +99,9 @@ Object.defineProperties(SimulatedPlayer.prototype, {
     }
 })
 
-server.ev.playerJoin.subscribe((plr) => {
-    if (plr.getDynamicProperty('PLR:uid') == undefined) {
-        const nuid = world.getDynamicProperty('PLR:uidc') as number
-        plr.setDynamicProperty('PLR:uid', nuid)
-        world.setDynamicProperty('PLR:uidc', nuid + 1)
-
+server.ev.playerLoad.subscribe((plr) => {
+    if (!uidsb.players.exist(plr)) {
+        uidsb.players.set(plr, 0)
         triggerEvent.playerRegister(plr)
     }
 }, 80)

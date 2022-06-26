@@ -199,7 +199,7 @@ declare module 'mojang-minecraft' {
         readonly 'x': number;
         readonly 'y': number;
         readonly 'z': number;
-        getComponent(componentName: string): any;
+        getComponent: BlockGetComponentFn;
         getTags(): string[];
         hasTag(tag: string): boolean;
         setPermutation(permutation: BlockPermutation): void;
@@ -623,7 +623,7 @@ declare module 'mojang-minecraft' {
         addEffect(effectType: EffectType, duration: number, amplifier?: number, showParticles?: boolean): void;
         addTag(tag: string): boolean;
         getBlockFromViewVector(options?: BlockRaycastOptions): Block;
-        getComponent(componentId: string): IEntityComponent;
+        getComponent: EntityGetComponentFn;
         getComponents(): IEntityComponent[];
         getDynamicProperty(identifier: string): boolean | number | string;
         getEffect(effectType: EffectType): Effect;
@@ -1344,7 +1344,7 @@ declare module 'mojang-minecraft' {
         readonly 'id': string;
         'nameTag': string;
         constructor(itemType: ItemType, amount?: number, data?: number);
-        getComponent(componentId: string): any;
+        getComponent: ItemGetComponentFn;
         getComponents(): any[];
         getLore(): string[];
         hasComponent(componentId: string): boolean;
@@ -3549,7 +3549,7 @@ declare module 'mojang-minecraft' {
         addEffect(effectType: EffectType, duration: number, amplifier?: number, showParticles?: boolean): void;
         addTag(tag: string): boolean;
         getBlockFromViewVector(options?: BlockRaycastOptions): Block;
-        getComponent(componentId: string): IEntityComponent;
+        getComponent: EntityGetComponentFn;
         getComponents(): IEntityComponent[];
         getDynamicProperty(identifier: string): boolean | number | string;
         getEffect(effectType: EffectType): Effect;

@@ -101,7 +101,7 @@ declare module 'mojang-gametest' {
         attackEntity(entity: mojangminecraft.Entity): boolean;
         breakBlock(blockLocation: mojangminecraft.BlockLocation, direction?: number): boolean;
         getBlockFromViewVector(options?: mojangminecraft.BlockRaycastOptions): mojangminecraft.Block;
-        getComponent(componentId: string): mojangminecraft.IEntityComponent;
+        //getComponent(componentId: string): mojangminecraft.IEntityComponent;
         getComponents(): mojangminecraft.IEntityComponent[];
         getDynamicProperty(identifier: string): boolean | number | string;
         getEffect(effectType: mojangminecraft.EffectType): mojangminecraft.Effect;

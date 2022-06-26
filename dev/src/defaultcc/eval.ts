@@ -1,6 +1,5 @@
-import areaLoader from "../libcore/arealoader.js";
 import { world } from "mojang-minecraft";
-import cc, { ccVars } from "../libcore/cc.js";
+import cc from "../libcore/cc.js";
 import role from "../libcore/role.js";
 import chat from "../libcore/chat.js";
 import eventManager from '../libcore/evmngr.js'
@@ -14,8 +13,6 @@ import { sendMsg } from "../libcore/sendChat.js";
 import storage from "../libcore/storage.js";
 import server from "../libcore/server.js";
 import TypedValues from "../libcore/typedvalues.js";
-import SEBridgeConnector from "../libcore/bridgeconnector.js";
-import SEBridgeHost from "../libcore/bridgehost.js";
 
 import * as mc from 'mojang-minecraft'
 import * as mcui from 'mojang-minecraft-ui'
@@ -91,7 +88,6 @@ server.ev.beforeChat.subscribe((evd, ctrl) => {
 let gExecuter: mc.Player
 
 const o = new Proxy({
-    areaLoader,
     cc,
     chat,
     dim,
@@ -108,8 +104,6 @@ const o = new Proxy({
     server,
     storage,
     TypedValues,
-    SEBridgeHost,
-    SEBridgeConnector,
     get executer() { return gExecuter },
     mc,
     mcui,
