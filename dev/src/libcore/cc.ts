@@ -501,7 +501,7 @@ class ccDescription {
                 }
             }
         } = this.formats
-        const _a = [ufm2, ufm1, ufm0] as const,
+        const _a = [ufm0, ufm1, ufm2] as const,
             _b = [ tfm0, tfm1, tfm2, tfm3 ] as const
 
         const vars = empty({
