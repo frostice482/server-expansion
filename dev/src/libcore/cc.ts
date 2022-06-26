@@ -6,7 +6,6 @@ import { convertToString, sendMsgToPlayers } from "./sendChat.js"
 import storage from "./storage.js"
 import TypedValues, { typedValuesAll, typedValuesJSON } from "./typedvalues.js"
 
-/** @deprecated */
 export default class cc {
     static get parser() { return parser }
     static get typedArgs() { return TypedArgs }
