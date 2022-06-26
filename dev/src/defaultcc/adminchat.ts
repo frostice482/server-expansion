@@ -43,8 +43,8 @@ new cc('adminchat', {
         { sequence: ['join'] },
         { sequence: ['leave'] },
         { sequence: ['list'] },
-        { sequence: ['pull', cc.parser.selector] },
-        { sequence: ['kick', cc.parser.selector] },
+        { sequence: ['pull', cc.parser.playerSelector] },
+        { sequence: ['kick', cc.parser.playerSelector] },
     ]),
     triggers: /^admin-?chat$/i,
     onTrigger: ({ log, executer, typedArgs: tArgs }) => {
