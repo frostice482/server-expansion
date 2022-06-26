@@ -1,4 +1,5 @@
 import { world } from "mojang-minecraft";
+import Area from "../libcore/area.js";
 import cc from "../libcore/cc.js";
 import role from "../libcore/role.js";
 import chat from "../libcore/chat.js";
@@ -88,6 +89,7 @@ server.ev.beforeChat.subscribe((evd, ctrl) => {
 let gExecuter: mc.Player
 
 const o = new Proxy({
+    area: Area,
     cc,
     chat,
     dim,
