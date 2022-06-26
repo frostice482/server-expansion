@@ -187,6 +187,7 @@ const cmdta = new cc.typedArgs([
     { sequence: [ 'cmd', 'list' ] },
     { sequence: [ 'cmd', 'clear' ] },
     { minArgs: 2, sequence: [ 'cmd', 'interval', cc.parser.number ] },
+    { sequence: [ 'cmd', 'help' ] },
 ])
 
 const format = (v: string) => v.replace(/\$\{tps(\.\w+)*(,\d+)?(,\d+)?\}/g, '§d$&§r')

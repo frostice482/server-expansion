@@ -309,15 +309,15 @@ const syndef = {
             ], [
                 ['-usages', 'remove_at', { type: [['value', 'number']], name: 'position' }, '§r...[§dedit:description§r]§r']
             ], [
-                ['-aliases', 'clear', '§r...[§dedit:description§r]§r'],
+                ['-usages', 'clear', '§r...[§dedit:description§r]§r'],
             ], [
-                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'string']], name: 'type' }, { type: [['keyword', 'any']], name: 'value' }, '§r...[§dedit:description§r]§r']
+                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'string']], name: 'type' }, { type: [['value', 'any']], name: 'value' }, '§r...[§dedit:description§r]§r']
             ], [
-                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'number']], name: 'type' }, { type: [['keyword', 'number']], name: 'value' }, '§r...[§dedit:description§r]§r']
+                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'number']], name: 'type' }, { type: [['value', 'number']], name: 'value' }, '§r...[§dedit:description§r]§r']
             ], [
-                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'boolean']], name: 'type' }, { type: [['keyword', 'boolean']], name: 'value' }, '§r...[§dedit:description§r]§r']
+                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'boolean']], name: 'type' }, { type: [['value', 'boolean']], name: 'value' }, '§r...[§dedit:description§r]§r']
             ], [
-                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'json']], name: 'type' }, { type: [['keyword', 'JSON']], name: 'value' }, '§r...[§dedit:description§r]§r']
+                ['-variables', 'set', { type: [['value', 'any']], name: 'id' }, { type: [['keyword', 'json']], name: 'type' }, { type: [['value', 'JSON']], name: 'value' }, '§r...[§dedit:description§r]§r']
             ], [
                 ['-variables', 'delete', { type: [['value', 'any']], name: 'id' }, '§r...[§dedit:description§r]§r']
             ], [
