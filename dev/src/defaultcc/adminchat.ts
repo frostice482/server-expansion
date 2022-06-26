@@ -83,7 +83,7 @@ new cc('adminchat', {
             case 'pull': {
                 let isExec = false
                 for (const plr of tArgs[1].execute(executer)) {
-                    if (!(plr instanceof Player && !plr.hasTag(adminTag))) continue
+                    if (plr.hasTag(adminTag)) continue
                     isExec = true
 
                     const targets = cGroup.getTargets(),
@@ -104,7 +104,7 @@ new cc('adminchat', {
             case 'kick': {
                 let isExec = false
                 for (const plr of tArgs[1].execute(executer)) {
-                    if (!(plr instanceof Player && plr.hasTag(adminTag))) continue
+                    if (!plr.hasTag(adminTag)) continue
                     isExec = true
 
                     plr.removeTag(adminTag)
