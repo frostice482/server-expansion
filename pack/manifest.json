@@ -24,12 +24,8 @@
         "version": [0, 1, 0]
     }],
     "subpacks": [{
-        "name": "Status: §cDisabled §7(Passive)§r",
+        "name": "Status: §cDisabled",
         "folder_name": "disabled",
-        "memory_tier": 0
-    }, {
-        "name": "Status: §bSafe Mode§r\n§7- §rDisables autosave & autoload",
-        "folder_name": "safemode",
         "memory_tier": 0
     }, {
         "name": "Status: §aEnabled§r",
