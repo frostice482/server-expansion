@@ -731,6 +731,7 @@ class parser {
                             selector = selector.slice(1, -1)
                         }
                     }
+                    this.#plrCache = null
                     for (const plr of world.getPlayers())
                         if (plr.name == selector || plr.nickname == selector) {
                             this.#plrCache = plr
