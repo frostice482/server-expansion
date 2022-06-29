@@ -1,18 +1,23 @@
 import { DynamicPropertiesDefinition, world } from "mojang-minecraft"
 import eventManager, { MapEventList } from "./evmngr.js"
+import scoreboard from "./scoreboard.js"
 import server from "./server.js"
 import { empty, randomstr } from "./misc.js"
+
+const auth = Symbol()
 
 const storage = (() => {
     class storage {
         /** Storage instance. */
         static get instance() { return instance }
+        /** Storage save info. */
+        static get saveInfo() { return saveDataInfo }
 
         /**
          * Executes a save data.
          * @param id Save data identifier.
          */
-        static readonly for = (id: string) => new saveDataInfo(id)
+        static readonly for = (id: string) => new saveDataInfo(auth, id)
     
         /**
          * Deletes a save data.
@@ -25,7 +30,8 @@ const storage = (() => {
     }
 
     class saveDataInfo {
-        constructor(id: string) {
+        constructor(key: typeof auth, id: string) {
+            if (key !== auth) throw new TypeError('Class is not constructable')
             this.id = id
 
             if (!scoreboard.objective.exist(id)) return
@@ -66,13 +72,14 @@ const storage = (() => {
     return storage
 })()
 
+type storageDataInfo = typeof storage.saveInfo.prototype
+
 export default storage
 
 import type { saveData as permissionSaveData } from "./permission.js"
 import type { saveData as chatSaveData } from "./chat.js"
 import type { saveData as roleSaveData } from "./role.js"
 import type { ccStorageSaveData } from "./cc.js"
-import scoreboard from "./scoreboard.js"
 
 const instance = (() => {
     class storageInstance <T = {}> {
@@ -155,7 +162,7 @@ const instance = (() => {
         /** Executable identifier. */
         get execId() { return this.#execId }
 
-        #saveInfo: ReturnType<typeof storage.for>
+        #saveInfo: storageDataInfo
         /** Save info. */
         get saveInfo() { return this.#saveInfo }
 

@@ -547,9 +547,7 @@ class ccDescription {
     }
 }
 
-type ccDescriptionJSONData = {
-    [K in Extract<Exclude<keyof ccDescription, 'toJSON' | 'generate' | 'toString'>, string>]: ccDescription[K]
-}
+type ccDescriptionJSONData = Omit<ccDescription, 'toJSON' | 'generate' | 'toString' | symbol>
 
 export type ccVars = {
     [k: string]: any
