@@ -82,7 +82,7 @@ new cc('role', {
                 switch (tArgs[1]) {
                     case 'create': {
                         if (role.group.exist(tArgs[2])) throw new cc.error(`Role group with ID '${tArgs[2]}' already exists.`, 'ReferenceError')
-                        //@ts-ignore
+                        //@ts-expect-error
                         new role.group(...tArgs.slice(2))
                         return log(`Created role group with ID '${tArgs[2]}'.`)
                     }

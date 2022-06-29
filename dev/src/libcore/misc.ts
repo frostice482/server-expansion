@@ -53,7 +53,7 @@ export const viewObj = (() => {
     
     const fnHead = (o: Function, oc: Function): string => {
         const fName = o.name || '<anonymous>',
-            //@ts-ignore
+            //@ts-expect-error
             fLoc = o.fileName ? `${o.fileName}:${o.lineNumber}` : '<native>',
 
             notClass = Object.getOwnPropertyDescriptor(o, 'prototype')?.writable ?? true,

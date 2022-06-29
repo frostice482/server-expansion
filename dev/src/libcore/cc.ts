@@ -113,7 +113,7 @@ export default class cc {
                                 catch(e) { if (a.ignoreError) throw e }
                         break
                         case 'eval':
-                            //@ts-ignore
+                            //@ts-expect-error
                             (a.scriptCache ??= renameFn(Function(`vars`, `(${a.script})(vars)`), `[Command: ${cmd.id}]`))(vars)
                         break
                     }
