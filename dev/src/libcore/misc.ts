@@ -39,7 +39,7 @@ export const viewObj = (() => {
         ]
     }
 
-    const strFormatKeys: List<0> = empty({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, a: 0, b: 0, c: 0, d: 0, e: 0, f: 0, g: 0, r: 0, l: 0, o: 0 }),
+    const strFormatKeys: Record<string, number> = empty({ 0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0, 7: 0, 8: 0, 9: 0, a: 0, b: 0, c: 0, d: 0, e: 0, f: 0, g: 0, r: 0, l: 0, o: 0 }),
         strEscDict = empty({
             '\t': 'TAB',
             '\v': 'VTAB',
@@ -139,7 +139,7 @@ export const viewObj = (() => {
 
                 // one hell of a mess
                 const out = [`[ §7Array<${o.length}>§r`]
-                let exclude: List<0, string> = empty() //!
+                let exclude: Record<string, 0> = empty() //!
                 for (const k in o) {
                     exclude[k] = 0 //!
                     out.push(`${nTab}${tabSeparator}${formatKey(k)}: ${execNext(k)}`)

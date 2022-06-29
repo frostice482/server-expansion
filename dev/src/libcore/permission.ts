@@ -56,7 +56,7 @@ export default class permission {
     protected constructor() { throw new TypeError('Class is not constructable') }
 }
 
-let list: List<number> = empty()
+let list: Record<string, number> = empty()
 
 // storage stuff
 import storage from "./storage.js"

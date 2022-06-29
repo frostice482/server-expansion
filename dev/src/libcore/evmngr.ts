@@ -118,6 +118,6 @@ type triggerOnErrorEvent = {
 }
 
 // type definitions
-type EventList = List<(eventData: any) => void, string>
+type EventList = Record<string, (eventData: any) => void>
 export type MapEventList <T extends EventList> = { [K in keyof T]: (eventData: Parameters<T[K]>[0], control: eventControl) => void }
-type MappedEventList = List<(eventData: any, control: eventControl) => void>
+type MappedEventList = Record<string, (eventData: any, control: eventControl) => void>

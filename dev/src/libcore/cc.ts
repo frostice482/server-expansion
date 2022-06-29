@@ -201,7 +201,7 @@ export default class cc {
      * @param id Custom command identifier.
      * @param properties Initializer properties.
      */
-    constructor(id: string, properties: Optional<ExcludeSome<cc, 'id' | 'toJSONSave' | 'toJSON'>> = {} ) {
+    constructor(id: string, properties: Partial<Omit<cc, 'id' | 'toJSONSave' | 'toJSON'>> = {} ) {
         if (ccList.has(id)) throw new TypeError(`Custom command with ID '${id}' already exists`)
         this.id = id
         Object.assign(this, properties)
@@ -322,7 +322,7 @@ type ccJSONData = {
 type ccSaveJSONData = {
     id: string
     extends: true
-    data: Optional<Pick<cc, 'minPermLvl' | 'reqTags' | 'isHidden' | 'isDisabled'>>
+    data: Partial<Pick<cc, 'minPermLvl' | 'reqTags' | 'isHidden' | 'isDisabled'>>
 } | {
     id: string
     extends: false
@@ -340,7 +340,7 @@ class ccDescription {
      * Creates a custom command description.
      * @param properties Property initializers.
      */
-    constructor(properties: Optional<ccDescriptionJSONData> = {}) {
+    constructor(properties: Partial<ccDescriptionJSONData> = {}) {
         deepAssign(this, properties)
     }
 
@@ -358,7 +358,7 @@ class ccDescription {
     ][] = []
 
     /** Variables. */
-    variables: List<any> = {}
+    variables: Record<PropertyKey, any> = {}
     /** Formats. */
     formats: {
         /** Aliases format. */
@@ -745,7 +745,7 @@ class parser {
                 return function* (source: Player | Dimension = dim.o) {
                     if (t.#plrCache !== undefined) return yield t.#plrCache
     
-                    const nameList: List<0> = empty()
+                    const nameList: Record<string, 0> = empty()
                     for (const v of execCmd(`testfor ${t.#selector}`, source, true).victim ?? []) nameList[v] = 0
                     for (const plr of world.getPlayers())
                         if (plr.name in nameList) yield plr

@@ -33,7 +33,7 @@ const storage = (() => {
             if (!sb.exist(`[SES::${id}]`)) return
 
             // grab data
-            const list: List<string, number> = empty()
+            const list: Record<number, string> = empty()
             let len = 0
             for (const [data, order] of sb.getScores()) {
                 list[order] = data

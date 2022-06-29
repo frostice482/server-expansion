@@ -20,10 +20,5 @@ declare global {
     }
 
     class InternalError extends Error {}
-    let __date_clock: () => number
-
-    type List<V, I extends PropertyKey = string> = { [P in I]: V }
-    type RequiredSome<V, K extends keyof V> = V & { [P in K]: V[P] }
-    type ExcludeSome<V, K extends keyof V> = { [P in Exclude<keyof V, K>]: V[P] }
-    type Optional<V> = { [P in keyof V]?: V[P] }
+    var __date_clock: () => number
 }

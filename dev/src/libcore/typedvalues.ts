@@ -22,7 +22,7 @@ export class TypedValue {
      * @param index Index to be parsed from JSON data. nth index in JSON Data must be a typed array (`array`).
      * @param referenceList Reference list, consisting of index of typed values.
      */
-    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: List<allTypes, number> = empty(), index = 0) => {
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: Record<number, allTypes> = empty(), index = 0) => {
         const data = jsonData[index]
         if (data?.type != 'value') throw new TypeError(`Type mismatched: expecting 'value', got '${data.type}'`)
 
@@ -48,11 +48,11 @@ export class TypedValue {
     }
 
     #data: {
-        type: List<1, valueTypes['valueType']>
+        type: Record<valueTypes['valueType'], 1>
         specifics: {
-            string: List<1, string>
-            number: List<1, number>
-            boolean: List<1, 'true' | 'false'>
+            string: Record<string, 1>
+            number: Record<number, 1>
+            boolean: Record<'true' | 'false', 1>
         }
         objects: Set<TypedObject | TypedArray | TypedArraySpecific | TypedValue>
     } = {
@@ -151,7 +151,7 @@ export class TypedObject {
      * @param index Index to be parsed from JSON data. nth index in JSON Data must be a typed array (`array`).
      * @param referenceList Reference list, consisting of index of typed values.
      */
-    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: List<allTypes, number> = empty(), index = 0) => {
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: Record<number, allTypes> = empty(), index = 0) => {
         const data = jsonData[index]
         if (data?.type != 'object') throw new TypeError(`Type mismatched: expecting 'object', got '${data.type}'`)
 
@@ -277,7 +277,7 @@ export class TypedArray {
      * @param index Index to be parsed from JSON data. nth index in JSON Data must be a typed array (`array`).
      * @param referenceList Reference list, consisting of index of typed values.
      */
-    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: List<allTypes, number> = empty(), index = 0) => {
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: Record<number, allTypes> = empty(), index = 0) => {
         const data = jsonData[index]
         if (data?.type != 'array') throw new TypeError(`Type mismatched: expecting 'array', got '${data.type}'`)
 
@@ -346,7 +346,7 @@ export class TypedArraySpecific {
      * @param index Index to be parsed from JSON data. nth index in JSON Data must be a sepcific typed array (`arraySpecific`).
      * @param referenceList Reference list, consisting of index of typed values.
      */
-    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: List<allTypes, number> = empty(), index = 0) => {
+    static readonly fromJSON = (jsonData: JSONData['all'][], referenceList: Record<number, allTypes> = empty(), index = 0) => {
         const data = jsonData[index]
         if (data?.type != 'arraySpecific') throw new TypeError(`Type mismatched: expecting 'arraySpecific', got '${data.type}'`)
 
@@ -447,7 +447,7 @@ const toJSON = (type: allTypes) => {
     return refs.map(v => v.JSONConvertion(refsMap)) as JSONData['all'][]
 }
 
-const objRef = (jsonData: JSONData['all'][], referenceList: List<allTypes, number>, index: number) =>
+const objRef = (jsonData: JSONData['all'][], referenceList: Record<number, allTypes>, index: number) =>
     referenceList[index] ??= refId[jsonData[index].type].fromJSON(jsonData, referenceList, index)
 
 type JSONData = {
