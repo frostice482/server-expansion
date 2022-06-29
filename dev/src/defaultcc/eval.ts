@@ -1,5 +1,7 @@
 import { world } from "mojang-minecraft";
 import Area from "../libcore/area.js";
+import bridgeCli from "../libcore/bridgecli.js";
+import bridgeHost from "../libcore/bridgehost.js";
 import cc from "../libcore/cc.js";
 import role from "../libcore/role.js";
 import chat from "../libcore/chat.js";
@@ -90,6 +92,8 @@ let gExecuter: mc.Player
 
 const o = new Proxy({
     area: Area,
+    bridgeCli,
+    bridgeHost,
     cc,
     chat,
     dim,
