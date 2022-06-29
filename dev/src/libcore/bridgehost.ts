@@ -43,9 +43,9 @@ class plugin {
             if (module in defaultModules) return defaultModules[module]
             else if (pluginList.has(module)) {
                 const pliFamily = pluginList.get(module)
-                if (pliFamily.loadedVersion === null && !( defaultVersion in pliFamily.versions ))
+                if (pliFamily.loadedVersion === null && !pliFamily.versions.has(defaultVersion))
                     throw importError( new ReferenceError(`Module '${module}' does not have version code ${defaultVersion}`), this.#data )
-                return pliFamily.versions[ pliFamily.loadedVersion !== null ? pliFamily.loadedVersion : defaultVersion ].execute(this.#data)
+                return ( pliFamily.loadedVersion === null ? pliFamily.versions.get(defaultVersion) : pliFamily.getLoaded() ).execute(this.#data)
             }
             else throw importError( new ReferenceError(`Module not found: '${module}'`), this.#data )
         }
@@ -96,7 +96,13 @@ class plugin {
      * @param id Plugin family identifier.
      * @param version Plugin version.
      */
-    static readonly 'get' = (id: string, version: number | 'latest' = 'latest') => pluginList.get(id)?.versions[version]
+    static readonly 'get' = (id: string, version: number | 'latest' = 'latest') => pluginList.get(id)?.versions.get(version)
+
+    /**
+     * Gets plugin family.
+     * @param id Plugin family identifier.
+     */
+    static readonly 'getFamily' = (id: string) => pluginList.get(id)
 
     /**
      * Test if a plugin exists.
@@ -104,13 +110,13 @@ class plugin {
      * @param version Plugin version.
      * @returns Boolean -- True if plugin exists.
      */
-    static readonly exist = (id: string, version: number | 'latest' = 'latest') => Boolean(pluginList.get(id)?.versions[version])
+    static readonly exist = (id: string, version: number | 'latest' = 'latest') => Boolean( this.get(id, version) )
 
     /**
      * Gets plugin list.
      * @returns Plugin list.
      */
-    static readonly getList = () => pluginList.values()
+    static readonly getList = () => pluginList.entries()
 
     /**
      * Deletes a plugin.
@@ -122,10 +128,19 @@ class plugin {
         const pliFamily = pluginList.get(id)
         if (!pliFamily) return false
 
-        const pli = pliFamily.versions[version]
+        const pli = pliFamily.versions.get(version)
         if (pli.isExecuted && !pli.unload()) return false
 
-        delete pliFamily.versions[version]
+        pliFamily.versions.delete(version)
+        if (version == 'latest' || version == pliFamily.latestVersion) {
+            // update the latest version set
+            const versions = new Set(pliFamily.versions.keys())
+            versions.delete('latest')
+            pliFamily.latestVersion = Math.max(...Array.from(versions, v => +v))
+
+            // ..or delete if there is no plugin left in the family
+            if (!versions.size) pluginList.delete(id)
+        }
 
         return true
     }
@@ -139,7 +154,7 @@ class plugin {
         const pliFamily = pluginList.get(id)
         if (!pliFamily) return false
 
-        const pli = pliFamily.versions[pliFamily.loadedVersion]
+        const pli = pliFamily.versions.get(pliFamily.loadedVersion)
         if (pli && pli.isExecuted && !pli.unload()) return false
 
         pluginList.delete(id)
@@ -187,10 +202,9 @@ class plugin {
 
         if (!pluginList.has(id)) {
             const o = {
-                versions: empty({
-                    get latest() { return o.versions[o.latestVersion] }
-                }),
+                versions: new Map,
                 latestVersion: -1,
+                getLoaded: () => o.versions.get(o.latestVersion),
                 commonLoaded: false,
                 loadedVersion: null
             }
@@ -198,8 +212,9 @@ class plugin {
         }
 
         const pliFamily = this.#family = pluginList.get(id)
-        pliFamily.versions[this.versionCode] = this
+        pliFamily.versions.set(this.versionCode, this)
         pliFamily.latestVersion = Math.max(pliFamily.latestVersion, this.versionCode)
+        pliFamily.versions.set('latest', pliFamily.versions.get(pliFamily.latestVersion))
     }
 
     // ---- other stuff ----
@@ -225,7 +240,7 @@ class plugin {
     #moduleEntry: string
     #moduleCache: any
 
-    #dependents = new Set<plugin>()
+    readonly dependents = new Set<plugin>()
 
     #moduleTrigger: bridgeInstanceEventInstance['triggerEvent']
     #importingCount = 0
@@ -251,7 +266,7 @@ class plugin {
             return importData[this.id].promise
         }
 
-        if (caller) this.#dependents.add(caller.pluginParent.plugin)
+        if (caller) this.dependents.add(caller.pluginParent.plugin)
 
         const data = importData[this.id] = new pluginImportData(this, caller)
         const entryId = this.#moduleEntry
@@ -296,7 +311,7 @@ class plugin {
     readonly unload = () => {
         if (!(this.#canBeUnloaded && this.#isExecuted)) return false
 
-        const dependents = Array.from(this.#dependents)
+        const dependents = Array.from(this.dependents)
         if (!dependents.every(v => !v.#isExecuted || v.#canBeUnloaded)) return false
         for (const pli of dependents) pli.unload()
 
@@ -352,11 +367,9 @@ const pluginJSONDataT = new TypedObject()
 
 // type
 type pluginFamily = {
-    versions: {
-        [k: number]: plugin
-        get latest(): plugin
-    },
+    versions: Map<number | 'latest', plugin>,
     latestVersion: number
+    getLoaded: () => plugin
 
     commonLoaded: boolean
     loadedVersion: number

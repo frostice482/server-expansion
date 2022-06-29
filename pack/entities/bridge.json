@@ -1,0 +1,11 @@
+{
+    "format_version": "1.19.0",
+    "minecraft:entity": {
+        "description": {
+            "identifier": "se:bridge",
+            "is_spawnable": false,
+            "is_summonable": true,
+            "is_experimental": false
+        }
+    }
+}
