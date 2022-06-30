@@ -114,7 +114,12 @@ new cc('bridge', {
                 if (!pliFamily.commonLoaded) return log(`Plugin '${id}' is not loaded.`)
 
                 const pli = pliFamily.getLoaded()
-                if (!pli.unload()) throw new cc.error(`Failed to unload '${pli.name}' (${pli.version}): The plugin either cannot be unloaded or other plugin that requires this plugin doesn't allow the plugin to be unloaded.`, 'TypeError')
+
+                try {
+                    if (!pli.unload())
+                        throw new TypeError(`Failed to unload '${pli.name}' (${pli.version}): The plugin either cannot be unloaded or other plugin that requires this plugin doesn't allow the plugin to be unloaded.`)
+                } catch (e) { throw new Error(e.message) }
+
                 return log(`Successfully unloaded '${pli.name}' (§a${pli.version}§r).`)
             }
             case 'delete': {
@@ -123,7 +128,11 @@ new cc('bridge', {
                 const pli = bridgeHost.plugin.get(id, version)
                 if (!pli) throw new cc.error(`Plugin '${id}' with version code ${version} does not exist.`, 'ReferenceError')
 
-                if (!bridgeHost.plugin.delete(id, version)) throw new cc.error(`Failed to delete '${pli.name}' (${pli.version}): The plugin is executed and either it cannot be unloaded or other plugin that requires this plugin doesn't allow the plugin to be unloaded.`, 'TypeError')
+                try {
+                    if (!bridgeHost.plugin.delete(id, version))
+                        throw new TypeError(`Failed to delete '${pli.name}' (${pli.version}): The plugin is executed and either it cannot be unloaded or other plugin that requires this plugin doesn't allow the plugin to be unloaded.`)
+                } catch (e) { throw new Error(e.message) }
+
                 return log(`Successfully deleted '${pli.name}' (§a${pli.version}§r).`)
             }
             case 'delete-all': {
@@ -132,7 +141,11 @@ new cc('bridge', {
                 const pliFamily = bridgeHost.plugin.getFamily(id)
                 if (!pliFamily) throw new cc.error(`Plugin '${id}' does not exist.`, 'ReferenceError')
 
-                if (!bridgeHost.plugin.deleteFamily(id)) throw new cc.error(`Failed to delete '${id}': The plugin is executed and either it cannot be unloaded or other plugin that requires this plugin doesn't allow the plugin to be unloaded.`, 'TypeError')
+                try {
+                    if (!bridgeHost.plugin.deleteFamily(id))
+                        throw new TypeError(`Failed to delete '${id}': The plugin is executed and either it cannot be unloaded or other plugin that requires this plugin doesn't allow the plugin to be unloaded.`)
+                } catch (e) { throw new Error(e.message) }
+
                 return log(`Successfully deleted '${id}'.`)
             }
         }

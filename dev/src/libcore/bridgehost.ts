@@ -305,17 +305,18 @@ class plugin {
     #canBeUnloaded: boolean
 
     /** Determines whether plugin can be unloaded or not.. */
-    get canBeUnloaded() { return this.#canBeUnloaded }
+    get canBeUnloaded() { return this.#canBeUnloaded && Array.from(this.dependents).every(v => v.#canBeUnloaded) }
 
     /** Unloads plugin. */
     readonly unload = () => {
-        if (!(this.#canBeUnloaded && this.#isExecuted)) return false
+        if (!(this.canBeUnloaded && this.#isExecuted)) return false
 
-        const dependents = Array.from(this.dependents)
-        if (!dependents.every(v => !v.#isExecuted || v.#canBeUnloaded)) return false
-        for (const pli of dependents) pli.unload()
-
-        this.#moduleTrigger.unload()
+        for (const pli of this.dependents) pli.unload()
+        this.#moduleTrigger.unload(undefined, {
+            onError: (ev) => {
+                throw ev
+            }
+        })
         
         this.#isExecuted = false
         this.#internalModulesCache = empty()
