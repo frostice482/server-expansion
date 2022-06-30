@@ -32,6 +32,7 @@ export default class bridgeCli {
     moduleEntry?: string
 
     canBeUnloaded?: boolean
+    executeOnRegister?: boolean
 
     readonly send = async () => {
         if (!bridgeCli.hostIsLoaded) throw new TypeError('Host is not loaeded')
@@ -53,7 +54,7 @@ export default class bridgeCli {
 
             await 0
 
-            const { id, name, description, author, version, versionCode, internalModules, moduleEntry, canBeUnloaded} = this
+            const { id, name, description, author, version, versionCode, internalModules, moduleEntry, canBeUnloaded, executeOnRegister } = this
             ent.nameTag = JSON.stringify({
                 id,
                 name,
@@ -63,6 +64,7 @@ export default class bridgeCli {
                 versionCode,
                 moduleEntry,
                 canBeUnloaded,
+                executeOnRegister,
                 internalModules: Object.fromEntries(
                     Object.entries(internalModules)
                         .map( ([k, fn]) => [k, String(fn)] )

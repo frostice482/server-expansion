@@ -167,7 +167,7 @@ class plugin {
      * @param data JSON data.
      */
     static readonly fromJSON = (data: pluginJSONData) => {
-        const { id, internalModules, author, canBeUnloaded, description, moduleEntry, name, version, versionCode } = data
+        const { id, internalModules, author, canBeUnloaded, description, moduleEntry, name, version, versionCode, executeOnRegister } = data
 
         const imNew: internalModulesList = empty()
         for (const [k, fn] of Object.entries(internalModules))
@@ -181,7 +181,8 @@ class plugin {
             versionCode
         }, imNew, {
             canBeUnloaded,
-            moduleEntry
+            moduleEntry,
+            executeOnRegister
         })
     }
 
@@ -215,6 +216,8 @@ class plugin {
         pliFamily.versions.set(this.versionCode, this)
         pliFamily.latestVersion = Math.max(pliFamily.latestVersion, this.versionCode)
         pliFamily.versions.set('latest', pliFamily.versions.get(pliFamily.latestVersion))
+
+        if (config.executeOnRegister) server.waitFor(20).then(this.execute)
     }
 
     // ---- other stuff ----
@@ -344,6 +347,7 @@ type pluginInfo = {
 type pluginConfig = {
     moduleEntry?: string
     canBeUnloaded?: boolean
+    executeOnRegister?: boolean
 }
 
 type pluginJSONData = pluginInfo & pluginConfig & {
@@ -365,6 +369,7 @@ const pluginJSONDataT = new TypedObject()
     .define('moduleEntry', Tstr, false)
     .define('internalModules', new TypedObject().allowUnusedProperties(false).setIndexType(Tstr))
     .define('canBeUnloaded', Tbool, false)
+    .define('executeOnRegister', Tbool, false)
 
 // type
 type pluginFamily = {
