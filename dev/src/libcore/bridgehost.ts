@@ -167,6 +167,7 @@ class plugin {
      * @param data JSON data.
      */
     static readonly fromJSON = (data: pluginJSONData) => {
+        if (!pluginJSONDataT.test(data)) throw new TypeError('type mismatch')
         const { id, internalModules, author, canBeUnloaded, description, moduleEntry, name, version, versionCode, executeOnRegister } = data
 
         const imNew: internalModulesList = empty()
