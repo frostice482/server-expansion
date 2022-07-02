@@ -69,7 +69,7 @@ const execEval = (evd: mc.BeforeChatEvent, cmd: string) => {
 }
 
 // repl mode
-const replList = new WeakSet<mc.Player>()
+const replList = new Set<mc.Player>()
 
 server.ev.beforeChat.subscribe((evd, ctrl) => {
     if (!replList.has(evd.sender)) return
