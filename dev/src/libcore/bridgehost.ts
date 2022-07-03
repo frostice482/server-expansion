@@ -218,7 +218,9 @@ class plugin {
         pliFamily.latestVersion = Math.max(pliFamily.latestVersion, this.versionCode)
         pliFamily.versions.set('latest', pliFamily.versions.get(pliFamily.latestVersion))
 
-        if (config.executeOnRegister) server.waitFor(20).then(this.execute)
+        if (config.executeOnRegister) server.waitFor(20).then(() => {
+            if (pliFamily.latestVersion == this.versionCode) this.execute()
+        })
     }
 
     // ---- other stuff ----
