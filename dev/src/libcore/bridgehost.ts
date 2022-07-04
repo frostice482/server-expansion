@@ -373,7 +373,7 @@ const pluginJSONDataT = new TypedObject()
     .define('version', Tstr, false)
     .define('versionCode', Tnum, false)
     .define('moduleEntry', Tstr, false)
-    .define('internalModules', new TypedObject().allowUnusedProperties(false).setIndexType(Tstr))
+    .define('internalModules', new TypedObject().allowUnusedProperties(true).setIndexType(Tstr))
     .define('canBeUnloaded', Tbool, false)
     .define('executeOnRegister', Tbool, false)
 
