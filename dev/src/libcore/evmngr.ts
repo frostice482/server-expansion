@@ -1,6 +1,6 @@
 import { empty } from "./misc.js"
 
-export default class eventManager <T extends MappedEventList> {
+export default class eventManager <T extends Record<string, any>> {
     /** Events. */
     readonly events: {
         [K in keyof T]: {
@@ -9,24 +9,24 @@ export default class eventManager <T extends MappedEventList> {
              * @param callback Function to be executed when the event is triggered.
              * @param priority Call priority.
              */
-            subscribe: (callback: T[K], priority?: number) => void
+            subscribe: (callback: fnCallback<T[K]>, priority?: number) => void
             /**
              * Unsubscribes from the event.
              * @param callback Function to be unsubscribed from the event.
              */
-            unsubscribe: (callback: T[K]) => boolean
+            unsubscribe: (callback: fnCallback<T[K]>) => boolean
         }
     } = empty()
 
     /** Triggers an event. */
     readonly triggerEvent: {
-        [K in keyof T]: (eventData: Parameters<T[K]>[0], ctrl?: controlEvents) => eventControlDataBind
+        [K in keyof T]: (eventData: T[K], ctrl?: controlEvents) => eventControlDataBind
     } = empty()
 
     /** Event manager data. */
     readonly data: {
         [K in keyof T]: {
-            list: Map<T[K], number>
+            list: Map<fnCallback<T[K]>, number>
             cached: boolean
         }
     } = empty()
@@ -117,7 +117,4 @@ type triggerOnErrorEvent = {
     readonly reason: any
 }
 
-// type definitions
-type EventList = Record<string, (eventData: any) => void>
-export type MapEventList <T extends EventList> = { [K in keyof T]: (eventData: Parameters<T[K]>[0], control: eventControl) => void }
-type MappedEventList = Record<string, (eventData: any, control: eventControl) => void>
+type fnCallback<T> = (evd: T, control: eventControl) => any

@@ -1,6 +1,6 @@
 import { Player, world } from "mojang-minecraft";
 import chat from "./chat.js";
-import eventManager, { MapEventList } from "./evmngr.js";
+import eventManager from "./evmngr.js";
 import { empty } from "./misc.js";
 import scoreboard from "./scoreboard.js";
 import server from "./server.js";
@@ -337,9 +337,9 @@ type groupJSONData = {
 }
 
 // event stuff
-type EventList = MapEventList<{
-    format: (plr: formatEvd) => void
-}>
+type EventList = {
+    format: formatEvd
+}
 
 const { events, triggerEvent } = new eventManager<EventList>(['format'], 'role')
 

@@ -1,4 +1,4 @@
-import eventManager, { MapEventList } from "./evmngr.js";
+import eventManager from "./evmngr.js";
 import { empty, randomstr, renameFn } from "./misc.js";
 
 import * as mc from 'mojang-minecraft'
@@ -368,9 +368,9 @@ type pluginFamily = {
     loadedVersion: number
 }
 
-type bridgeInstanceEvents = MapEventList<{
-    unload: (ev: void) => void
-}>
+type bridgeInstanceEvents = {
+    unload: void
+}
 
 type bridgeInstanceEventInstance = eventManager<bridgeInstanceEvents>
 

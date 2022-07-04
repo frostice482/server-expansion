@@ -1,5 +1,5 @@
 import { BeforeChatEvent, Player, world, WorldInitializeEvent } from "mojang-minecraft"
-import eventManager, { MapEventList } from "./evmngr.js"
+import eventManager from "./evmngr.js"
 
 export default class server {
     static get interval() { return interval }
@@ -379,13 +379,13 @@ const ticker = (() => {
 })()
 
 // event stuff
-type EventList = MapEventList<{
-    beforeChat: (evd: BeforeChatEvent) => void
-    playerJoin: (plr: Player) => void
-    playerLoad: (plr: Player) => void
-    initialize: (evd: WorldInitializeEvent) => void
-    postInitialize: (evd: void) => void
-}>
+type EventList = {
+    beforeChat: BeforeChatEvent
+    playerJoin: Player
+    playerLoad: Player
+    initialize: WorldInitializeEvent
+    postInitialize: void
+}
 
 const { events, triggerEvent, data: eventManagerData } = new eventManager<EventList>(['playerLoad', 'playerJoin', 'beforeChat', 'initialize', 'postInitialize'], 'server')
 

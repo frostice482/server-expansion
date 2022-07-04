@@ -1,5 +1,5 @@
 import { DynamicPropertiesDefinition, world } from "mojang-minecraft"
-import eventManager, { MapEventList } from "./evmngr.js"
+import eventManager from "./evmngr.js"
 import scoreboard from "./scoreboard.js"
 import server from "./server.js"
 import { empty, randomstr } from "./misc.js"
@@ -205,12 +205,12 @@ const instance = (() => {
     }
 
     // events
-    type instanceEvents <T> = MapEventList<{
-        save: (evd: T) => void
-        postSave: (evd: instancePostEventEvd<T> ) => void
-        load: (evd: T) => void
-        postLoad: (evd: instancePostEventEvd<T> ) => void
-    }>
+    type instanceEvents <T> = {
+        save: T
+        postSave: instancePostEventEvd<T>
+        load: T
+        postLoad: instancePostEventEvd<T>
+    }
     
     type instancePostEventEvd <T> = {
         readonly data: T

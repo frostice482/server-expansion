@@ -1,6 +1,6 @@
 import { SimulatedPlayer } from "mojang-gametest";
 import { Entity, Player, world } from "mojang-minecraft";
-import eventManager, { MapEventList } from "./evmngr.js";
+import eventManager from "./evmngr.js";
 import { execCmd } from "./mc.js";
 import scoreboard from "./scoreboard.js";
 import { sendMsgToPlayer } from "./sendChat.js";
@@ -53,10 +53,10 @@ Object.defineProperty(Player, Symbol.hasInstance, { value: (v) => [ Player, Simu
 Object.defineProperty(Entity, Symbol.hasInstance, { value: (v) => [ Entity, Player, SimulatedPlayer ].includes(Object.getPrototypeOf(v ?? {}).constructor) })
 
 // event stuff
-type EventList = MapEventList<{
-    nametagChange: (evd: nametagChangeEvd) => void
-    playerRegister: (evd: Player) => void
-}>
+type EventList = {
+    nametagChange: nametagChangeEvd
+    playerRegister: Player
+}
 
 const { events, triggerEvent } = new eventManager<EventList>(['nametagChange', 'playerRegister'], 'plr')
 

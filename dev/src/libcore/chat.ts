@@ -1,6 +1,6 @@
 import { SimulatedPlayer } from "mojang-gametest"
 import { Player, world } from "mojang-minecraft"
-import eventManager, { MapEventList } from "./evmngr.js"
+import eventManager from "./evmngr.js"
 import { empty } from "./misc.js"
 import role from "./role.js"
 import { sendMsgToPlayer, sendMsgToPlayers } from "./sendChat.js"
@@ -239,10 +239,10 @@ Object.defineProperties(SimulatedPlayer.prototype, {
 })
 
 // event stuff
-type EventList = MapEventList<{
-    nicknameChange: (plr: nicknameChangeEvent) => void
-    chat: (evd: chatEvent) => void
-}>
+type EventList = {
+    nicknameChange: nicknameChangeEvent
+    chat: chatEvent
+}
 
 const { events, triggerEvent } = new eventManager<EventList>(['nicknameChange', 'chat'], 'chat')
 
