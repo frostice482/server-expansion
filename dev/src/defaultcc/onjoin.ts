@@ -182,7 +182,7 @@ storage.instance.default.ev.load.subscribe(fnStorageLoad = (data) => {
     executeAfterRegister = data.icc_onJoin.executeAfterRegister
 })
 
-const regPlrSets = new Set<Player>()
+const regPlrSets = new WeakSet<Player>()
 
 plr.ev.playerRegister.subscribe(fnPlrReg = (plr) => {
     if (!executeAfterRegister) regPlrSets.add(plr)
