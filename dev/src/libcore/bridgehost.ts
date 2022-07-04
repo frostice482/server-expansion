@@ -23,12 +23,7 @@ class plugin {
             this.#pliData = data.pluginParent
             this.#data = data
 
-            const {events, triggerEvent} = new eventManager<bridgeInstanceEvents>(['ready', 'unload'], `bridge (${this.#pli.id})`)
-            this.ev = this.events = events
-
-            if (data.parent instanceof pluginImportData) {
-                this.#pli.#moduleTrigger = triggerEvent
-            }
+            this.ev = this.#pli.#moduleEvents
         }
     
         #pli: plugin
@@ -70,17 +65,8 @@ class plugin {
                     delete pliData.module[module]
                 })
 
-                const importingCount = ++pli.#importingCount
-
                 try { mdata.res( pli.#internalModules[module]( new plugin.bridgeInstance(auth, mdata) ) ) }
                 catch (e) { data.rej(e) }
-                finally {
-                    pli.#resolvedCount++
-                    server.waitFor(5).then(() => {
-                        if (pli.#importingCount == importingCount && pli.#resolvedCount == importingCount)
-                            pli.#moduleTrigger.ready()
-                    })
-                }
 
                 return mdata.promise
             }
@@ -248,9 +234,8 @@ class plugin {
 
     readonly dependents = new Set<plugin>()
 
-    #moduleTrigger: bridgeInstanceEventInstance['triggerEvent']
-    #importingCount = 0
-    #resolvedCount = 0
+    #moduleEventTrigger: bridgeInstanceEventInstance['triggerEvent']
+    #moduleEvents: bridgeInstanceEventInstance['events']
 
     // ---- Execute section ----
 
@@ -276,6 +261,10 @@ class plugin {
             return importData[this.id].promise
         }
 
+        const {events, triggerEvent} = new eventManager<bridgeInstanceEvents>(['unload'], `plugin (${this.id})`)
+        this.#moduleEvents = events
+        this.#moduleEventTrigger = triggerEvent
+
         const data = importData[this.id] = new pluginImportData(this, caller)
         const entryId = this.#moduleEntry
         const mdata = new moduleImportData(entryId, data)
@@ -292,18 +281,10 @@ class plugin {
             delete importData[this.id]
         })
 
-        const importingCount = ++this.#importingCount
         this.#family.loadedVersion = this.versionCode
 
         try { mdata.res( this.#internalModules[entryId]( new plugin.bridgeInstance(auth, mdata) ) ) }
         catch (e) { data.rej(e) }
-        finally {
-            this.#resolvedCount++
-            server.waitFor(5).then(() => {
-                if (this.#importingCount == importingCount && this.#resolvedCount == importingCount)
-                    this.#moduleTrigger.ready()
-            })
-        }
         
         return data.promise
     }
@@ -321,7 +302,7 @@ class plugin {
         if (!(this.canBeUnloaded && this.#isExecuted)) return false
 
         for (const pli of this.dependents) if (!stack.includes(pli)) pli.unload(stack.concat(pli))
-        this.#moduleTrigger.unload(undefined, {
+        this.#moduleEventTrigger.unload(undefined, {
             onError: (ev) => {
                 throw ev
             }
@@ -388,7 +369,6 @@ type pluginFamily = {
 }
 
 type bridgeInstanceEvents = MapEventList<{
-    ready: (ev: void) => void
     unload: (ev: void) => void
 }>
 
