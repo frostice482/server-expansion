@@ -138,20 +138,17 @@ const format = (v: string) => v.replace(/\u00a7(.)/g, (m, k) => `§7[S${k}]§r`)
 
 let cmds: string[] = []
 
-type onSaveLoad = Parameters<typeof storage.instance.default.ev.save.subscribe>[0]
-let fnStorageSave: onSaveLoad, fnStorageLoad: onSaveLoad, fnPlrLeave: (data: PlayerLeaveEvent) => void
-
-storage.instance.default.ev.save.subscribe(fnStorageSave = (data) => {
+const fnStorageSave = storage.instance.default.ev.save.subscribe((data) => {
     data.icc_onLeave = {
         cmds
     }
 })
 
-storage.instance.default.ev.load.subscribe(fnStorageLoad = (data) => {
+const fnStorageLoad = storage.instance.default.ev.load.subscribe((data) => {
     if (!data.icc_onLeave) return
     cmds = data.icc_onLeave.cmds
 })
 
-world.events.playerLeave.subscribe(fnPlrLeave = ({playerName}) => {
+const fnPlrLeave = world.events.playerLeave.subscribe(({playerName}) => {
     for (const cmd of cmds) execCmd( cmd.replace(/#name/g, playerName) )
 })

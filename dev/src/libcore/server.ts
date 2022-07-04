@@ -61,6 +61,7 @@ export default class server {
                 pisb(fn)
                 triggerEvent.postInitialize()
                 piusb(fn)
+                return fn
             }
             
             // executes player join & player load event after initialization

@@ -309,16 +309,14 @@ const interval = new server.interval(() => {
 }, 100)
 
 // storage stuff
-type onSaveLoad = Parameters<typeof storage.instance.default.ev.save.subscribe>[0]
-let fnStorageSave: onSaveLoad, fnStorageLoad: onSaveLoad
 
-storage.instance.default.ev.save.subscribe(fnStorageSave = (data) => {
+const fnStorageSave = storage.instance.default.ev.save.subscribe((data) => {
     data.icc_tps_cmd = {
         interval: interval.interval,
         cmd: cmd,
     }
 })
-storage.instance.default.ev.load.subscribe(fnStorageLoad = (data) => {
+const fnStorageLoad = storage.instance.default.ev.load.subscribe((data) => {
     if (!data.icc_tps_cmd) return
     interval.interval = data.icc_tps_cmd.interval
     cmd = data.icc_tps_cmd.cmd

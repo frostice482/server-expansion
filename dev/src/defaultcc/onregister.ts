@@ -130,7 +130,7 @@ new cc('onregister', {
     onDelete: () => {
         storage.instance.default.ev.save.unsubscribe(fnStorageSave)
         storage.instance.default.ev.load.unsubscribe(fnStorageLoad)
-        plr.ev.playerRegister.subscribe(fnPlrReg)
+        plr.ev.playerRegister.unsubscribe(fnPlrReg)
     },
     isDefault: true
 })
@@ -139,20 +139,17 @@ const format = (v: string) => v.replace(/\u00a7(.)/g, (m, k) => `§7[S${k}]§r`)
 
 let cmds: string[] = []
 
-type onSaveLoad = Parameters<typeof storage.instance.default.ev.save.subscribe>[0]
-let fnStorageSave: onSaveLoad, fnStorageLoad: onSaveLoad, fnPlrReg: (plr: Player) => void
-
-storage.instance.default.ev.save.subscribe(fnStorageSave = (data) => {
+const fnStorageSave = storage.instance.default.ev.save.subscribe((data) => {
     data.icc_onReg = {
         cmds
     }
 })
 
-storage.instance.default.ev.load.subscribe(fnStorageLoad = (data) => {
+const fnStorageLoad = storage.instance.default.ev.load.subscribe((data) => {
     if (!data.icc_onReg) return
     cmds = data.icc_onReg.cmds
 })
 
-plr.ev.playerRegister.subscribe(fnPlrReg = (plr) => {
+const fnPlrReg = plr.ev.playerRegister.subscribe( (plr) => {
     for (const cmd of cmds) execCmd( cmd.replace(/#name/g, plr.nickname), plr )
 })

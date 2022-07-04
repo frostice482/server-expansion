@@ -155,8 +155,8 @@ new cc('onjoin', {
     onDelete: () => {
         storage.instance.default.ev.save.unsubscribe(fnStorageSave)
         storage.instance.default.ev.load.unsubscribe(fnStorageLoad)
-        plr.ev.playerRegister.subscribe(fnPlrReg)
-        server.ev.playerLoad.subscribe(fnPlrLoad)
+        plr.ev.playerRegister.unsubscribe(fnPlrReg)
+        server.ev.playerLoad.unsubscribe(fnPlrLoad)
     },
     isDefault: true
 })
@@ -166,17 +166,14 @@ const format = (v: string) => v.replace(/\u00a7(.)/g, (m, k) => `§7[S${k}]§r`)
 let cmds: string[] = [],
     executeAfterRegister = true
 
-type onSaveLoad = Parameters<typeof storage.instance.default.ev.save.subscribe>[0]
-let fnStorageSave: onSaveLoad, fnStorageLoad: onSaveLoad, fnPlrReg: (plr: Player) => void, fnPlrLoad: (plr: Player) => void
-
-storage.instance.default.ev.save.subscribe(fnStorageSave = (data) => {
+const fnStorageSave = storage.instance.default.ev.save.subscribe((data) => {
     data.icc_onJoin = {
         cmds,
         executeAfterRegister
     }
 })
 
-storage.instance.default.ev.load.subscribe(fnStorageLoad = (data) => {
+const fnStorageLoad = storage.instance.default.ev.load.subscribe((data) => {
     if (!data.icc_onJoin) return
     cmds = data.icc_onJoin.cmds
     executeAfterRegister = data.icc_onJoin.executeAfterRegister
@@ -184,11 +181,11 @@ storage.instance.default.ev.load.subscribe(fnStorageLoad = (data) => {
 
 const regPlrSets = new WeakSet<Player>()
 
-plr.ev.playerRegister.subscribe(fnPlrReg = (plr) => {
+const fnPlrReg = plr.ev.playerRegister.subscribe((plr) => {
     if (!executeAfterRegister) regPlrSets.add(plr)
 })
 
-server.ev.playerLoad.subscribe(fnPlrLoad = (plr) => {
+const fnPlrLoad = server.ev.playerLoad.subscribe((plr) => {
     if (regPlrSets.has(plr)) return regPlrSets.delete(plr)
     for (const cmd of cmds) execCmd( cmd.replace(/#name/g, plr.nickname), plr )
 })

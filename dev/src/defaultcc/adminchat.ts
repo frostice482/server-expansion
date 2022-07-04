@@ -126,16 +126,12 @@ new cc('adminchat', {
     isDefault: true
 })
 
-type onChatFn = Parameters<typeof chat.ev.chat.subscribe>[0]
-type onFormatFn = Parameters<typeof role.ev.format.subscribe>[0]
-let onChatFn: onChatFn, onFormatFn: onFormatFn
-
-chat.ev.chat.subscribe(onChatFn = (data) => {
+const onChatFn = chat.ev.chat.subscribe((data) => {
     if (!data.sender.hasTag(adminTag)) return
     data.targets = cGroup.getTargets()
 }, 1000)
 
-role.ev.format.subscribe(onFormatFn = (data) => {
+const onFormatFn = role.ev.format.subscribe((data) => {
     if (data.formatType == 'nametag' || !data.plr.hasTag(adminTag)) return
     data.format = '§e§lAdmin Chat §f>§r ' + data.format
 })

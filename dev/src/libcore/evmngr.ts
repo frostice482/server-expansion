@@ -9,12 +9,12 @@ export default class eventManager <T extends Record<string, any>> {
              * @param callback Function to be executed when the event is triggered.
              * @param priority Call priority.
              */
-            subscribe: (callback: fnCallback<T[K]>, priority?: number) => void
+            subscribe: <callback extends fnCallback<T[K]>>(callback: callback, priority?: number) => callback
             /**
              * Unsubscribes from the event.
              * @param callback Function to be unsubscribed from the event.
              */
-            unsubscribe: (callback: fnCallback<T[K]>) => boolean
+            unsubscribe: <callback extends fnCallback<T[K]>>(callback: callback) => boolean
         }
     } = empty()
 
@@ -46,8 +46,12 @@ export default class eventManager <T extends Record<string, any>> {
             const localData = data[k]
 
             events[k] = {
-                subscribe: (evd, priority = 1) => { localData.list.set(evd, priority); localData.cached = false },
-                unsubscribe: (evd) => localData.list.delete(evd)
+                subscribe: (fn, priority = 1) => {
+                    localData.list.set(fn, priority)
+                    localData.cached = false
+                    return fn
+                },
+                unsubscribe: (fn) => localData.list.delete(fn)
             }
 
             triggerEvent[k] = (evd, ectrl = {}) => {
