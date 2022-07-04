@@ -111,6 +111,7 @@ new cc('bridge', {
                 const [,id] = tArgs
 
                 const pliFamily = bridgeHost.plugin.getFamily(id)
+                if (!pliFamily) throw new cc.error(`Plugin '${id}' does not exist.`, 'ReferenceError')
                 if (!pliFamily.commonLoaded) return log(`Plugin '${id}' is not loaded.`)
 
                 const pli = pliFamily.getLoaded()
