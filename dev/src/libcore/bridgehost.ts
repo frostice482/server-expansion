@@ -264,15 +264,17 @@ class plugin {
      * @param caller Plugin caller.
      */
     readonly execute = async (caller: moduleImportData | null = null) => {
+        if (caller) this.dependents.add(caller.pluginParent.plugin)
+
         if (this.isExecuted) return this.#moduleCache
 
         if (this.id in importData) {
-            if (caller.pluginParent.pluginStack.includes(this))
+            if (caller.pluginParent.pluginStack.includes(this)) {
+                this.dependents.delete(caller.pluginParent.plugin)
                 throw importError( new ReferenceError(`Circular import detected (importing '${this.id}' from '${caller.id}' in '${caller.pluginParent.id}')`), caller )
+            }
             return importData[this.id].promise
         }
-
-        if (caller) this.dependents.add(caller.pluginParent.plugin)
 
         const data = importData[this.id] = new pluginImportData(this, caller)
         const entryId = this.#moduleEntry
@@ -311,13 +313,14 @@ class plugin {
     #canBeUnloaded: boolean
 
     /** Determines whether plugin can be unloaded or not.. */
-    get canBeUnloaded() { return this.#canBeUnloaded && Array.from(this.dependents).every(v => v.#canBeUnloaded) }
+    #a = (stack: plugin[] = [this]) => Array.from(this.dependents).every( pli => stack.includes(pli) ? true : pli.#canBeUnloaded && pli.#a(stack.concat(pli)) )
+    get canBeUnloaded() { return this.#canBeUnloaded && this.#a() }
 
     /** Unloads plugin. */
-    readonly unload = () => {
+    readonly unload = (stack: plugin[] = [this]) => {
         if (!(this.canBeUnloaded && this.#isExecuted)) return false
 
-        for (const pli of this.dependents) pli.unload()
+        for (const pli of this.dependents) if (!stack.includes(pli)) pli.unload(stack.concat(pli))
         this.#moduleTrigger.unload(undefined, {
             onError: (ev) => {
                 throw ev
