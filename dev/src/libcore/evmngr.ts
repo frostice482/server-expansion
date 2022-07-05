@@ -61,7 +61,7 @@ export default class eventManager <T extends Record<string, any>> {
                 }
                 
                 const controlDataBind: eventControlDataBind = { break: false }
-                const control = new eventControl(controlDataBind)
+                const control = new eventControl(controlDataBind, ectrl)
                 for (const [fn] of localData.list)
                     try { fn(evd, control) }
                     catch(e) {
