@@ -46,8 +46,8 @@ export default class server {
         world.events.beforeChat.subscribe(triggerEvent.beforeChat)
 
         world.events.playerJoin.subscribe(({player}) => {
-            eventQueues.playerJoin.add(player)
-            triggerEvent.playerJoin(player)
+            const d = triggerEvent.playerJoin(player)
+            if (!d.break) eventQueues.playerJoin.add(player)
         })
 
         world.events.worldInitialize.subscribe((evd) => {
@@ -66,8 +66,8 @@ export default class server {
             
             // executes player join & player load event after initialization
             for (const plr of world.getPlayers()) {
-                triggerEvent.playerJoin(plr)
-                triggerEvent.playerLoad(plr)
+                const d = triggerEvent.playerJoin(plr)
+                if (!d.break) triggerEvent.playerLoad(plr)
             }
         })
     }
