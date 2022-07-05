@@ -48,7 +48,7 @@ const storage = (() => {
             // combine data
             let value = ''
             for (let i = 0; i <= len; i++) value = value.concat(list[i])
-            this.#value = value
+            this.#value = JSON.parse(`"${value}"`)
         }
     
         /** Save data identifier. */
@@ -198,6 +198,7 @@ const instance = (() => {
             if (v <= 0 && this.#autosaveInterval) {
                 this.#autosaveInterval.close()
                 this.#autosaveInterval = undefined
+                return
             }
             this.#autosaveInterval ??= new server.interval(this.save, 40000)
             this.#autosaveInterval.interval = Math.max(v, 5000)

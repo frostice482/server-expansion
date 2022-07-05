@@ -254,7 +254,7 @@ class plugin {
         if (this.isExecuted) return this.#moduleCache
 
         if (this.id in importData) {
-            if (caller.pluginParent.pluginStack.includes(this)) {
+            if (caller && caller.pluginParent.pluginStack.includes(this)) {
                 this.dependents.delete(caller.pluginParent.plugin)
                 throw importError( new ReferenceError(`Circular import detected (importing '${this.id}' from '${caller.id}' in '${caller.pluginParent.id}')`), caller )
             }
