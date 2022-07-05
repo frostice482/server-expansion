@@ -45,6 +45,11 @@ Object.defineProperties(SimulatedPlayer.prototype, {
         value: function sendMsg(msg) {
             sendMsgToPlayer(this, msg)
         }
+    },
+    uid: {
+        get: function getUID() {
+            return this.scoreboard?.id ?? -1
+        }
     }
 })
 
