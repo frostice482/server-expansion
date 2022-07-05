@@ -104,4 +104,4 @@ server.ev.playerLoad.subscribe((plr) => {
         uidsb.players.set(plr, 0)
         triggerEvent.playerRegister(plr)
     }
-}, 80)
+}, 100)
