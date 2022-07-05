@@ -195,9 +195,11 @@ const instance = (() => {
         /** Autosave interval in milliseconds. Must be greater than 5 seconds. 0 for disable. */
         get autosaveInterval() { return this.#autosaveInterval?.interval ?? 0 }
         set autosaveInterval(v) {
-            if (v <= 0 && this.#autosaveInterval) {
-                this.#autosaveInterval.close()
-                this.#autosaveInterval = undefined
+            if (v <= 0) {
+                if (this.#autosaveInterval) {
+                    this.#autosaveInterval.close()
+                    this.#autosaveInterval = undefined
+                }
                 return
             }
             this.#autosaveInterval ??= new server.interval(this.save, 40000)
