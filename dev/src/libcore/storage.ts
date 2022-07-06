@@ -52,7 +52,7 @@ const storage = (() => {
         }
     
         /** Save data identifier. */
-        id: string
+        readonly id: string
 
         #value: string
         get value() { return this.#value }
@@ -94,7 +94,7 @@ const instance = (() => {
             this.#id = id
             this.#execId = JSON.stringify(this.id)
 
-            let saveInfo = this.#saveInfo = storage.for(id)
+            this.#saveInfo = storage.for(id)
 
             this.save = () => {
                 const t0 = Date.now()
@@ -102,7 +102,7 @@ const instance = (() => {
                 const saveData: any = {}
                 const d = triggerEvent.save(saveData)
                 
-                const stringed = saveInfo.value = JSON.stringify(saveData)
+                const stringed = this.#saveInfo.value = JSON.stringify(saveData)
                 if (!d.break) triggerEvent.postSave({
                     data: saveData,
                     stringed: stringed,
@@ -118,9 +118,9 @@ const instance = (() => {
             this.load = () => {
                 const t0 = Date.now()
 
-                const stringed = saveInfo.value
+                const stringed = this.#saveInfo.value
 
-                const saveData: any = JSON.parse(saveInfo.value)
+                const saveData: any = JSON.parse(stringed)
                 const d = triggerEvent.load(saveData)
 
                 if (!d.break) triggerEvent.postLoad({
@@ -136,8 +136,8 @@ const instance = (() => {
                 }
             }
             this.delete = () => {
-                if (!saveInfo.value) return false
-                saveInfo.value = undefined
+                if (!this.#saveInfo.value) return false
+                this.#saveInfo.value = undefined
                 return true
             }
             
@@ -145,7 +145,7 @@ const instance = (() => {
             this.ev = this.events = events
 
             server.nextTick.then(() => {
-                if (this.autoload && saveInfo.value) this.load()
+                if (this.autoload && this.#saveInfo.value) this.load()
             })
         }
 
@@ -154,7 +154,7 @@ const instance = (() => {
         get id() { return this.#id }
         set id(v) {
             this.#id = v
-            this.#saveInfo.id = v
+            this.#saveInfo = storage.for(v)
             this.#execId = JSON.stringify(v)
         }
 
@@ -243,7 +243,9 @@ const instanceDefault = (() => {
             constructor(id: string) {
                 super(id)
 
-                this.autosaveInterval = 30000
+                this.autosaveInterval = 0
+                this.autoload = false
+
                 this.ev.save.subscribe(function baseSave (data) {
                     data.saveInfo = {
                         version: curVer
@@ -286,6 +288,9 @@ const instanceDefault = (() => {
                     const newId = randomstr(10)
                     this.id = `STR:${ world.getDynamicProperty('STR:id') ?? ( world.setDynamicProperty('STR:id', newId), newId ) }`
                     this.#uniqueID = world.getDynamicProperty('STR:id') as string
+
+                    this.autosaveInterval = 30000
+                    this.load()
                 })
             }
 
