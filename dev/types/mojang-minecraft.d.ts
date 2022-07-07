@@ -307,7 +307,7 @@ declare module 'mojang-minecraft' {
         protected constructor();
     }
     // tslint:disable-next-line:no-unnecessary-class
-    export type BlockPropertyValues = Omit<typeof BlockProperties, 'prototype'>
+    export type BlockPropertyValues = Exclude<typeof BlockProperties[keyof typeof BlockProperties], 'prototype'>
     export class BlockProperties {
         static readonly 'active' = 'active';
         static readonly 'age' = 'age';
