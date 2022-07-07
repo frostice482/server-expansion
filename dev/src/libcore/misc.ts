@@ -144,7 +144,7 @@ export const viewObj = (() => {
                     exclude[k] = 0 //!
                     out.push(`${nTab}${tabSeparator}${formatKey(k)}: ${execNext(k)}`)
                 }
-                for (let i = 0; i < o.length; i++) if (i in o && !(i in exclude)) out.push(`${nTab}${tabSeparator}${i} §7[F]§r : ${execNext(i)}`) //!
+                for (let i = 0; i < o.length; i++) if (i in o && !(i in exclude)) out.push(`${nTab}${tabSeparator}${i} §7[F]§r : ${execNext(o[i])}`) //!
                 out.push(`${cTab}${tabSeparator}]`)
 
                 return out.join('\n')
