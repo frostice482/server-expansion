@@ -20,9 +20,9 @@ export default class Area {
         const [xa, ya, za] = this.#from,
             [xb, yb, zb] = this.#to
         return [
-            xb - xa + 1,
-            yb - ya + 1,
-            zb - za + 1,
+            xb - xa,
+            yb - ya,
+            zb - za,
         ]
     }
 
@@ -104,12 +104,12 @@ export default class Area {
             const [xa, ya, za] = t.#from,
                 [xb, yb, zb] = t.#to,
                 [xs, ys, zs] = size
-            for (let x = xa; x <= xb; x += xs) {
-                const xm = Math.min(x + xs - 1, xb)
-                for (let y = ya; y <= yb; y += ys) {
-                    const ym = Math.min(y + ys - 1, yb)
-                    for (let z = za; z <= zb; z += zs) {
-                        const zm = Math.min(z + zs - 1, zb)
+            for (let x = xa; x < xb; x += xs) {
+                const xm = Math.min(x + xs - 1, xb - 1)
+                for (let y = ya; y < yb; y += ys) {
+                    const ym = Math.min(y + ys - 1, yb - 1)
+                    for (let z = za; z < zb; z += zs) {
+                        const zm = Math.min(z + zs - 1, zb - 1)
                         yield {
                             from: [x, y, z] as locationArray,
                             to: [xm, ym, zm] as locationArray
