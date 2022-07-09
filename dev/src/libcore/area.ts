@@ -78,9 +78,9 @@ export default class Area {
             [xb, yb, zb] = this.#to,
             [x, y, z] = loc
         return [
-            x <= xa ? xa - x : x >= xb ? x - xb : 0,
-            y <= ya ? ya - y : y >= yb ? y - yb : 0,
-            z <= za ? za - z : z >= zb ? z - zb : 0
+            x <= xa ? xa - x : x >= xb ? xb - x : 0,
+            y <= ya ? ya - y : y >= yb ? yb - y : 0,
+            z <= za ? za - z : z >= zb ? zb - z : 0
         ] as locationArray
     }
 
