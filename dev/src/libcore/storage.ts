@@ -48,7 +48,7 @@ const storage = (() => {
             // combine data
             let value = ''
             for (let i = 0; i <= len; i++) value = value.concat(list[i])
-            this.#value = JSON.parse(`"${value}"`)
+            this.#value = value
         }
     
         /** Save data identifier. */

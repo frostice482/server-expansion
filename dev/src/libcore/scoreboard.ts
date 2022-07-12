@@ -231,7 +231,7 @@ class dummies {
         return function* () {
             for (const { participant, score } of t.#data.getScores())
                 if (participant.type == ScoreboardIdentityType.fakePlayer)
-                    yield [participant.displayName, score] as [displayName: string, score: number]
+                    yield [JSON.parse(`"${participant.displayName}"`), score] as [displayName: string, score: number]
         }
     })()
 }
