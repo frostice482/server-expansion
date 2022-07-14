@@ -741,7 +741,7 @@ class parser {
             readonly execute = (() => {
                 const t = this
                 return function* (source: Player | Dimension = dim.o) {
-                    if (t.#plrCache !== undefined) return yield t.#plrCache
+                    if (t.#plrCache) return yield t.#plrCache
     
                     const nameList: Record<string, 0> = empty()
                     for (const v of execCmd(`testfor ${t.#selector}`, source, true).victim ?? []) nameList[v] = 0
